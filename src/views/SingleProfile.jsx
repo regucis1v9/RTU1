@@ -188,6 +188,7 @@ export default function SingleProfile() {
                     <Table.Th ta="center" onClick={toggleUnitsForAll}>T-min</Table.Th>
                     <Table.Th ta="center" onClick={toggleUnitsForAll}>T-max</Table.Th>
                     <Table.Th ta="center">Laiks</Table.Th>
+                    <Table.Th ta="center">Rindu darbības</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>{rows}</Table.Tbody>
