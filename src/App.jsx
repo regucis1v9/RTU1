@@ -1,7 +1,8 @@
+import { Button } from "@mantine/core";
 export default function App() {
   return (
     <div >
-      cau
+      <Button>??</Button>
     </div>
   );
 }
