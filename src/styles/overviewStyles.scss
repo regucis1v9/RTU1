@@ -1,0 +1,563 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+
+$lblack: #292929;
+$black: #000000;
+$white: #e3e1e1;
+$dwhite: #bcbcbc;
+$blue: #1771cb;
+$red: #ca0b0b;
+
+*{
+    margin: 0;
+    padding: 0;
+    font-family: "Open Sans", sans-serif;
+}
+
+.mainCont{
+    width: 100vw;
+    height: 100vh;
+    background-color: $lblack;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.chartContainer{
+    width: 90%;
+    height: 50%;
+    display: flex;
+    margin: 10px auto;
+}
+.settingsContainer{
+    width: 27%;
+    height: 45%;
+    margin: auto;
+    display: flex;
+    flex-wrap: wrap;
+
+}
+.shelfContainer{
+    width: 35%;
+    height: 45%;
+    margin: auto;
+    display: flex;
+    flex-wrap: wrap;
+}
+.extraContainer{
+    width: 20%;
+    height: 45%;
+    margin: auto;
+    display: flex;
+    flex-wrap: wrap;
+}
+.chart {
+    width: 100%;
+    height: 100%;
+    background: #181818;
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .chart .svg-container {
+    flex-grow: 1;
+    position: relative;
+    width: 100%;
+
+  }
+  
+  .chart svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    inset: 0;
+  }
+  
+  .chart .button-container {
+    display: flex;
+    justify-content: space-between;
+    height: 40px;
+    width: 60%;
+    margin: auto;
+  }
+  
+  .chart button {
+    width: 12%;
+    border-radius: 4px;
+    background-color: #1771cb;
+    color: #e3e1e1;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .chart button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease-out, height 0.6s ease-out;
+  }
+  
+  .chart button:hover {
+    background-color: #1259a1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  
+  .chart button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .chart button.active {
+    background-color: #0d4075;
+    animation: pulse 2s infinite;
+  }
+  
+  /* Custom time input styles */
+  .custom-time-form {
+    width: 12%;
+    position: relative;
+  }
+  
+  .chart input {
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    background-color: #1771cb;
+    color: #e3e1e1;
+    font-weight: 500;
+    border: none;
+    padding: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-align: center;
+  }
+  
+  .chart input::placeholder {
+    color: rgba(227, 225, 225, 0.7);
+  }
+  
+  .chart input:focus {
+    outline: none;
+    background-color: #1259a1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .chart input.active {
+    background-color: #0d4075;
+    animation: pulse 2s infinite;
+  }
+  
+  /* Shared pulse animation */
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(23, 113, 203, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 6px rgba(23, 113, 203, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(23, 113, 203, 0);
+    }
+  }
+  
+  .chart button span {
+    display: inline-block;
+    transition: transform 0.3s ease;
+  }
+  
+  .chart button:hover span {
+    transform: scale(1.1);
+  }
+
+  .settings-box {
+    width: 80%;
+    height: 40%;
+    display: flex;
+    flex-wrap: wrap;
+    background-color: #181818;
+    border-radius: 12px;
+    color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    margin: 10px auto;
+  }
+  
+  .settings-box h1 {
+    width: 100%;
+    font-size: 16px;
+    margin-top: 5px;
+    font-weight: bold;
+    font-weight: 500;
+    color: white;
+    text-align: center;
+  }
+  
+  .setting-item {
+    display: flex;
+    width: 60%;
+    margin: auto;
+    justify-content: space-between;
+    align-items: center;
+
+  
+    .mantine-Switch-root {
+        cursor: pointer;
+      .mantine-Switch-input {
+        &:checked {
+            cursor: pointer;
+          background-color: #1E90FF; // Blue when on
+        }
+  
+        &:not(:checked) {
+            cursor: pointer;
+          background-color: #514f4f; // Grey when off
+        }
+      }
+  
+      .mantine-Switch-thumb {
+        cursor: pointer;
+        background-color: white; // White thumb color
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+  
+
+  .chart-settings-box {
+    width: 90%;
+    margin: auto;
+    height: 50%;
+    background-color: #1d1d1d; // Dark background color for the box
+    border-radius: 12px;
+    color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    display: flex;
+  }
+  
+  .chart-settings-box h1 {
+    font-size: 16px;
+    font-weight: 500;
+    color: white;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+  }
+  
+  .button-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: auto;
+    height: 80%;
+    margin: auto;
+  }
+  
+  .chart-button {
+    width: 90%;
+    height: 100%;
+    margin: auto;
+    background-color: #6c757d; // Default grey color for inactive buttons
+    color: white;
+    font-weight: 500;
+    font-size: 14px;
+    border: none;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+  
+    &:hover {
+      background-color: #5a6268; // Slightly darker grey on hover
+    }
+  
+    &.active {
+      background-color: #1E90FF; // Blue color for active button
+    }
+  }
+  
+
+
+
+  .temp-monitor {
+    background: #1a1a1a;
+    border-radius: 24px;
+    padding: 1.5rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    
+    .shelf-card {
+      background: #242424;
+      border-radius: 16px;
+      height: 30%;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: #2a2a2a;
+        transform: translateX(4px);
+        
+        .wave {
+          animation-play-state: running;
+        }
+      }
+      
+      .shelf-info {
+        flex: 1;
+        
+        .shelf-header {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          margin-bottom: 0.5rem;
+          
+          .shelf-id {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+          }
+          
+          .shelf-label {
+            color: #999;
+            font-size: 0.875rem;
+          }
+        }
+        
+        .temp-display {
+          .temp-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+          }
+        }
+      }
+      
+      .visual-indicators {
+        width: 140px;
+        
+        .temp-waves {
+          height: 48px;
+          border-radius: 12px;
+          position: relative;
+          overflow: hidden;
+          
+          .wave {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 24px;
+            width: 100%;
+            border-radius: 12px;
+            animation: pulseWave 2s infinite ease-out paused;
+          }
+        }
+      }
+    }
+  }
+  
+  @keyframes pulseWave {
+    0% {
+      transform: translateY(-50%) scaleX(0.9);
+      opacity: 1;
+    }
+    
+    100% {
+      transform: translateY(-50%) scaleX(1);
+      opacity: 0.3;
+    }
+  }
+  
+  // Add some subtle hover effects for the cards
+  .shelf-card:hover {
+    .temp-value {
+      transform: scale(1.05);
+      transition: transform 0.3s ease;
+    }
+  }
+
+
+
+
+//   added
+
+// Modern component variables
+$background-dark: #1a1a1a;
+$background-darker: #141414;
+$accent-blue: #3b82f6;
+$accent-blue-hover: #2563eb;
+$text-primary: #f3f4f6;
+$text-secondary: #9ca3af;
+$border-radius-lg: 16px;
+$border-radius-md: 12px;
+$transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+// Settings Box Styles
+.settings-box {
+  width: 80%;
+  height: 45%;
+  background-color: $background-dark;
+  border-radius: $border-radius-lg;
+  color: $text-primary;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  margin: 10px auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba($accent-blue, 0.3), transparent);
+  }
+
+  .setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: $background-darker;
+    border-radius: $border-radius-md;
+    transition: $transition-smooth;
+    
+    &:hover {
+      background: lighten($background-darker, 3%);
+    }
+
+    .mantine-Text-root {
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      color: $text-primary;
+    }
+
+    .mantine-Switch-root {
+      .mantine-Switch-track {
+        background-color: rgba($text-secondary, 0.2);
+        border: 2px solid rgba($text-secondary, 0.1);
+        height: 24px;
+        width: 44px;
+        transition: $transition-smooth;
+      }
+
+      .mantine-Switch-thumb {
+        background-color: $text-primary;
+        border: 2px solid transparent;
+        width: 20px;
+        height: 20px;
+        transition: $transition-smooth;
+      }
+
+      input:checked + .mantine-Switch-track {
+        background-color: $accent-blue;
+        border-color: rgba($accent-blue, 0.5);
+      }
+    }
+  }
+}
+
+// Chart Settings Styles
+.chart-settings-box {
+  width: 90%;
+  height: 50%;
+  background-color: $background-dark;
+  border-radius: $border-radius-lg;
+  color: $text-primary;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  padding: 1.5rem;
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba($accent-blue, 0.3), transparent);
+  }
+
+  .button-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    height: 100%;
+    padding: 0.5rem;
+  }
+
+  .chart-button {
+    background-color: $background-darker;
+    color: $text-secondary;
+    border: 1px solid rgba($text-secondary, 0.1);
+    border-radius: $border-radius-md;
+    font-weight: 500;
+    font-size: 0.875rem;
+    width: 90%;
+    height: 100%;
+
+    transition: $transition-smooth;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, transparent, rgba($accent-blue, 0.1), transparent);
+      transform: translateX(-100%);
+      transition: $transition-smooth;
+    }
+
+    &:hover {
+      background-color: lighten($background-darker, 3%);
+      transform: translateY(-2px);
+      
+      &::before {
+        transform: translateX(100%);
+      }
+    }
+
+    &.active {
+      background-color: $accent-blue;
+      color: $text-primary;
+      border-color: rgba($accent-blue, 0.5);
+      box-shadow: 0 4px 12px rgba($accent-blue, 0.2);
+
+      &:hover {
+        background-color: $accent-blue-hover;
+      }
+    }
+  }
+}
