@@ -1,11 +1,11 @@
-import { AppShell, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput } from '@mantine/core';
+import { AppShell, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select } from '@mantine/core';
 import { useState } from 'react';
-import { IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled } from '@tabler/icons-react';
+import { IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage } from '@tabler/icons-react';
 import { useElementSize } from '@mantine/hooks';
 import classes from "../styles/Table.module.css";
+import dropdown from "../styles/Dropdown.module.css"
 import cx from 'clsx';
 
-// Conversion functions
 const toFahrenheit = (celsius) => (celsius * 9/5) + 32;
 const toKelvin = (celsius) => celsius + 273.15;
 const fromFahrenheitToCelsius = (fahrenheit) => (fahrenheit - 32) * 5/9;
@@ -17,17 +17,22 @@ export default function SingleProfile() {
   const [data, setData] = useState([{
     step: 1, tMin: 0, tMax: 0, time: 1, tMinUnit: 'C', tMaxUnit: 'C'
   }]);
-  const [temperatureUnit, setTemperatureUnit] = useState('C'); // Global state for temperature unit
+  const [temperatureUnit, setTemperatureUnit] = useState('C');
+  const [language, setLanguage] = useState('Latviešu'); 
 
-  // Function to add a new row with the current unit state
+  const handleLanguageChange = (value) => {
+    setLanguage(value);
+    localStorage.setItem('lang', value)
+  };
+
   const addRow = (index, position) => {
     const newRow = { 
       step: data.length + 1, 
       tMin: 0, 
       tMax: 0, 
       time: 1, 
-      tMinUnit: temperatureUnit, // Use global temperature unit
-      tMaxUnit: temperatureUnit  // Use global temperature unit
+      tMinUnit: temperatureUnit, 
+      tMaxUnit: temperatureUnit 
     };
   
     const newData = [...data];
@@ -37,9 +42,8 @@ export default function SingleProfile() {
       newData.splice(index + 1, 0, newRow);
     }
   
-    // Update step numbers after inserting
     newData.forEach((row, i) => (row.step = i + 1));
-    setData(newData); // Update the state with the new row
+    setData(newData); 
   };
   
   const removeRow = (index) => {
@@ -50,14 +54,12 @@ export default function SingleProfile() {
     }
   };
 
-  // Function to update a specific row value
   const updateRow = (index, field, value) => {
     const updatedData = [...data];
     updatedData[index][field] = value;
     setData(updatedData);
   };
 
-  // Function to convert temperatures based on the global unit
   const convertTemperature = (value, fromUnit, toUnit) => {
     if (fromUnit === toUnit) return value;
     if (fromUnit === 'C' && toUnit === 'F') return toFahrenheit(value);
@@ -68,14 +70,12 @@ export default function SingleProfile() {
     if (fromUnit === 'K' && toUnit === 'F') return toFahrenheit(fromKelvinToCelsius(value));
   };
 
-  // Function to toggle the temperature unit globally
   const toggleUnitsForAll = () => {
-    const newUnit = temperatureUnit === 'C' ? 'F' : temperatureUnit === 'F' ? 'K' : 'C'; // Toggle through C -> F -> K -> C
+    const newUnit = temperatureUnit === 'C' ? 'F' : temperatureUnit === 'F' ? 'K' : 'C';
     setTemperatureUnit(newUnit);
 
     const updatedData = data.map(row => {
       const newRow = { ...row };
-      // Apply unit conversion for both tMin and tMax
       newRow.tMinUnit = newUnit;
       newRow.tMaxUnit = newUnit;
       newRow.tMin = convertTemperature(newRow.tMin, row.tMinUnit, newUnit);
@@ -84,21 +84,18 @@ export default function SingleProfile() {
       return newRow;
     });
 
-    setData(updatedData); // Update the data with new units
+    setData(updatedData); 
   };
 
-  // Format total program time
   const formatTimeDuration = (totalMinutes) => {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     return hours > 0 ? `${hours}h ${minutes} min` : `${minutes} min`;
   };
 
-  // Calculate total program time
   const totalProgramTime = data.reduce((total, row) => total + row.time, 0);
   const formattedProgramTime = formatTimeDuration(totalProgramTime);
 
-  // Generate rows based on data
   const rows = data.map((row, index) => (
     <Table.Tr key={row.step}>
       <Table.Td ta='center'>{row.step}</Table.Td>
@@ -157,9 +154,18 @@ export default function SingleProfile() {
             <Button color="black" variant="transparent" leftSection={<IconHomeFilled/>} >SĀKUMS</Button>
             <Button color="black" variant="transparent" leftSection={<IconChartSankey/>}>GRAFIKI</Button>
           </Group>
-          <Button variant="transparent" color='black'>
-            <IconX size={0} />
-          </Button>
+          <Select
+            leftSection={<IconLanguage size={26}/>}
+            variant='unstyled'
+            allowDeselect={false}
+            value={language}
+            onChange={handleLanguageChange}
+            placeholder="Select placeholder"
+            data={['Latviešu', 'English']}
+            classNames={dropdown}
+            checkIconPosition='right'
+            comboboxProps={{ position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0, transitionProps: { transition: 'pop', duration: 200 }  }}
+         />
         </Flex>
       </AppShell.Header>
       <AppShell.Main ref={ref}>
