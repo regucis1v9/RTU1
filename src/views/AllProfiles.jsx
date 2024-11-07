@@ -134,7 +134,7 @@ const AllProfiles = () => {
     setLanguage(value);
     localStorage.setItem('lang', value);
   };
-
+  
   return (
     <AppShell withBorder={false} header={{ height: 60 }}>
       <AppShell.Header p={12}>
@@ -239,7 +239,7 @@ const AllProfiles = () => {
         </Flex>
       </AppShell.Main>
     </AppShell>
-  );
+    );
 };
 
 export default AllProfiles;
