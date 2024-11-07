@@ -1,11 +1,13 @@
-import { AppShell, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput } from '@mantine/core';
+import { AppShell, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select } from '@mantine/core';
 import { useState } from 'react';
-import { IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled } from '@tabler/icons-react';
+import { IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage } from '@tabler/icons-react';
 import { useElementSize } from '@mantine/hooks';
+import translations from '../locales/translations';
 import classes from "../styles/Table.module.css";
+import dropdown from "../styles/Dropdown.module.css";
 import cx from 'clsx';
+import { Link } from 'react-router-dom';
 
-// Conversion functions
 const toFahrenheit = (celsius) => (celsius * 9/5) + 32;
 const toKelvin = (celsius) => celsius + 273.15;
 const fromFahrenheitToCelsius = (fahrenheit) => (fahrenheit - 32) * 5/9;
@@ -17,29 +19,33 @@ export default function SingleProfile() {
   const [data, setData] = useState([{
     step: 1, tMin: 0, tMax: 0, time: 1, tMinUnit: 'C', tMaxUnit: 'C'
   }]);
-  const [temperatureUnit, setTemperatureUnit] = useState('C'); // Global state for temperature unit
+  const [temperatureUnit, setTemperatureUnit] = useState('C');
+  const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
+  const t = translations[language] || translations['Latviešu']; 
 
-  // Function to add a new row with the current unit state
+
+  const handleLanguageChange = (value) => {
+    setLanguage(value);
+    localStorage.setItem('lang', value);
+  };
+
   const addRow = (index, position) => {
     const newRow = { 
       step: data.length + 1, 
       tMin: 0, 
       tMax: 0, 
       time: 1, 
-      tMinUnit: temperatureUnit, // Use global temperature unit
-      tMaxUnit: temperatureUnit  // Use global temperature unit
+      tMinUnit: temperatureUnit, 
+      tMaxUnit: temperatureUnit 
     };
-  
     const newData = [...data];
     if (position === 'above') {
       newData.splice(index, 0, newRow);
     } else if (position === 'below') {
       newData.splice(index + 1, 0, newRow);
     }
-  
-    // Update step numbers after inserting
     newData.forEach((row, i) => (row.step = i + 1));
-    setData(newData); // Update the state with the new row
+    setData(newData); 
   };
   
   const removeRow = (index) => {
@@ -50,14 +56,12 @@ export default function SingleProfile() {
     }
   };
 
-  // Function to update a specific row value
   const updateRow = (index, field, value) => {
     const updatedData = [...data];
     updatedData[index][field] = value;
     setData(updatedData);
   };
 
-  // Function to convert temperatures based on the global unit
   const convertTemperature = (value, fromUnit, toUnit) => {
     if (fromUnit === toUnit) return value;
     if (fromUnit === 'C' && toUnit === 'F') return toFahrenheit(value);
@@ -68,37 +72,29 @@ export default function SingleProfile() {
     if (fromUnit === 'K' && toUnit === 'F') return toFahrenheit(fromKelvinToCelsius(value));
   };
 
-  // Function to toggle the temperature unit globally
   const toggleUnitsForAll = () => {
-    const newUnit = temperatureUnit === 'C' ? 'F' : temperatureUnit === 'F' ? 'K' : 'C'; // Toggle through C -> F -> K -> C
+    const newUnit = temperatureUnit === 'C' ? 'F' : temperatureUnit === 'F' ? 'K' : 'C';
     setTemperatureUnit(newUnit);
-
     const updatedData = data.map(row => {
       const newRow = { ...row };
-      // Apply unit conversion for both tMin and tMax
       newRow.tMinUnit = newUnit;
       newRow.tMaxUnit = newUnit;
       newRow.tMin = convertTemperature(newRow.tMin, row.tMinUnit, newUnit);
       newRow.tMax = convertTemperature(newRow.tMax, row.tMaxUnit, newUnit);
-
       return newRow;
     });
-
-    setData(updatedData); // Update the data with new units
+    setData(updatedData); 
   };
 
-  // Format total program time
   const formatTimeDuration = (totalMinutes) => {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     return hours > 0 ? `${hours}h ${minutes} min` : `${minutes} min`;
   };
 
-  // Calculate total program time
   const totalProgramTime = data.reduce((total, row) => total + row.time, 0);
   const formattedProgramTime = formatTimeDuration(totalProgramTime);
 
-  // Generate rows based on data
   const rows = data.map((row, index) => (
     <Table.Tr key={row.step}>
       <Table.Td ta='center'>{row.step}</Table.Td>
@@ -150,16 +146,29 @@ export default function SingleProfile() {
     <AppShell withBorder={false} header={{ height: 60 }}>
       <AppShell.Header p={12}>
         <Flex align="center" justify="space-between" w="100%">
-          <Button variant="transparent" color='black'>
-            <IconArrowLeft stroke={3}></IconArrowLeft>
-          </Button>
+            <Link to="/">
+                <Button variant="transparent" color='black'>
+                    <IconArrowLeft stroke={3}></IconArrowLeft>
+                </Button>
+            </Link>
           <Group>
-            <Button color="black" variant="transparent" leftSection={<IconHomeFilled/>} >SĀKUMS</Button>
-            <Button color="black" variant="transparent" leftSection={<IconChartSankey/>}>GRAFIKI</Button>
+            <Link to="/">
+                <Button color="black" variant="transparent" leftSection={<IconHomeFilled />}>{t.home}</Button>
+            </Link>
+            <Link to="overview">
+                <Button color="black" variant="transparent" leftSection={<IconChartSankey />}>{t.graphs}</Button>
+            </Link>
           </Group>
-          <Button variant="transparent" color='black'>
-            <IconX size={0} />
-          </Button>
+          <Select
+            leftSection={<IconLanguage size={26} />}
+            variant='unstyled'
+            allowDeselect={false}
+            value={language}
+            onChange={handleLanguageChange}
+            data={['Latviešu', 'English']}
+            classNames={dropdown}
+            comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 } }
+          />
         </Flex>
       </AppShell.Header>
       <AppShell.Main ref={ref}>
@@ -171,35 +180,35 @@ export default function SingleProfile() {
           align="center"
           direction="column"
         >
-        <Group w={width*0.8} justify='space-between'> 
-            <Input.Wrapper label="Programmas nosaukums" withAsterisk >
-                <Input placeholder="..." variant='filled'/>
+          <Group w={width * 0.8} justify='space-between'>
+            <Input.Wrapper label={t.programName} withAsterisk>
+              <Input placeholder="..." variant='filled' />
             </Input.Wrapper>
             <Group>
-                <Button rightSection={ <IconX size={16}/> } color='red'>ATCELT IZMAIŅAS</Button>
-                <Button rightSection={ <IconCheck size={16}/> }>SAGLABĀT IZMAIŅAS</Button>
+              <Button rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>
+              <Button rightSection={<IconCheck size={16} />}>{t.saveChanges}</Button>
             </Group>
-        </Group>
-        <ScrollArea h={height*0.7} w={width*0.8} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
+          </Group>
+          <ScrollArea h={height * 0.7} w={width * 0.8} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
             <Table miw={700}>
-                <Table.Thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
-                  <Table.Tr>
-                    <Table.Th ta="center">Solis</Table.Th>
-                    <Table.Th ta="center" onClick={toggleUnitsForAll}>T-min</Table.Th>
-                    <Table.Th ta="center" onClick={toggleUnitsForAll}>T-max</Table.Th>
-                    <Table.Th ta="center">Laiks</Table.Th>
-                    <Table.Th ta="center">Rindu darbības</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>{rows}</Table.Tbody>
+              <Table.Thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
+                <Table.Tr>
+                  <Table.Th ta="center">{t.step}</Table.Th>
+                  <Table.Th ta="center" onClick={toggleUnitsForAll}>{t.tMin}</Table.Th>
+                  <Table.Th ta="center" onClick={toggleUnitsForAll}>{t.tMax}</Table.Th>
+                  <Table.Th ta="center">{t.time}</Table.Th>
+                  <Table.Th ta="center">{t.rowActions}</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>{rows}</Table.Tbody>
             </Table>
-        </ScrollArea>
-        <Group w={width*0.8} justify='space-between'> 
-            <Text pl={20}>Paredzamais programmas laiks: {formattedProgramTime}</Text>
-            <Button rightSection={ <IconPlayerPlayFilled size={16}/> }>SĀKT PROGRAMMU</Button>
-        </Group>
+          </ScrollArea>
+          <Group w={width * 0.8} justify='space-between'>
+            <Text>{t.totalProgramTime} {formattedProgramTime}</Text>
+            <Button rightSection={<IconPlayerPlayFilled size={20} />}>{t.startProgram}</Button>
+          </Group>
         </Flex>
       </AppShell.Main>
     </AppShell>
   );
-} 
+}

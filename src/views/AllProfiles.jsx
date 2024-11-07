@@ -1,10 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Pagination } from "@mantine/core";
-import { IconSearch, IconExternalLink, IconTrashXFilled } from "@tabler/icons-react";
 import { Link } from 'react-router-dom';
+import { IconSearch, IconExternalLink, IconTrashXFilled, IconLanguage } from '@tabler/icons-react';
 import "../styles/AllProfiles.css";
+import { AppShell, Pagination, Flex, Select } from '@mantine/core';
+import { useElementSize } from '@mantine/hooks';
+import translations from '../locales/translations';
+import dropdown from "../styles/Dropdown.module.css";
 
-const RESULTS_PER_PAGE = 6;
+const PROJECTS_DATA = [
+  { id: 1, name: "SU 72h" },
+  { id: 2, name: "AU 72h" },
+  { id: 3, name: "BU 72h" },
+  { id: 4, name: "DU 72h" },
+  { id: 5, name: "HU 72h" },
+  { id: 6, name: "NU 72h" },
+  { id: 7, name: "RU 72h" },
+  { id: 8, name: "PU 72h" },
+];
+
+const RESULTS_PER_PAGE = 5;
 
 const AllProfiles = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -12,6 +26,9 @@ const AllProfiles = () => {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [projectName, setProjectName] = useState("");
+  const { ref, width, height } = useElementSize();
+  const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
+  const t = translations[language] || translations['Latviešu']; 
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -42,22 +59,11 @@ const AllProfiles = () => {
   const endIndex = startIndex + RESULTS_PER_PAGE;
   const displayItems = filteredProjects.slice(startIndex, endIndex);
 
-  // Function to create CSV data from project
   const createCsvData = () => {
-    // Create header row
     const headers = ['Project Name', 'Creation Date'];
-    
-    // Create data row
     const today = new Date().toISOString().split('T')[0];
     const dataRow = [projectName, today];
-    
-    // Combine and format as CSV
-    const csvContent = [
-      headers.join(','),
-      dataRow.join(',')
-    ].join('\n');
-    
-    return csvContent;
+    return [headers.join(','), dataRow.join(',')].join('\n');
   };
 
   const saveCsvFile = async () => {
@@ -65,31 +71,24 @@ const AllProfiles = () => {
       alert('Lūdzu, ievadiet projekta nosaukumu.');
       return;
     }
-  
     setIsLoading(true);
-  
     try {
       const csvData = createCsvData();
-      
       const response = await fetch('http://localhost:5000/save-csv', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          fileName: projectName, // Ensure this matches the backend field
-          csvData: csvData,      // Match the field name with backend code
+          fileName: projectName,
+          csvData: csvData,
         }),
       });
-  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
-      const data = await response.json();
       alert('Projekts veiksmīgi izveidots!');
-      setProjectName(''); // Clear input after successful save
-      
+      setProjectName('');
     } catch (error) {
       console.error('Error:', error);
       alert('Kļūda saglabājot projektu. Lūdzu mēģiniet vēlreiz.');
@@ -97,78 +96,102 @@ const AllProfiles = () => {
       setIsLoading(false);
     }
   };
-  
+
+  const handleLanguageChange = (value) => {
+    setLanguage(value);
+    localStorage.setItem('lang', value);
+  };
+
   return (
-    <div className="app-container">
-      <div className="content-wrapper">
-        <section className="section">
-          <h1 className="section-title">IZVEIDOT JAUNU PROJEKTU</h1>
-          <div className="create-form">
-            <input 
-              className="input-field"
-              placeholder="Projekta nosaukums"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              disabled={isLoading}
-            />
-            <button 
-              className="create-button" 
-              onClick={saveCsvFile}
-              disabled={isLoading}
-            >
-              {isLoading ? 'GAIDA...' : 'IZVEIDOT'}
-            </button>
-          </div>
-        </section>
-
-        <section className="section">
-          <h1 className="section-title">MEKLĒT PROJEKTU</h1>
-          <div className="search-container">
-            <div className="search-wrapper">
+    <AppShell withBorder={false} header={{ height: 60 }}>
+      <AppShell.Header p={12}>
+        <Flex align="center" justify="flex-end" w="100%">
+          <Select
+            leftSection={<IconLanguage size={26} />}
+            variant='unstyled'
+            allowDeselect={false}
+            value={language}
+            onChange={handleLanguageChange}
+            data={['Latviešu', 'English']}
+            classNames={dropdown}
+            comboboxProps={{
+              transitionProps: { transition: 'pop', duration: 200 },
+              position: 'bottom',
+              middlewares: { flip: false, shift: false },
+              offset: 0 
+            }}
+          />
+        </Flex>
+      </AppShell.Header>
+      <AppShell.Main ref={ref}>
+        <Flex w={width} h={height} gap="md" align="center" direction="column">
+          <section className="section">
+            <h1 className="section-title">{t.createNewProject}</h1>
+            <div className="create-form">
               <input 
-                className="search-input"
-                placeholder="Projekta nosaukums"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
+                className="input-field"
+                placeholder={t.projectName}
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                disabled={isLoading}
               />
-              <IconSearch className="search-icon" size={20} />
+              <button 
+                className="create-button" 
+                onClick={saveCsvFile}
+                disabled={isLoading}
+              >
+                {isLoading ? t.loading : t.create}
+              </button>
             </div>
+          </section>
 
-            <div className="results-container">
-              {displayItems.length > 0 ? (
-                displayItems.map((project) => (
-                  <div key={project.id} className="result-item">
-                    <span className="result-text">{project.name}</span>
-                    <div className="result-actions">
-                      <Link to="/SingleProfile">
-                        <IconExternalLink className="edit-icon" size={30} />
-                      </Link>
-                      <IconTrashXFilled className="delete-icon" size={30} />
+          <section className="section">
+            <h1 className="section-title">{t.searchProject}</h1>
+            <div className="search-container">
+              <div className="search-wrapper">
+                <input 
+                  className="search-input"
+                  placeholder={t.projectName}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+                <IconSearch className="search-icon" size={20} />
+              </div>
+              <div className="results-container">
+                {displayItems.length > 0 ? (
+                  displayItems.map((project) => (
+                    <div key={project.id} className="result-item">
+                      <span className="result-text">{project.name}</span>
+                      <div className="result-actions">
+                        <Link to="/SingleProfile">
+                          <IconExternalLink className="edit-icon" size={30} />
+                        </Link>
+                        <IconTrashXFilled className="delete-icon" size={30} />
+                      </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <p className="no-results">Nav rezultātu</p>
-              )}
+                  ))
+                ) : (
+                  <p className="no-results">{t.noResults}</p>
+                )}
+              </div>
+              <div className="pagination-wrapper">
+                <Pagination 
+                  total={totalPages}
+                  color="blue"
+                  radius="md"
+                  value={currentPage}
+                  onChange={setCurrentPage}
+                  siblings={2}
+                />
+              </div>
             </div>
-
-            <div className="pagination-wrapper">
-              <Pagination 
-                total={totalPages}
-                color="blue"
-                radius="md"
-                value={currentPage}
-                onChange={setCurrentPage}
-                siblings={2}
-              />
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
+          </section>
+        </Flex>
+      </AppShell.Main>
+    </AppShell>
   );
 };
 
