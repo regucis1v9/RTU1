@@ -55,7 +55,7 @@ app.post('/save-csv', (req, res) => {
   const filePath = path.join(PROJECTS_DIR, `${fileName}-${formattedDate}.csv`);
   fs.writeFile(filePath, csvData, 'utf8', (err) => {
     if (err) {
-      console.error('Error saving the file:', err);
+      console.error('Error saving the CSV file:', err);
       return res.status(500).json({ message: 'Error saving the CSV file' });
     }
     res.json({ message: 'CSV file saved successfully', filePath });
