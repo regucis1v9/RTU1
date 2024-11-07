@@ -167,6 +167,7 @@ export default function SingleProfile() {
             onChange={handleLanguageChange}
             data={['Latviešu', 'English']}
             classNames={dropdown}
+            comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 } }
           />
         </Flex>
       </AppShell.Header>

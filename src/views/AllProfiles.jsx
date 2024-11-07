@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { IconSearch, IconExternalLink, IconArrowLeft, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage } from '@tabler/icons-react';
+import { IconSearch, IconExternalLink, IconTrashXFilled, IconLanguage } from '@tabler/icons-react';
 import "../styles/AllProfiles.css";
-import { AppShell, Pagination, Flex, Button, Group, Select } from '@mantine/core';
+import { AppShell, Pagination, Flex, Select } from '@mantine/core';
 import { useElementSize } from '@mantine/hooks';
-import { Link } from 'react-router-dom';
-import dropdown from "../styles/Dropdown.module.css";
 import translations from '../locales/translations';
+import dropdown from "../styles/Dropdown.module.css";
 
 const PROJECTS_DATA = [
   { id: 1, name: "SU 72h" },
@@ -54,75 +53,69 @@ const AllProfiles = () => {
             onChange={handleLanguageChange}
             data={['Latviešu', 'English']}
             classNames={dropdown}
+            comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 } }
           />
         </Flex>
       </AppShell.Header>
-      <AppShell.Main  ref={ref}>
-      <Flex
-          w={width}
-          h={height}
-          gap="md"
-          justify=""
-          align="center"
-          direction="column"
-        >
-        <section className="section">
-          <h1 className="section-title">IZVEIDOT JAUNU PROJEKTU</h1>
-          <div className="create-form">
-            <input 
-              className="input-field"
-              placeholder="Projekta nosaukums" 
-            />
-            <button className="create-button">
-              IZVEIDOT
-            </button>
-          </div>
-        </section>
-
-        <section className="section">
-          <h1 className="section-title">MEKLĒT PROJEKTU</h1>
-          <div className="search-container">
-            <div className="search-wrapper">
+      <AppShell.Main ref={ref}>
+        <Flex w={width} h={height} gap="md" align="center" direction="column">
+          <section className="section">
+            <h1 className="section-title">{t.createNewProject}</h1>
+            <div className="create-form">
               <input 
-                className="search-input"
-                placeholder="Projekta nosaukums"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
+                className="input-field"
+                placeholder={t.projectName}
               />
-              <IconSearch className="search-icon" size={20} />
+              <button className="create-button">
+                {t.create}
+              </button>
             </div>
+          </section>
 
-            <div className="results-container">
-              {displayItems.length > 0 ? (
-                displayItems.map((project) => (
-                  <div key={project.id} className="result-item">
-                    <span className="result-text">{project.name}</span>
-                    <div className="result-actions">
-                      <IconExternalLink className="edit-icon" size={30} />
-                      <IconTrashXFilled className="delete-icon" size={30} />
+          <section className="section">
+            <h1 className="section-title">{t.searchProject}</h1>
+            <div className="search-container">
+              <div className="search-wrapper">
+                <input 
+                  className="search-input"
+                  placeholder={t.projectName}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+                <IconSearch className="search-icon" size={20} />
+              </div>
+
+              <div className="results-container">
+                {displayItems.length > 0 ? (
+                  displayItems.map((project) => (
+                    <div key={project.id} className="result-item">
+                      <span className="result-text">{project.name}</span>
+                      <div className="result-actions">
+                        <IconExternalLink className="edit-icon" size={30} />
+                        <IconTrashXFilled className="delete-icon" size={30} />
+                      </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <p className="no-results">Nav rezultātu</p>
-              )}
-            </div>
+                  ))
+                ) : (
+                  <p className="no-results">{t.noResults}</p>
+                )}
+              </div>
 
-            <div className="pagination-wrapper">
-              <Pagination 
-                total={totalPages}
-                color="blue"
-                radius="md"
-                value={currentPage}
-                onChange={setCurrentPage}
-                siblings={2}
-              />
+              <div className="pagination-wrapper">
+                <Pagination 
+                  total={totalPages}
+                  color="blue"
+                  radius="md"
+                  value={currentPage}
+                  onChange={setCurrentPage}
+                  siblings={2}
+                />
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
         </Flex>
       </AppShell.Main>
     </AppShell>

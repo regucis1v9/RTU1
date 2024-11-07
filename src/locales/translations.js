@@ -11,7 +11,12 @@ const translations = {
     time: 'Time',
     rowActions: 'Actions',
     totalProgramTime: 'Total Program Time',
-    startProgram: 'Start Program'
+    startProgram: 'Start Program',
+    createNewProject: 'Create New Project',
+    projectName: 'Project Name',
+    create: 'Create',
+    searchProject: 'Search Project',
+    noResults: 'No results found',
   },
   Latviešu: {
     home: 'Mājas',
@@ -25,7 +30,12 @@ const translations = {
     time: 'Laiks',
     rowActions: 'Darbības',
     totalProgramTime: 'Kopējais Programmas Laiks',
-    startProgram: 'Sākt Programmu'
+    startProgram: 'Sākt Programmu',
+    createNewProject: 'Izveidot Jaunu Projektu',
+    projectName: 'Projekta nosaukums',
+    create: 'Izveidot',
+    searchProject: 'Meklēt Projektu',
+    noResults: 'Nav rezultātu',
   }
 };
 
