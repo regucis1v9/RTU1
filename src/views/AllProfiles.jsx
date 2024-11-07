@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import { Pagination } from "@mantine/core";
-import { IconSearch, IconExternalLink, IconTrashXFilled } from "@tabler/icons-react";
+import { IconSearch, IconExternalLink, IconArrowLeft, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage } from '@tabler/icons-react';
 import "../styles/AllProfiles.css";
+import { AppShell, Pagination, Flex, Button, Group, Select } from '@mantine/core';
+import { useElementSize } from '@mantine/hooks';
+import { Link } from 'react-router-dom';
+import dropdown from "../styles/Dropdown.module.css";
+import translations from '../locales/translations';
 
 const PROJECTS_DATA = [
   { id: 1, name: "SU 72h" },
@@ -14,11 +18,14 @@ const PROJECTS_DATA = [
   { id: 8, name: "PU 72h" },
 ];
 
-const RESULTS_PER_PAGE = 6;
+const RESULTS_PER_PAGE = 5git;
 
 const AllProfiles = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const { ref, width, height } = useElementSize();
+  const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
+  const t = translations[language] || translations['Latviešu']; 
 
   const filteredProjects = PROJECTS_DATA.filter(project =>
     project.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -30,9 +37,35 @@ const AllProfiles = () => {
   const endIndex = startIndex + RESULTS_PER_PAGE;
   const displayItems = filteredProjects.slice(startIndex, endIndex);
 
+  const handleLanguageChange = (value) => {
+    setLanguage(value);
+    localStorage.setItem('lang', value);
+  };
+
   return (
-    <div className="app-container">
-      <div className="content-wrapper">
+    <AppShell withBorder={false} header={{ height: 60 }}>
+      <AppShell.Header p={12}>
+        <Flex align="center" justify="flex-end" w="100%">
+          <Select
+            leftSection={<IconLanguage size={26} />}
+            variant='unstyled'
+            allowDeselect={false}
+            value={language}
+            onChange={handleLanguageChange}
+            data={['Latviešu', 'English']}
+            classNames={dropdown}
+          />
+        </Flex>
+      </AppShell.Header>
+      <AppShell.Main  ref={ref}>
+      <Flex
+          w={width}
+          h={height}
+          gap="md"
+          justify=""
+          align="center"
+          direction="column"
+        >
         <section className="section">
           <h1 className="section-title">IZVEIDOT JAUNU PROJEKTU</h1>
           <div className="create-form">
@@ -90,8 +123,9 @@ const AllProfiles = () => {
             </div>
           </div>
         </section>
-      </div>
-    </div>
+        </Flex>
+      </AppShell.Main>
+    </AppShell>
   );
 };
 
