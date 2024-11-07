@@ -120,7 +120,7 @@
   flex-direction: column;
   gap: 12px;
   margin-bottom: 24px;
-  overflow: scroll;
+  overflow-y: auto;
 }
 
 .result-item {

@@ -155,7 +155,7 @@ export default function SingleProfile() {
             <Link to="/">
                 <Button color="black" variant="transparent" leftSection={<IconHomeFilled />}>{t.home}</Button>
             </Link>
-            <Link to="overview">
+            <Link to="/overview">
                 <Button color="black" variant="transparent" leftSection={<IconChartSankey />}>{t.graphs}</Button>
             </Link>
           </Group>
