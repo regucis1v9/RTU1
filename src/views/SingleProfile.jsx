@@ -2,8 +2,9 @@ import { AppShell, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberIn
 import { useState } from 'react';
 import { IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage } from '@tabler/icons-react';
 import { useElementSize } from '@mantine/hooks';
+import translations from '../locales/translations';
 import classes from "../styles/Table.module.css";
-import dropdown from "../styles/Dropdown.module.css"
+import dropdown from "../styles/Dropdown.module.css";
 import cx from 'clsx';
 
 const toFahrenheit = (celsius) => (celsius * 9/5) + 32;
@@ -18,11 +19,13 @@ export default function SingleProfile() {
     step: 1, tMin: 0, tMax: 0, time: 1, tMinUnit: 'C', tMaxUnit: 'C'
   }]);
   const [temperatureUnit, setTemperatureUnit] = useState('C');
-  const [language, setLanguage] = useState('Latviešu'); 
+  const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
+  const t = translations[language] || translations['Latviešu']; 
+
 
   const handleLanguageChange = (value) => {
     setLanguage(value);
-    localStorage.setItem('lang', value)
+    localStorage.setItem('lang', value);
   };
 
   const addRow = (index, position) => {
@@ -34,14 +37,12 @@ export default function SingleProfile() {
       tMinUnit: temperatureUnit, 
       tMaxUnit: temperatureUnit 
     };
-  
     const newData = [...data];
     if (position === 'above') {
       newData.splice(index, 0, newRow);
     } else if (position === 'below') {
       newData.splice(index + 1, 0, newRow);
     }
-  
     newData.forEach((row, i) => (row.step = i + 1));
     setData(newData); 
   };
@@ -73,17 +74,14 @@ export default function SingleProfile() {
   const toggleUnitsForAll = () => {
     const newUnit = temperatureUnit === 'C' ? 'F' : temperatureUnit === 'F' ? 'K' : 'C';
     setTemperatureUnit(newUnit);
-
     const updatedData = data.map(row => {
       const newRow = { ...row };
       newRow.tMinUnit = newUnit;
       newRow.tMaxUnit = newUnit;
       newRow.tMin = convertTemperature(newRow.tMin, row.tMinUnit, newUnit);
       newRow.tMax = convertTemperature(newRow.tMax, row.tMaxUnit, newUnit);
-
       return newRow;
     });
-
     setData(updatedData); 
   };
 
@@ -151,21 +149,18 @@ export default function SingleProfile() {
             <IconArrowLeft stroke={3}></IconArrowLeft>
           </Button>
           <Group>
-            <Button color="black" variant="transparent" leftSection={<IconHomeFilled/>} >SĀKUMS</Button>
-            <Button color="black" variant="transparent" leftSection={<IconChartSankey/>}>GRAFIKI</Button>
+            <Button color="black" variant="transparent" leftSection={<IconHomeFilled />}>{t.home}</Button>
+            <Button color="black" variant="transparent" leftSection={<IconChartSankey />}>{t.graphs}</Button>
           </Group>
           <Select
-            leftSection={<IconLanguage size={26}/>}
+            leftSection={<IconLanguage size={26} />}
             variant='unstyled'
             allowDeselect={false}
             value={language}
             onChange={handleLanguageChange}
-            placeholder="Select placeholder"
             data={['Latviešu', 'English']}
             classNames={dropdown}
-            checkIconPosition='right'
-            comboboxProps={{ position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0, transitionProps: { transition: 'pop', duration: 200 }  }}
-         />
+          />
         </Flex>
       </AppShell.Header>
       <AppShell.Main ref={ref}>
@@ -177,35 +172,35 @@ export default function SingleProfile() {
           align="center"
           direction="column"
         >
-        <Group w={width*0.8} justify='space-between'> 
-            <Input.Wrapper label="Programmas nosaukums" withAsterisk >
-                <Input placeholder="..." variant='filled'/>
+          <Group w={width * 0.8} justify='space-between'>
+            <Input.Wrapper label={t.programName} withAsterisk>
+              <Input placeholder="..." variant='filled' />
             </Input.Wrapper>
             <Group>
-                <Button rightSection={ <IconX size={16}/> } color='red'>ATCELT IZMAIŅAS</Button>
-                <Button rightSection={ <IconCheck size={16}/> }>SAGLABĀT IZMAIŅAS</Button>
+              <Button rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>
+              <Button rightSection={<IconCheck size={16} />}>{t.saveChanges}</Button>
             </Group>
-        </Group>
-        <ScrollArea h={height*0.7} w={width*0.8} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
+          </Group>
+          <ScrollArea h={height * 0.7} w={width * 0.8} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
             <Table miw={700}>
-                <Table.Thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
-                  <Table.Tr>
-                    <Table.Th ta="center">Solis</Table.Th>
-                    <Table.Th ta="center" onClick={toggleUnitsForAll}>T-min</Table.Th>
-                    <Table.Th ta="center" onClick={toggleUnitsForAll}>T-max</Table.Th>
-                    <Table.Th ta="center">Laiks</Table.Th>
-                    <Table.Th ta="center">Rindu darbības</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>{rows}</Table.Tbody>
+              <Table.Thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
+                <Table.Tr>
+                  <Table.Th ta="center">{t.step}</Table.Th>
+                  <Table.Th ta="center" onClick={toggleUnitsForAll}>{t.tMin}</Table.Th>
+                  <Table.Th ta="center" onClick={toggleUnitsForAll}>{t.tMax}</Table.Th>
+                  <Table.Th ta="center">{t.time}</Table.Th>
+                  <Table.Th ta="center">{t.rowActions}</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>{rows}</Table.Tbody>
             </Table>
-        </ScrollArea>
-        <Group w={width*0.8} justify='space-between'> 
-            <Text pl={20}>Paredzamais programmas laiks: {formattedProgramTime}</Text>
-            <Button rightSection={ <IconPlayerPlayFilled size={16}/> }>SĀKT PROGRAMMU</Button>
-        </Group>
+          </ScrollArea>
+          <Group w={width * 0.8} justify='space-between'>
+            <Text>{t.totalProgramTime} {formattedProgramTime}</Text>
+            <Button rightSection={<IconPlayerPlayFilled size={20} />}>{t.startProgram}</Button>
+          </Group>
         </Flex>
       </AppShell.Main>
     </AppShell>
   );
-} 
+}
