@@ -1,10 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Pagination } from "@mantine/core";
-import { IconSearch, IconExternalLink, IconTrashXFilled } from "@tabler/icons-react";
 import { Link } from 'react-router-dom';
+import { IconSearch, IconExternalLink, IconTrashXFilled, IconLanguage } from '@tabler/icons-react';
 import "../styles/AllProfiles.css";
+import { AppShell, Pagination, Flex, Select } from '@mantine/core';
+import { useElementSize } from '@mantine/hooks';
+import translations from '../locales/translations';
+import dropdown from "../styles/Dropdown.module.css";
 
-const RESULTS_PER_PAGE = 6;
+const PROJECTS_DATA = [
+  { id: 1, name: "SU 72h" },
+  { id: 2, name: "AU 72h" },
+  { id: 3, name: "BU 72h" },
+  { id: 4, name: "DU 72h" },
+  { id: 5, name: "HU 72h" },
+  { id: 6, name: "NU 72h" },
+  { id: 7, name: "RU 72h" },
+  { id: 8, name: "PU 72h" },
+];
+
+const RESULTS_PER_PAGE = 5;
 
 const AllProfiles = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -13,6 +27,9 @@ const AllProfiles = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [csvFile, setCsvFile] = useState(null);
+  const { ref, width, height } = useElementSize();
+  const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
+  const t = translations[language] || translations['Latviešu']; 
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -72,7 +89,7 @@ const AllProfiles = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      alert('Project successfully created!');
+      alert('Projekts veiksmīgi izveidots!');
       setProjectName('');
     } catch (error) {
       console.error('Error:', error);
@@ -113,91 +130,115 @@ const AllProfiles = () => {
     }
   };
 
+  const handleLanguageChange = (value) => {
+    setLanguage(value);
+    localStorage.setItem('lang', value);
+  };
+
   return (
-    <div className="app-container">
-      <div className="content-wrapper">
-        <section className="section">
-          <h1 className="section-title">Create a New Project</h1>
-          <div className="create-form">
-            <input 
-              className="input-field"
-              placeholder="Project Name"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              disabled={isLoading}
-            />
-            <button 
-              className="create-button" 
-              onClick={saveCsvFile}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Please wait...' : 'Create'}
-            </button>
-          </div>
-          <div 
-            className="drag-and-drop-box"
-            onDrop={handleFileDrop}
-            onDragOver={(e) => e.preventDefault()}
-          >
-            {csvFile ? (
-              <div className="file-info">
-                <p>File: {csvFile.name}</p>
-                <button onClick={handleFileUpload}>Upload CSV</button>
-              </div>
-            ) : (
-              <p>Drag and drop a CSV file here</p>
-            )}
-          </div>
-        </section>
-
-        <section className="section">
-          <h1 className="section-title">Search for Projects</h1>
-          <div className="search-container">
-            <div className="search-wrapper">
+    <AppShell withBorder={false} header={{ height: 60 }}>
+      <AppShell.Header p={12}>
+        <Flex align="center" justify="flex-end" w="100%">
+          <Select
+            leftSection={<IconLanguage size={26} />}
+            variant='unstyled'
+            allowDeselect={false}
+            value={language}
+            onChange={handleLanguageChange}
+            data={['Latviešu', 'English']}
+            classNames={dropdown}
+            comboboxProps={{
+              transitionProps: { transition: 'pop', duration: 200 },
+              position: 'bottom',
+              middlewares: { flip: false, shift: false },
+              offset: 0 
+            }}
+          />
+        </Flex>
+      </AppShell.Header>
+      <AppShell.Main ref={ref}>
+        <Flex w={width} h={height} gap="md" align="center" direction="column">
+          <section className="section">
+            <h1 className="section-title">{t.createNewProject}</h1>
+            <div className="create-form">
               <input 
-                className="search-input"
-                placeholder="Project Name"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
+                className="input-field"
+                placeholder={t.projectName}
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                disabled={isLoading}
               />
-              <IconSearch className="search-icon" size={20} />
+              <button 
+                className="create-button" 
+                onClick={saveCsvFile}
+                disabled={isLoading}
+              >
+                {isLoading ? t.loading : t.create}
+              </button>
             </div>
-
-            <div className="results-container">
-              {displayItems.length > 0 ? (
-                displayItems.map((project, index) => (
-                  <div key={index} className="result-item">
-                    <span className="result-text">{project.name}</span>
-                    <div className="result-actions">
-                      <Link to="/SingleProfile">
-                        <IconExternalLink className="edit-icon" size={30} />
-                      </Link>
-                      <IconTrashXFilled className="delete-icon" size={30} />
-                    </div>
-                  </div>
-                ))
+            <div 
+              className="drag-and-drop-box"
+              onDrop={handleFileDrop}
+              onDragOver={(e) => e.preventDefault()}
+            >
+              {csvFile ? (
+                <div className="file-info">
+                  <p>File: {csvFile.name}</p>
+                  <button onClick={handleFileUpload}>Upload CSV</button>
+                </div>
               ) : (
-                <p className="no-results">No results found</p>
+                <p>{t.dragAndDropFile}</p>
               )}
             </div>
+          </section>
 
-            <div className="pagination-wrapper">
-              <Pagination 
-                total={totalPages}
-                color="blue"
-                radius="md"
-                value={currentPage}
-                onChange={setCurrentPage}
-                siblings={2}
-              />
+          <section className="section">
+            <h1 className="section-title">{t.searchProject}</h1>
+            <div className="search-container">
+              <div className="search-wrapper">
+                <input 
+                  className="search-input"
+                  placeholder={t.projectName}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+                <IconSearch className="search-icon" size={20} />
+              </div>
+              <div className="results-container">
+                {displayItems.length > 0 ? (
+                  displayItems.map((project) => (
+                    <div key={project.id} className="result-item">
+                      <span className="result-text">{project.name}</span>
+                      <div className="result-actions">
+                        <Link to="/SingleProfile">
+                          <IconExternalLink className="edit-icon" size={30} />
+                        </Link>
+                        <IconTrashXFilled className="delete-icon" size={30} />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="no-results">{t.noResults}</p>
+                )}
+              </div>
+              <div className="pagination-wrapper">
+                <Pagination 
+                  total={totalPages}
+                  color="blue"
+                  radius="md"
+                  value={currentPage}
+                  onChange={setCurrentPage}
+                  siblings={2}
+                />
+              </div>
             </div>
-          </div>
-        </section>
-      </div>
-    </div>
+          </section>
+        </Flex>
+      </AppShell.Main>
+    </AppShell>
   );
 };
 
