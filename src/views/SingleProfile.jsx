@@ -6,6 +6,7 @@ import translations from '../locales/translations';
 import classes from "../styles/Table.module.css";
 import dropdown from "../styles/Dropdown.module.css";
 import cx from 'clsx';
+import { Link } from 'react-router-dom';
 
 const toFahrenheit = (celsius) => (celsius * 9/5) + 32;
 const toKelvin = (celsius) => celsius + 273.15;
@@ -145,12 +146,18 @@ export default function SingleProfile() {
     <AppShell withBorder={false} header={{ height: 60 }}>
       <AppShell.Header p={12}>
         <Flex align="center" justify="space-between" w="100%">
-          <Button variant="transparent" color='black'>
-            <IconArrowLeft stroke={3}></IconArrowLeft>
-          </Button>
+            <Link to="/">
+                <Button variant="transparent" color='black'>
+                    <IconArrowLeft stroke={3}></IconArrowLeft>
+                </Button>
+            </Link>
           <Group>
-            <Button color="black" variant="transparent" leftSection={<IconHomeFilled />}>{t.home}</Button>
-            <Button color="black" variant="transparent" leftSection={<IconChartSankey />}>{t.graphs}</Button>
+            <Link to="/">
+                <Button color="black" variant="transparent" leftSection={<IconHomeFilled />}>{t.home}</Button>
+            </Link>
+            <Link to="overview">
+                <Button color="black" variant="transparent" leftSection={<IconChartSankey />}>{t.graphs}</Button>
+            </Link>
           </Group>
           <Select
             leftSection={<IconLanguage size={26} />}
