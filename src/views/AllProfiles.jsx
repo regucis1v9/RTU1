@@ -26,7 +26,7 @@ const AllProfiles = () => {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [projectName, setProjectName] = useState("");
-  const { ref, width, height } = useElementSize();
+    const { ref, width, height } = useElementSize();
   const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
   const t = translations[language] || translations['Latviešu']; 
 
@@ -87,7 +87,7 @@ const AllProfiles = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      alert('Projekts veiksmīgi izveidots!');
+            alert('Projekts veiksmīgi izveidots!');
       setProjectName('');
     } catch (error) {
       console.error('Error:', error);
@@ -143,7 +143,7 @@ const AllProfiles = () => {
                 {isLoading ? t.loading : t.create}
               </button>
             </div>
-          </section>
+                      </section>
 
           <section className="section">
             <h1 className="section-title">{t.searchProject}</h1>
