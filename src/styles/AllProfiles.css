@@ -190,3 +190,60 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px white inset;
 }
+
+.drag-and-drop-box {
+  width: 100%;
+  height: 100px;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(217, 217, 217, 1);
+  border: 2px dashed #0077FF;
+  border-radius: 8px;
+  color: #666;
+  font-size: 16px;
+  text-align: center;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.drag-and-drop-box:hover {
+  background-color: rgba(227, 225, 225, 1);
+  border-color: #005bb5;
+}
+
+.drag-and-drop-box p {
+  margin: 0;
+  color: #666;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.file-info p {
+  font-weight: 500;
+  color: #333;
+}
+
+.file-info button {
+  height: 35px;
+  padding: 0 12px;
+  background-color: #0077FF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  text-transform: uppercase;
+  box-shadow: 2px 4px 5px rgba(0, 0, 0, 0.3);
+}
+
+.file-info button:hover {
+  opacity: 0.9;
+}
