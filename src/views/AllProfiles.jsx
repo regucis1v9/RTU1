@@ -18,7 +18,7 @@ const PROJECTS_DATA = [
   { id: 8, name: "PU 72h" },
 ];
 
-const RESULTS_PER_PAGE = 5git;
+const RESULTS_PER_PAGE = 5;
 
 const AllProfiles = () => {
   const [searchQuery, setSearchQuery] = useState("");
