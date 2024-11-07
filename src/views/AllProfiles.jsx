@@ -26,7 +26,8 @@ const AllProfiles = () => {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [projectName, setProjectName] = useState("");
-    const { ref, width, height } = useElementSize();
+  const [csvFile, setCsvFile] = useState(null);
+  const { ref, width, height } = useElementSize();
   const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
   const t = translations[language] || translations['Latviešu']; 
 
@@ -34,7 +35,7 @@ const AllProfiles = () => {
     const fetchProjects = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/projects');
+        const response = await fetch('http://localhost:5000/csvFiles');
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}`);
         }
@@ -68,7 +69,7 @@ const AllProfiles = () => {
 
   const saveCsvFile = async () => {
     if (!projectName.trim()) {
-      alert('Lūdzu, ievadiet projekta nosaukumu.');
+      alert('Please enter a project name.');
       return;
     }
     setIsLoading(true);
@@ -87,13 +88,45 @@ const AllProfiles = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-            alert('Projekts veiksmīgi izveidots!');
+      const data = await response.json();
+      alert('Projekts veiksmīgi izveidots!');
       setProjectName('');
     } catch (error) {
       console.error('Error:', error);
-      alert('Kļūda saglabājot projektu. Lūdzu mēģiniet vēlreiz.');
+      alert('Error saving the project. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleFileDrop = (event) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    if (file && file.type === 'text/csv') {
+      setCsvFile(file);
+    } else {
+      alert('Please upload a CSV file.');
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!csvFile) return;
+    const formData = new FormData();
+    formData.append('file', csvFile);
+    try {
+      const response = await fetch('http://localhost:5000/upload-csv', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error('Failed to upload file');
+      }
+      const data = await response.json();
+      alert('CSV file uploaded successfully');
+      setCsvFile(null);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Error uploading file');
     }
   };
 
@@ -143,7 +176,21 @@ const AllProfiles = () => {
                 {isLoading ? t.loading : t.create}
               </button>
             </div>
-                      </section>
+            <div 
+              className="drag-and-drop-box"
+              onDrop={handleFileDrop}
+              onDragOver={(e) => e.preventDefault()}
+            >
+              {csvFile ? (
+                <div className="file-info">
+                  <p>File: {csvFile.name}</p>
+                  <button onClick={handleFileUpload}>Upload CSV</button>
+                </div>
+              ) : (
+                <p>{t.dragAndDropFile}</p>
+              )}
+            </div>
+          </section>
 
           <section className="section">
             <h1 className="section-title">{t.searchProject}</h1>
