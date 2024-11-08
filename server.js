@@ -47,8 +47,7 @@ app.get('/csvFiles', (req, res) => {
       const filePath = path.join(PROJECTS_DIR, file);
       const fileStat = fs.statSync(filePath);
       const fileDate = fileStat.mtime.toISOString().split('T')[0];
-      const fileTime = fileStat.mtime.toISOString().split('T')[1].slice(0, 5); // "HH:MM" format
-      return { name: file, date: fileDate, time: fileTime };
+      return { name: file, date: fileDate};
     });
     res.json(projects);
   } catch (error) {

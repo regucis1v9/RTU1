@@ -230,9 +230,8 @@ const AllProfiles = () => {
                 {displayItems.length > 0 ? (
                   displayItems.map((project) => (
                     <div key={project.fullName} className="result-item">
-                      {/* Display file name with date, time, and numbering */}
                       <span className="result-text">
-                        {`${project.fullName} - ${project.date} ${project.time}`}
+                        {`${project.fullName}`}
                       </span>
                       <div className="result-actions">
                         <Link to="/SingleProfile">
