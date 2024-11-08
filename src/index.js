@@ -6,10 +6,12 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import AllProfiles from './views/AllProfiles';
 import Overview from './views/Overview';
 import SingleProfile from './views/SingleProfile';
+import { Notifications } from '@mantine/notifications';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <MantineProvider>
+    <Notifications />
     <Router>
       <Routes>
         <Route path="/" element={<AllProfiles />} />
