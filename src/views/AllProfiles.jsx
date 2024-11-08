@@ -223,6 +223,7 @@ const AllProfiles = () => {
                   disabled={isLoading}
                   size='xl'
                   mb={20}
+
                 />
               </Input.Wrapper>
               <Button
@@ -290,9 +291,11 @@ const AllProfiles = () => {
                         <Text color='black'>{project.name}</Text>
                       </Link>
                       <Group>
-                          <ActionIcon h={40} w={40} p={2} variant='transparent' color='black' onClick={() => deleteProject(project.id)}>
+                        <Link to="/singleProfile">
+                          <ActionIcon h={40} w={40} p={2} variant='transparent' color='black'>
                             <IconExternalLink />
                           </ActionIcon>
+                        </Link>
                         <ActionIcon h={40} w={40} p={2}  color="red" onClick={() => deleteProject(project.id)}>
                           <IconTrashXFilled />
                         </ActionIcon>
