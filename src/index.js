@@ -8,6 +8,7 @@ import Overview from './views/Overview';
 import SingleProfile from './views/SingleProfile';
 import AlertsTest from './views/AlertsTest';
 import LandingPage from './views/LandingPage';
+import TestingPage from './views/Testing';
 import { Notifications } from '@mantine/notifications';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -21,6 +22,7 @@ root.render(
         <Route path="/SingleProfile" element={<SingleProfile />} />
         <Route path="/Test" element={<AlertsTest />} />
         <Route path="/Landing" element={<LandingPage />} />
+        <Route path="/Testing" element={<TestingPage />} />
 
       </Routes>
     </Router>

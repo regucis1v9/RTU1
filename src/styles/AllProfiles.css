@@ -255,3 +255,46 @@ input:-webkit-autofill:focus {
 .file-info button:hover {
   opacity: 0.9;
 }
+
+
+
+
+/* tutorial */
+
+.tutorial-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tutorial-title {
+  font-size: 28px;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.tutorial-description {
+  font-size: 18px;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.tutorial-step {
+  margin-bottom: 20px;
+}
+
+.tutorial-step-title {
+  font-size: 20px;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.tutorial-step-description {
+  font-size: 16px;
+  color: #007BFF;
+  line-height: 1.6;
+}
