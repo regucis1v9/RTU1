@@ -176,6 +176,48 @@ const AllProfiles = () => {
     localStorage.setItem('lang', value);
   };
 
+  const [tutorialOpen, setTutorialOpen] = useState(false);
+
+  const tutorialContent = (
+    <div style={{ padding: 20 }}>
+      <h2 style={{ color: theme.colors.gray[0], fontSize: '24px' }}>{t.tutorialTitle}</h2>
+      
+      <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
+        {t.tutorialDescription}
+      </Text>
+
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+        1. {t.tutorialStep1}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+        {t.tutorialStep1Description}
+      </Text>
+
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+        2. {t.tutorialStep2}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+        {t.tutorialStep2Description}
+      </Text>
+
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+        3. {t.tutorialStep3}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+        {t.tutorialStep3Description}
+      </Text>
+
+      {/* <Button
+        style={{ marginTop: '20px' }}
+        onClick={() => setTutorialOpen(false)}
+        variant="light"
+        color="gray"
+        leftIcon={<IconX size={16} />}
+      >
+        {t.close}
+      </Button> */}
+    </div>
+  );
   return (
     <AppShell withBorder={false} header={{ height: 60 }}>
       <AppShell.Header p={12}>
