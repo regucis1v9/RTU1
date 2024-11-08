@@ -286,7 +286,7 @@ const AllProfiles = () => {
                 {displayItems.length > 0 ? (
                   displayItems.map((project) => (
                     <div key={project.id} className="result-item">
-                      <Link to={`/project/${project.id}`}>
+                      <Link to={`/singleProfile`}>
                         <Text color='black'>{project.name}</Text>
                       </Link>
                       <Group>
