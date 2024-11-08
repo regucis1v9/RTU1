@@ -5,7 +5,7 @@ const ShelfContainer = () => {
   const shelves = [
     { 
       id: 'T3',
-      label: 'Upper Shelf',
+      label: 'Augšējais Plaukts',
       temp: -3,
       color: '#93C5FD',
       gradientStart: '#93C5FD33',
@@ -13,7 +13,7 @@ const ShelfContainer = () => {
     },
     { 
       id: 'T2',
-      label: 'Middle Shelf',
+      label: 'Vidējais Plaukts',
       temp: 12,
       color: '#FBCFE8',
       gradientStart: '#FBCFE833',
@@ -21,7 +21,7 @@ const ShelfContainer = () => {
     },
     { 
       id: 'T1',
-      label: 'Lower Shelf',
+      label: 'Apakšējais Plaukts',
       temp: 25,
       color: '#FB7185',
       gradientStart: '#FB718533',
