@@ -7,17 +7,6 @@ import { useElementSize } from '@mantine/hooks';
 import translations from '../locales/translations';
 import dropdown from "../styles/Dropdown.module.css";
 
-const PROJECTS_DATA = [
-  { id: 1, name: "SU 72h" },
-  { id: 2, name: "AU 72h" },
-  { id: 3, name: "BU 72h" },
-  { id: 4, name: "DU 72h" },
-  { id: 5, name: "HU 72h" },
-  { id: 6, name: "NU 72h" },
-  { id: 7, name: "RU 72h" },
-  { id: 8, name: "PU 72h" },
-];
-
 const RESULTS_PER_PAGE = 5;
 
 const AllProfiles = () => {
@@ -35,7 +24,7 @@ const AllProfiles = () => {
     const fetchProjects = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/csvFiles');
+        const response = await fetch('http://localhost:5001/csvFiles');
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}`);
         }
@@ -75,7 +64,7 @@ const AllProfiles = () => {
     setIsLoading(true);
     try {
       const csvData = createCsvData();
-      const response = await fetch('http://localhost:5000/save-csv', {
+      const response = await fetch('http://localhost:5001/save-csv', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,7 +103,7 @@ const AllProfiles = () => {
     const formData = new FormData();
     formData.append('file', csvFile);
     try {
-      const response = await fetch('http://localhost:5000/upload-csv', {
+      const response = await fetch('http://localhost:5001/upload-csv', {
         method: 'POST',
         body: formData,
       });
