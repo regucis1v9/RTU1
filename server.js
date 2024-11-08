@@ -23,11 +23,18 @@ const storage = multer.diskStorage({
     cb(null, PROJECTS_DIR);
   },
   filename: (req, file, cb) => {
-    const fileName = `${Date.now()}-${file.originalname}`;
-    cb(null, fileName);
+    const { name, ext } = path.parse(file.originalname); // original name and extension
+    const today = new Date().toISOString().split('T')[0];
+    let finalName = `${name}-${today}${ext}`;
+    let counter = 1;
+
+    while (fs.existsSync(path.join(PROJECTS_DIR, finalName))) {
+      finalName = `${name} (${counter})-${today}${ext}`; // Bracket format for duplicates
+      counter++;
+    }
+    cb(null, finalName);
   }
 });
-const upload = multer({ storage });
 
 // Endpoint to fetch all projects
 app.get('/csvFiles', (req, res) => {
@@ -37,8 +44,11 @@ app.get('/csvFiles', (req, res) => {
       return res.status(404).json({ message: 'No projects found in the directory.' });
     }
     const projects = projectFiles.map(file => {
-      const [name, date] = file.split('-');
-      return { name, date: date.split('.')[0] };
+      const filePath = path.join(PROJECTS_DIR, file);
+      const fileStat = fs.statSync(filePath);
+      const fileDate = fileStat.mtime.toISOString().split('T')[0];
+      const fileTime = fileStat.mtime.toISOString().split('T')[1].slice(0, 5); // "HH:MM" format
+      return { name: file, date: fileDate, time: fileTime };
     });
     res.json(projects);
   } catch (error) {
@@ -50,18 +60,27 @@ app.get('/csvFiles', (req, res) => {
 // Endpoint to save CSV file from form input
 app.post('/save-csv', (req, res) => {
   const { fileName, csvData } = req.body;
-  const today = new Date();
-  const formattedDate = today.toISOString().split('T')[0];
-  const filePath = path.join(PROJECTS_DIR, `${fileName}-${formattedDate}.csv`);
-  fs.writeFile(filePath, csvData, 'utf8', (err) => {
+  const today = new Date().toISOString().split('T')[0];
+  const filePath = path.join(PROJECTS_DIR, `${fileName}-${today}.csv`);
+  let finalFilePath = filePath;
+  let counter = 1;
+
+  while (fs.existsSync(finalFilePath)) {
+    finalFilePath = path.join(PROJECTS_DIR, `${fileName} (${counter})-${today}.csv`);
+    counter++;
+  }
+
+  fs.writeFile(finalFilePath, csvData, 'utf8', (err) => {
     if (err) {
       console.error('Error saving the CSV file:', err);
       return res.status(500).json({ message: 'Error saving the CSV file' });
     }
-    res.json({ message: 'CSV file saved successfully', filePath });
+    res.json({ message: 'CSV file saved successfully', filePath: finalFilePath });
   });
 });
 
+// Configure multer upload
+const upload = multer({ storage: storage });
 // New endpoint for drag-and-drop CSV file upload
 app.post('/upload-csv', upload.single('file'), (req, res) => {
   if (!req.file) {

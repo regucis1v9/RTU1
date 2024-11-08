@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { IconSearch, IconExternalLink, IconTrashXFilled, IconLanguage } from '@tabler/icons-react';
 import "../styles/AllProfiles.css";
@@ -6,17 +6,6 @@ import { AppShell, Pagination, Flex, Select } from '@mantine/core';
 import { useElementSize } from '@mantine/hooks';
 import translations from '../locales/translations';
 import dropdown from "../styles/Dropdown.module.css";
-
-const PROJECTS_DATA = [
-  { id: 1, name: "SU 72h" },
-  { id: 2, name: "AU 72h" },
-  { id: 3, name: "BU 72h" },
-  { id: 4, name: "DU 72h" },
-  { id: 5, name: "HU 72h" },
-  { id: 6, name: "NU 72h" },
-  { id: 7, name: "RU 72h" },
-  { id: 8, name: "PU 72h" },
-];
 
 const RESULTS_PER_PAGE = 5;
 
@@ -30,7 +19,9 @@ const AllProfiles = () => {
   const { ref, width, height } = useElementSize();
   const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
   const t = translations[language] || translations['Latviešu']; 
+  const fileInputRef = useRef(null);
 
+  
   useEffect(() => {
     const fetchProjects = async () => {
       setIsLoading(true);
@@ -40,7 +31,18 @@ const AllProfiles = () => {
           throw new Error(`HTTP error ${response.status}`);
         }
         const data = await response.json();
-        setProjects(data);
+        
+        // Process files to create fullName and other properties
+        const processedData = data.map(file => {
+          return { 
+            fullName: file.name.replace('.csv', ''), 
+            name: file.name.split('-')[0].trim(), 
+            date: file.date,  // Ensure `date` is mapped
+            time: file.time   // Ensure `time` is mapped
+          };
+        });
+  
+        setProjects(processedData);
       } catch (error) {
         console.error('Error fetching projects:', error);
         alert('Error fetching projects. Please try again later.');
@@ -52,7 +54,7 @@ const AllProfiles = () => {
   }, []);
 
   const filteredProjects = projects.filter(project =>
-    project.name.toLowerCase().includes(searchQuery.toLowerCase())
+    project.fullName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredProjects.length / RESULTS_PER_PAGE);
@@ -102,6 +104,15 @@ const AllProfiles = () => {
   const handleFileDrop = (event) => {
     event.preventDefault();
     const file = event.dataTransfer.files[0];
+    if (file && file.type === 'text/csv') {
+      setCsvFile(file);
+    } else {
+      alert('Please upload a CSV file.');
+    }
+  };
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
     if (file && file.type === 'text/csv') {
       setCsvFile(file);
     } else {
@@ -178,16 +189,24 @@ const AllProfiles = () => {
             </div>
             <div 
               className="drag-and-drop-box"
+              onClick={() => fileInputRef.current && fileInputRef.current.click()}
               onDrop={handleFileDrop}
               onDragOver={(e) => e.preventDefault()}
             >
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                style={{ display: 'none' }} 
+                onChange={handleFileSelect} 
+                accept=".csv"
+              />
               {csvFile ? (
                 <div className="file-info">
                   <p>File: {csvFile.name}</p>
                   <button onClick={handleFileUpload}>Upload CSV</button>
                 </div>
               ) : (
-                <p>{t.dragAndDropFile}</p>
+                <p>{t.dragAndDropFile || "Drag and drop a CSV file here or click to upload"}</p>
               )}
             </div>
           </section>
@@ -210,8 +229,11 @@ const AllProfiles = () => {
               <div className="results-container">
                 {displayItems.length > 0 ? (
                   displayItems.map((project) => (
-                    <div key={project.id} className="result-item">
-                      <span className="result-text">{project.name}</span>
+                    <div key={project.fullName} className="result-item">
+                      {/* Display file name with date, time, and numbering */}
+                      <span className="result-text">
+                        {`${project.fullName} - ${project.date} ${project.time}`}
+                      </span>
                       <div className="result-actions">
                         <Link to="/SingleProfile">
                           <IconExternalLink className="edit-icon" size={30} />
