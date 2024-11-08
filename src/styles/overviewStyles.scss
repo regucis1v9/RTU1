@@ -1,408 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
+// Theme Variables
+$light-background: #f5f5f5;
+$light-surface: #ffffff;
+$light-text: #292929;
+$light-secondary: #666666;
 $lblack: #292929;
 $black: #000000;
 $white: #e3e1e1;
 $dwhite: #bcbcbc;
 $blue: #1771cb;
 $red: #ca0b0b;
-
-*{
-    margin: 0;
-    padding: 0;
-    font-family: "Open Sans", sans-serif;
-}
-
-.mainCont{
-    width: 100vw;
-    height: 100vh;
-    background-color: $lblack;
-    display: flex;
-    flex-wrap: wrap;
-}
-
-.chartContainer{
-    width: 90%;
-    height: 50%;
-    display: flex;
-    margin: 10px auto;
-}
-.settingsContainer{
-    width: 27%;
-    height: 45%;
-    margin: auto;
-    display: flex;
-    flex-wrap: wrap;
-
-}
-.shelfContainer{
-    width: 35%;
-    height: 45%;
-    margin: auto;
-    display: flex;
-    flex-wrap: wrap;
-}
-.extraContainer{
-    width: 20%;
-    height: 45%;
-    margin: auto;
-    display: flex;
-    flex-wrap: wrap;
-}
-.chart {
-    width: 100%;
-    height: 100%;
-    background: #181818;
-    padding: 20px;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .chart .svg-container {
-    flex-grow: 1;
-    position: relative;
-    width: 100%;
-
-  }
-  
-  .chart svg {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    inset: 0;
-  }
-  
-  .chart .button-container {
-    display: flex;
-    justify-content: space-between;
-    height: 40px;
-    width: 60%;
-    margin: auto;
-  }
-  
-  .chart button {
-    width: 12%;
-    border-radius: 4px;
-    background-color: #1771cb;
-    color: #e3e1e1;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-  
-  .chart button::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: width 0.6s ease-out, height 0.6s ease-out;
-  }
-  
-  .chart button:hover {
-    background-color: #1259a1;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  }
-
-  
-  .chart button:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-  
-  .chart button.active {
-    background-color: #0d4075;
-    animation: pulse 2s infinite;
-  }
-  
-  /* Custom time input styles */
-  .custom-time-form {
-    width: 12%;
-    position: relative;
-  }
-  
-  .chart input {
-    width: 100%;
-    height: 100%;
-    border-radius: 4px;
-    background-color: #1771cb;
-    color: #e3e1e1;
-    font-weight: 500;
-    border: none;
-    padding: 8px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    text-align: center;
-  }
-  
-  .chart input::placeholder {
-    color: rgba(227, 225, 225, 0.7);
-  }
-  
-  .chart input:focus {
-    outline: none;
-    background-color: #1259a1;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  }
-  
-  .chart input.active {
-    background-color: #0d4075;
-    animation: pulse 2s infinite;
-  }
-  
-  /* Shared pulse animation */
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(23, 113, 203, 0.4);
-    }
-    70% {
-      box-shadow: 0 0 0 6px rgba(23, 113, 203, 0);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(23, 113, 203, 0);
-    }
-  }
-  
-  .chart button span {
-    display: inline-block;
-    transition: transform 0.3s ease;
-  }
-  
-  .chart button:hover span {
-    transform: scale(1.1);
-  }
-
-  .settings-box {
-    width: 80%;
-    height: 40%;
-    display: flex;
-    flex-wrap: wrap;
-    background-color: #181818;
-    border-radius: 12px;
-    color: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    margin: 10px auto;
-  }
-  
-  .settings-box h1 {
-    width: 100%;
-    font-size: 16px;
-    margin-top: 5px;
-    font-weight: bold;
-    font-weight: 500;
-    color: white;
-    text-align: center;
-  }
-  
-  .setting-item {
-    display: flex;
-    width: 60%;
-    margin: auto;
-    justify-content: space-between;
-    align-items: center;
-
-  
-    .mantine-Switch-root {
-        cursor: pointer;
-      .mantine-Switch-input {
-        &:checked {
-            cursor: pointer;
-          background-color: #1E90FF; // Blue when on
-        }
-  
-        &:not(:checked) {
-            cursor: pointer;
-          background-color: #514f4f; // Grey when off
-        }
-      }
-  
-      .mantine-Switch-thumb {
-        cursor: pointer;
-        background-color: white; // White thumb color
-        width: 18px;
-        height: 18px;
-      }
-    }
-  }
-  
-
-  .chart-settings-box {
-    width: 90%;
-    margin: auto;
-    height: 50%;
-    background-color: #1d1d1d; // Dark background color for the box
-    border-radius: 12px;
-    color: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    display: flex;
-  }
-  
-  .chart-settings-box h1 {
-    font-size: 16px;
-    font-weight: 500;
-    color: white;
-    margin-bottom: 20px;
-    letter-spacing: 1px;
-  }
-  
-  .button-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin: auto;
-    height: 80%;
-    margin: auto;
-  }
-  
-  .chart-button {
-    width: 90%;
-    height: 100%;
-    margin: auto;
-    background-color: #6c757d; // Default grey color for inactive buttons
-    color: white;
-    font-weight: 500;
-    font-size: 14px;
-    border: none;
-    border-radius: 8px;
-    transition: background-color 0.3s ease;
-    cursor: pointer;
-  
-    &:hover {
-      background-color: #5a6268; // Slightly darker grey on hover
-    }
-  
-    &.active {
-      background-color: #1E90FF; // Blue color for active button
-    }
-  }
-  
-
-
-
-  .temp-monitor {
-    background: #1a1a1a;
-    border-radius: 24px;
-    padding: 1.5rem;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    height: 100%;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    
-    .shelf-card {
-      background: #242424;
-      border-radius: 16px;
-      height: 30%;
-      padding: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.3s ease;
-      
-      &:hover {
-        background: #2a2a2a;
-        transform: translateX(4px);
-        
-        .wave {
-          animation-play-state: running;
-        }
-      }
-      
-      .shelf-info {
-        flex: 1;
-        
-        .shelf-header {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          margin-bottom: 0.5rem;
-          
-          .shelf-id {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            font-size: 0.875rem;
-            font-weight: 600;
-            padding: 0.25rem 0.5rem;
-            border-radius: 6px;
-          }
-          
-          .shelf-label {
-            color: #999;
-            font-size: 0.875rem;
-          }
-        }
-        
-        .temp-display {
-          .temp-value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-          }
-        }
-      }
-      
-      .visual-indicators {
-        width: 140px;
-        
-        .temp-waves {
-          height: 48px;
-          border-radius: 12px;
-          position: relative;
-          overflow: hidden;
-          
-          .wave {
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            height: 24px;
-            width: 100%;
-            border-radius: 12px;
-            animation: pulseWave 2s infinite ease-out paused;
-          }
-        }
-      }
-    }
-  }
-  
-  @keyframes pulseWave {
-    0% {
-      transform: translateY(-50%) scaleX(0.9);
-      opacity: 1;
-    }
-    
-    100% {
-      transform: translateY(-50%) scaleX(1);
-      opacity: 0.3;
-    }
-  }
-  
-  // Add some subtle hover effects for the cards
-  .shelf-card:hover {
-    .temp-value {
-      transform: scale(1.05);
-      transition: transform 0.3s ease;
-    }
-  }
-
-
-
-
-//   added
 
 // Modern component variables
 $background-dark: #1a1a1a;
@@ -415,149 +23,696 @@ $border-radius-lg: 16px;
 $border-radius-md: 12px;
 $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-// Settings Box Styles
-.settings-box {
-  width: 80%;
-  height: 45%;
-  background-color: $background-dark;
-  border-radius: $border-radius-lg;
-  color: $text-primary;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  margin: 10px auto;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba($accent-blue, 0.3), transparent);
-  }
-
-  .setting-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: $background-darker;
-    border-radius: $border-radius-md;
-    transition: $transition-smooth;
-    
-    &:hover {
-      background: lighten($background-darker, 3%);
-    }
-
-    .mantine-Text-root {
-      font-weight: 500;
-      letter-spacing: 0.5px;
-      color: $text-primary;
-    }
-
-    .mantine-Switch-root {
-      .mantine-Switch-track {
-        background-color: rgba($text-secondary, 0.2);
-        border: 2px solid rgba($text-secondary, 0.1);
-        height: 24px;
-        width: 44px;
-        transition: $transition-smooth;
-      }
-
-      .mantine-Switch-thumb {
-        background-color: $text-primary;
-        border: 2px solid transparent;
-        width: 20px;
-        height: 20px;
-        transition: $transition-smooth;
-      }
-
-      input:checked + .mantine-Switch-track {
-        background-color: $accent-blue;
-        border-color: rgba($accent-blue, 0.5);
-      }
-    }
-  }
+* {
+    margin: 0;
+    padding: 0;
+    font-family: "Open Sans", sans-serif;
+    border: none;
 }
 
-// Chart Settings Styles
-.chart-settings-box {
-  width: 90%;
-  height: 50%;
-  background-color: $background-dark;
-  border-radius: $border-radius-lg;
-  color: $text-primary;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  padding: 1.5rem;
-  position: relative;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba($accent-blue, 0.3), transparent);
-  }
-
-  .button-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    height: 100%;
-    padding: 0.5rem;
-  }
-
-  .chart-button {
-    background-color: $background-darker;
-    color: $text-secondary;
-    border: 1px solid rgba($text-secondary, 0.1);
-    border-radius: $border-radius-md;
-    font-weight: 500;
-    font-size: 0.875rem;
-    width: 90%;
-    height: 100%;
-
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 1000;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: $transition-smooth;
+
+    svg {
+        width: 24px;
+        height: 24px;
+        transition: $transition-smooth;
+    }
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    .dark & {
+        color: $white;
+        
+        &:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    }
+
+    .light & {
+        color: $light-text;
+    }
+}
+
+.mainCont {
+    width: 100vw;
+    height: 100vh;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-wrap: wrap;
+    position: relative;
+
+    &.dark {
+        background-color: $lblack;
+
+
+
+        .chart, .settings-box, .chart-settings-box {
+            background: #181818;
+            color: $white;
+        }
+
+        .temp-monitor {
+            background: $background-dark;
+        }
+
+        .shelf-card {
+            background: #242424;
+            color: $white;
+        }
+
+        .chart-button {
+            background-color: $background-darker;
+            color: $text-secondary;
+            border: 1px solid white;
+            font-size: 13;
+            
+            &.active {
+                background-color: $accent-blue;
+                color: $text-primary;
+            }
+        }
+
+        .setting-item {
+            color: $white;
+            
+            .mantine-Text-root {
+                color: $white;
+            }
+        }
+    }
+
+    &.light {
+        background-color: $light-background;
+
+        .chart, .settings-box, .chart-settings-box {
+            background: $light-surface;
+            color: $light-text;
+        }
+
+        .temp-monitor {
+            background: $light-surface;
+        }
+
+        .shelf-card {
+            background: #f0f0f0;
+            color: $light-text;
+        }
+
+        .chart button, .chart input {
+            background-color: $blue;
+            color: $white;
+
+            &:hover {
+                background-color: lighten($blue, 10%);
+            }
+        }
+
+        .chart-button {
+            background-color: #852828;
+            color: $light-text;
+            border: 1px solid rgba($light-text, 0.1);
+
+            &:hover {
+                background-color: darken(#e0e0e0, 5%);
+            }
+
+            &.active {
+                background-color: $blue;
+                color: $white;
+            }
+        }
+
+        .setting-item {
+            color: $light-text;
+            
+            .mantine-Text-root {
+                color: $light-text;
+            }
+
+            .mantine-Switch-root {
+                .mantine-Switch-input {
+                    &:not(:checked) {
+                        background-color: #d1d1d1;
+                    }
+                }
+            }
+        }
+
+        .shelf-card {
+            .shelf-header {
+                .shelf-id {
+                    background: rgba($light-text, 0.1);
+                    color: $light-text;
+                }
+
+                .shelf-label {
+                    color: $light-secondary;
+                }
+            }
+        }
+    }
+
+
+    &.light {
+        background-color: $light-background;
+
+        .chart, .settings-box, .setting-item, .chart-settings-box {
+            background: $light-surface;
+            color: $light-text;
+        }
+
+        .temp-monitor {
+            background: $light-surface;
+        }
+
+        .shelf-card {
+            background: #f0f0f0;
+            color: $light-text;
+        }
+
+        .chart button, .chart input {
+            background-color: $blue;
+            color: $white;
+
+            &:hover {
+                background-color: lighten($blue, 10%);
+            }
+        }
+
+        .chart-button {
+            background-color: #e0e0e0;
+            color: $light-text;
+            border: 1px solid rgba($light-text, 0.1);
+
+            &:hover {
+                background-color: darken(#e0e0e0, 5%);
+            }
+
+            &.active {
+                background-color: $blue;
+                color: $white;
+            }
+        }
+    }
+}
+
+.chartContainer {
+    width: 90%;
+    height: 50%;
+    display: flex;
+    margin: 10px auto;
+}
+
+.settingsContainer, .shelfContainer, .extraContainer {
+    height: 45%;
+    margin: auto;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.settingsContainer { width: 27%; }
+.shelfContainer { width: 35%; }
+.extraContainer { width: 20%; }
+
+.chart {
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .svg-container {
+        flex-grow: 1;
+        position: relative;
+        width: 100%;
+
+        svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            inset: 0;
+        }
+    }
+
+    .button-container {
+        display: flex;
+        justify-content: space-between;
+        height: 40px;
+        width: 80%;
+        margin: auto;
+    }
+
+    button, input, .custom-time-form {
+        width: 13%;
+        border-radius: 4px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        background-color: #000000;
+        border: 0.5px solid white;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        &:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        &.active {
+            background-color: #0d4075;
+            animation: pulse 2s infinite;
+        }
+    }
+
+    input {
+        padding: 8px;
+        text-align: center;
+
+        &::placeholder {
+            color: rgba($white, 0.7);
+        }
+
+        &:focus {
+            outline: none;
+            background-color: #1259a1;
+        }
+    }
+}
+
+.settings-box, .chart-settings-box {
+    background-color: $background-dark;
+    border-radius: $border-radius-lg;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     position: relative;
     overflow: hidden;
 
     &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(45deg, transparent, rgba($accent-blue, 0.1), transparent);
-      transform: translateX(-100%);
-      transition: $transition-smooth;
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba($accent-blue, 0.3), transparent);
     }
-
-    &:hover {
-      background-color: lighten($background-darker, 3%);
-      transform: translateY(-2px);
-      
-      &::before {
-        transform: translateX(100%);
-      }
-    }
-
-    &.active {
-      background-color: $accent-blue;
-      color: $text-primary;
-      border-color: rgba($accent-blue, 0.5);
-      box-shadow: 0 4px 12px rgba($accent-blue, 0.2);
-
-      &:hover {
-        background-color: $accent-blue-hover;
-      }
-    }
-  }
 }
+
+.settings-box {
+    width: 80%;
+    height: 45%;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin: 10px auto;
+
+    h1 {
+        font-size: 16px;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    .setting-item {
+        display: flex;
+        width: 60%;
+        margin: auto;
+        justify-content: space-between;
+        align-items: center;
+
+        .mantine-Switch-root {
+            cursor: pointer;
+
+            .mantine-Switch-input {
+                cursor: pointer;
+
+                &:checked {
+                    background-color: $accent-blue;
+                }
+
+                &:not(:checked) {
+                    background-color: #514f4f;
+                }
+            }
+
+            .mantine-Switch-thumb {
+                cursor: pointer;
+                background-color: white;
+                width: 18px;
+                height: 18px;
+            }
+        }
+    }
+}
+
+.chart-settings-box {
+    width: 90%;
+    height: 50%;
+    margin: auto;
+    text-align: center;
+    display: flex;
+
+    h1 {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 20px;
+        letter-spacing: 1px;
+    }
+
+    .button-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin: auto;
+        height: 80%;
+    }
+
+    .chart-button {
+        width: 90%;
+        height: 100%;
+        margin: auto;
+        font-weight: 500;
+        font-size: 14px;
+        border-radius: 8px;
+        transition: $transition-smooth;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba($accent-blue, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: $transition-smooth;
+        }
+
+        &:hover {
+            transform: translateY(-2px);
+            
+            &::before {
+                transform: translateX(100%);
+            }
+        }
+    }
+}
+
+.temp-monitor {
+    border-radius: 24px;
+    padding: 1.5rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+
+    .shelf-card {
+        border-radius: 16px;
+        height: 30%;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s ease;
+
+        &:hover {
+            transform: translateX(4px);
+
+            .wave {
+                animation-play-state: running;
+            }
+
+            .temp-value {
+                transform: scale(1.05);
+                transition: transform 0.3s ease;
+            }
+        }
+
+        .shelf-info {
+            flex: 1;
+
+            .shelf-header {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                margin-bottom: 0.5rem;
+
+                .shelf-id {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: #fff;
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 6px;
+                }
+
+                .shelf-label {
+                    color: #999;
+                    font-size: 0.875rem;
+                }
+            }
+
+            .temp-display .temp-value {
+                font-size: 1.75rem;
+                font-weight: 700;
+                letter-spacing: -0.5px;
+            }
+        }
+
+        .visual-indicators {
+            width: 140px;
+
+            .temp-waves {
+                height: 48px;
+                border-radius: 12px;
+                position: relative;
+                overflow: hidden;
+
+                .wave {
+                    position: absolute;
+                    left: 0;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    height: 24px;
+                    width: 100%;
+                    border-radius: 12px;
+                    animation: pulseWave 2s infinite ease-out paused;
+                }
+            }
+        }
+    }
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(23, 113, 203, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(23, 113, 203, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(23, 113, 203, 0);
+    }
+}
+
+@keyframes pulseWave {
+    0% {
+        transform: translateY(-50%) scaleX(0.9);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-50%) scaleX(1);
+        opacity: 0.3;
+    }
+}
+
+.mode-button {
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px; /* Increase button size as desired */
+    height: 40px; /* Increase button size as desired */
+    left: 10px;
+    top: 10px;
+    background-color: rgb(30, 30, 30);
+    border-radius: 30%; /* Optional: make it round */
+}
+
+.light-button, .dark-button {
+    width: auto; /* Let the icon size itself */
+    height: auto;
+}
+
+
+// alerts
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap');
+
+// overviewStyles.scss
+// overviewStyles.scss
+.alert-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .alert-button {
+    padding: 10px 15px;
+    font-size: 1em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: #fff;
+  }
+  
+  .alert-button:first-of-type {
+    background-color: #d9534f; // Red for error
+  }
+  
+  .alert-button:nth-of-type(2),
+  .alert-button:nth-of-type(3) {
+    background-color: #f0ad4e; // Orange for warnings
+  }
+  
+  .alert-button:last-of-type {
+    background-color: #5bc0de; // Blue for info
+  }
+  
+// landing
+
+ /* General container styles */
+.landingContainer {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #333;
+    position: relative; /* To control the absolute positioning of the login form */
+  }
+  
+  /* Logo container styles */
+  .logoContainer {
+    width: 50%;
+    height: 25%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    position: absolute; /* Absolute position to allow free movement */
+    opacity: 0;
+    transform: translateY(100%); /* Initially position the logo off-screen at the bottom */
+    transition: transform 1s ease-out, opacity 2s ease-out;
+  }
+  
+  /* Logo and text appearance */
+  .logo {
+    height: 100%;
+  }
+  
+  .text {
+    font-size: 90px;
+    color: white;
+    font-family: "Archivo Black", sans-serif;
+  }
+  
+  /* Entry animation for logo and text (move up and fade in) */
+  .logoEnter {
+    opacity: 1;
+    transform: translateY(0); /* Slide the logo and text into view */
+  }
+  
+  /* Exit animation for logo and text (move to the top and stay) */
+  .logoExit {
+    opacity: 1;
+    transform: translateY(-100%); /* Move the logo and text to the top and leave it there */
+  }
+  
+  /* Login form styles */
+  .loginContainer {
+    position: absolute;
+    width: 20%;
+    bottom: -300px; /* Initially position it below the viewport */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: bottom 1s ease-in-out;
+    opacity: 0;
+  }
+  
+  .showLogin {
+    bottom: 30%; /* Move the login form up into view */
+    opacity: 1;
+  }
+  
+  input {
+    width: 100%;
+    height: 60px;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: none;
+    border-bottom: 2px solid #ccc;
+    box-shadow: inset 0px 1px 2px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+input:focus {
+    border-bottom-color: #007bff;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+}
+
+input::placeholder {
+    color: #ccc;
+    text-align: center;
+    text-transform: uppercase;
+}
+  .loginButton {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s,   
+   box-shadow 0.3s;
+    background: linear-gradient(to right, #007bff, #0056b3);
+    color: white;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: "Roboto", sans-serif;
+    font-weight: 500;
+  }
+  
+  .loginButton:hover {
+    background: linear-gradient(to right, #0056b3, #007bff);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+  }

@@ -1,6 +1,6 @@
-import { AppShell, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select } from '@mantine/core';
+import { AppShell, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select, ActionIcon, useMantineColorScheme, useComputedColorScheme } from '@mantine/core';
 import { useState } from 'react';
-import { IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage } from '@tabler/icons-react';
+import { IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage, IconSun, IconMoon } from '@tabler/icons-react';
 import { useElementSize } from '@mantine/hooks';
 import translations from '../locales/translations';
 import classes from "../styles/Table.module.css";
@@ -14,15 +14,15 @@ const fromFahrenheitToCelsius = (fahrenheit) => (fahrenheit - 32) * 5/9;
 const fromKelvinToCelsius = (kelvin) => kelvin - 273.15;
 
 export default function SingleProfile() {
+  const { setColorScheme } = useMantineColorScheme();
+  const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
   const { ref, width, height } = useElementSize();
   const [scrolled, setScrolled] = useState(false);
-  const [data, setData] = useState([{
-    step: 1, tMin: 0, tMax: 0, time: 1, tMinUnit: 'C', tMaxUnit: 'C'
-  }]);
+  const [data, setData] = useState([{ step: 1, tMin: 0, tMax: 0, time: 1, tMinUnit: 'C', tMaxUnit: 'C' }]);
   const [temperatureUnit, setTemperatureUnit] = useState('C');
   const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
   const t = translations[language] || translations['Latviešu']; 
-
+  const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
 
   const handleLanguageChange = (value) => {
     setLanguage(value);
@@ -30,24 +30,14 @@ export default function SingleProfile() {
   };
 
   const addRow = (index, position) => {
-    const newRow = { 
-      step: data.length + 1, 
-      tMin: 0, 
-      tMax: 0, 
-      time: 1, 
-      tMinUnit: temperatureUnit, 
-      tMaxUnit: temperatureUnit 
-    };
+    const newRow = { step: data.length + 1, tMin: 0, tMax: 0, time: 1, tMinUnit: temperatureUnit, tMaxUnit: temperatureUnit };
     const newData = [...data];
-    if (position === 'above') {
-      newData.splice(index, 0, newRow);
-    } else if (position === 'below') {
-      newData.splice(index + 1, 0, newRow);
-    }
+    if (position === 'above') newData.splice(index, 0, newRow);
+    else if (position === 'below') newData.splice(index + 1, 0, newRow);
     newData.forEach((row, i) => (row.step = i + 1));
     setData(newData); 
   };
-  
+
   const removeRow = (index) => {
     if (data.length > 1) {
       const newData = data.filter((_, i) => i !== index);
@@ -100,23 +90,13 @@ export default function SingleProfile() {
       <Table.Td ta='center'>{row.step}</Table.Td>
       <Table.Td ta='center'>
         <Group align='center' justify='center'>
-          <NumberInput
-            w={70}
-            variant="filled"
-            value={row.tMin}
-            onChange={(val) => updateRow(index, 'tMin', val)}
-          />
+          <NumberInput w={70} variant="filled" value={row.tMin} onChange={(val) => updateRow(index, 'tMin', val)} />
           <Text>{row.tMinUnit}</Text>
         </Group>
       </Table.Td>
       <Table.Td ta='center'>
         <Group align='center' justify='center'>
-          <NumberInput
-            w={70}
-            variant="filled"
-            value={row.tMax}
-            onChange={(val) => updateRow(index, 'tMax', val)}
-          />
+          <NumberInput w={70} variant="filled" value={row.tMax} onChange={(val) => updateRow(index, 'tMax', val)} />
           <Text>{row.tMaxUnit}</Text>
         </Group>
       </Table.Td>
@@ -147,39 +127,46 @@ export default function SingleProfile() {
       <AppShell.Header p={12}>
         <Flex align="center" justify="space-between" w="100%">
             <Link to="/">
-                <Button variant="transparent" color='black'>
+                <Button variant="transparent" color={buttonColor}>
                     <IconArrowLeft stroke={3}></IconArrowLeft>
                 </Button>
             </Link>
           <Group>
             <Link to="/">
-                <Button color="black" variant="transparent" leftSection={<IconHomeFilled />}>{t.home}</Button>
+                <Button color={buttonColor} variant="transparent" leftSection={<IconHomeFilled />}>{t.home}</Button>
             </Link>
             <Link to="/overview">
-                <Button color="black" variant="transparent" leftSection={<IconChartSankey />}>{t.graphs}</Button>
+                <Button color={buttonColor} variant="transparent" leftSection={<IconChartSankey />}>{t.graphs}</Button>
             </Link>
           </Group>
-          <Select
-            leftSection={<IconLanguage size={26} />}
-            variant='unstyled'
-            allowDeselect={false}
-            value={language}
-            onChange={handleLanguageChange}
-            data={['Latviešu', 'English']}
-            classNames={dropdown}
-            comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 } }
-          />
+          <Group>
+            <ActionIcon
+                onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
+                variant="default"
+                size="xl"
+                aria-label="Toggle color scheme"
+                >
+                {computedColorScheme === 'light' ? (
+                    <IconMoon  stroke={1.5} />
+                ) : (
+                    <IconSun stroke={1.5} />
+                )}
+            </ActionIcon>
+            <Select
+                leftSection={<IconLanguage size={26} />}
+                variant='unstyled'
+                allowDeselect={false}
+                value={language}
+                onChange={handleLanguageChange}
+                data={['Latviešu', 'English']}
+                classNames={dropdown}
+                comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 } }
+            />
+          </Group>
         </Flex>
       </AppShell.Header>
       <AppShell.Main ref={ref}>
-        <Flex
-          w={width}
-          h={height}
-          gap="md"
-          justify="center"
-          align="center"
-          direction="column"
-        >
+        <Flex w={width} h={height} gap="md" justify="center" align="center" direction="column">
           <Group w={width * 0.8} justify='space-between'>
             <Input.Wrapper label={t.programName} withAsterisk>
               <Input placeholder="..." variant='filled' />
@@ -205,7 +192,7 @@ export default function SingleProfile() {
           </ScrollArea>
           <Group w={width * 0.8} justify='space-between'>
             <Text>{t.totalProgramTime} {formattedProgramTime}</Text>
-            <Button rightSection={<IconPlayerPlayFilled size={20} />}>{t.startProgram}</Button>
+            <Button rightSection={<IconPlayerPlayFilled size={20} />} >{t.startProgram}</Button>
           </Group>
         </Flex>
       </AppShell.Main>
