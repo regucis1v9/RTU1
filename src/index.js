@@ -5,9 +5,10 @@ import { MantineProvider, createTheme } from '@mantine/core';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import AllProfiles from './views/AllProfiles';
 import Overview from './views/Overview';
+import Landing from './views/Landing';
 import SingleProfile from './views/SingleProfile';
 import AlertsTest from './views/AlertsTest';
-import LandingPage from './views/LandingPage';
+import Login from './views/Login';
 import { Notifications } from '@mantine/notifications';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -16,11 +17,12 @@ root.render(
     <Notifications />
     <Router>
       <Routes>
-        <Route path="/" element={<AllProfiles />} />
+        <Route path="/landing" element={<Landing />} />
+        <Route path="/allProfiles" element={<AllProfiles />} />
         <Route path="/overView" element={<Overview />} />
         <Route path="/SingleProfile" element={<SingleProfile />} />
         <Route path="/Test" element={<AlertsTest />} />
-        <Route path="/Landing" element={<LandingPage />} />
+        <Route path="/" element={<Login />} />
 
       </Routes>
     </Router>
