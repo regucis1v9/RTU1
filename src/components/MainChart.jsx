@@ -11,7 +11,7 @@ const MainChart = () => {
 
   const COLORS = {
     temp1: '#ff9f1c',
-    temp2: '#ffffff',
+    temp2: '#0AF7DD',
     temp3: '#00ff09'
   };
 
@@ -108,7 +108,7 @@ const MainChart = () => {
       legendRow.append("text")
         .attr("x", 20)
         .attr("y", 14)
-        .attr("fill", "#fff")
+        .attr("fill", "#616060")
         .attr("font-size", "12px")
         .text(item.label);
     });
@@ -220,7 +220,7 @@ const MainChart = () => {
       .attr('x', width / 2)
       .attr('y', -margin.top / 2)
       .attr('text-anchor', 'middle')
-      .attr('fill', '#fff')
+      .attr('fill', '#848484')
       .attr('font-size', '16px')
       .attr('opacity', 0)
       .text('PLAUKTU TEMPERATŪRAS')
@@ -265,7 +265,7 @@ const MainChart = () => {
             <span>{range.toUpperCase()}</span>
           </button>
         ))}
-        <form className="custom-time-form" onSubmit={handleCustomTimeSubmit}>
+        {/* <form className="custom-time-form" onSubmit={handleCustomTimeSubmit}>
           <input
             type="text"
             value={customMinutes}
@@ -273,7 +273,7 @@ const MainChart = () => {
             className={timeRange === 'custom' ? 'active' : ''}
             placeholder="Min (max 240)"
           />
-        </form>
+        </form> */}
       </div>
     </div>
   );

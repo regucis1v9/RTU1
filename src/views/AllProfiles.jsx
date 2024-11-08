@@ -35,7 +35,7 @@ const AllProfiles = () => {
     const fetchProjects = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/csvFiles');
+        const response = await fetch('http://localhost:5001/csvFiles');
         if (!response.ok) {
           throw new Error(`HTTP error ${response.status}`);
         }
@@ -75,7 +75,7 @@ const AllProfiles = () => {
     setIsLoading(true);
     try {
       const csvData = createCsvData();
-      const response = await fetch('http://localhost:5000/save-csv', {
+      const response = await fetch('http://localhost:5001/save-csv', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ const AllProfiles = () => {
     const formData = new FormData();
     formData.append('file', csvFile);
     try {
-      const response = await fetch('http://localhost:5000/upload-csv', {
+      const response = await fetch('http://localhost:5001/upload-csv', {
         method: 'POST',
         body: formData,
       });
