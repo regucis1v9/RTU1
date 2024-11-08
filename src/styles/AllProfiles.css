@@ -26,6 +26,8 @@
 }
 
 .section {
+  display: flex;
+  flex-direction: column;
   width: 60%;
   max-width: 800px;
 }
@@ -35,7 +37,6 @@
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 24px;
-  color: black;
 }
 
 .create-form {
@@ -84,11 +85,13 @@
   max-height:60vh;
   display: flex;
   flex-direction:column;
+  align-items: center;
 }
 
 .search-wrapper {
   position: relative;
   margin-bottom: 24px;
+  width: 100%;
 }
 
 .search-input {
@@ -121,9 +124,11 @@
   gap: 12px;
   margin-bottom: 24px;
   overflow-y: auto;
+  width: 100%;
 }
 
 .result-item {
+  text-decoration: none;
   height: 55px;
   background-color: rgba(227, 225, 225, 1);
   border-radius: 8px;
@@ -131,6 +136,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+.result-item a{
+  text-decoration: none;
 }
 
 .result-item.empty {

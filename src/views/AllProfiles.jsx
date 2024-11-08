@@ -1,26 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { IconSearch, IconExternalLink, IconTrashXFilled, IconLanguage } from '@tabler/icons-react';
+import { IconSearch, IconExternalLink, IconTrashXFilled, IconLanguage, IconSun, IconMoon, IconUpload, IconPhoto, IconX } from '@tabler/icons-react';
 import "../styles/AllProfiles.css";
-import { AppShell, Pagination, Flex, Select } from '@mantine/core';
+import { AppShell, Pagination, Flex, Select, Group, ActionIcon, useMantineColorScheme, useComputedColorScheme, Text, Input, Button, rem } from '@mantine/core';
+import { Dropzone } from '@mantine/dropzone';
+import { showNotification } from '@mantine/notifications';
 import { useElementSize } from '@mantine/hooks';
 import translations from '../locales/translations';
 import dropdown from "../styles/Dropdown.module.css";
-
-const PROJECTS_DATA = [
-  { id: 1, name: "SU 72h" },
-  { id: 2, name: "AU 72h" },
-  { id: 3, name: "BU 72h" },
-  { id: 4, name: "DU 72h" },
-  { id: 5, name: "HU 72h" },
-  { id: 6, name: "NU 72h" },
-  { id: 7, name: "RU 72h" },
-  { id: 8, name: "PU 72h" },
-];
+import '@mantine/dropzone/styles.css';
+import '@mantine/notifications/styles.css';
 
 const RESULTS_PER_PAGE = 5;
 
 const AllProfiles = () => {
+  const { setColorScheme } = useMantineColorScheme();
+  const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [projects, setProjects] = useState([]);
@@ -31,23 +26,24 @@ const AllProfiles = () => {
   const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
   const t = translations[language] || translations['Latviešu']; 
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch('http://localhost:5001/csvFiles');
-        if (!response.ok) {
-          throw new Error(`HTTP error ${response.status}`);
-        }
-        const data = await response.json();
-        setProjects(data);
-      } catch (error) {
-        console.error('Error fetching projects:', error);
-        alert('Error fetching projects. Please try again later.');
-      } finally {
-        setIsLoading(false);
+  const fetchProjects = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:5001/csvFiles');
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}`);
       }
-    };
+      const data = await response.json();
+      setProjects(data);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      alert('Error fetching projects. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProjects();
   }, []);
 
@@ -69,9 +65,15 @@ const AllProfiles = () => {
 
   const saveCsvFile = async () => {
     if (!projectName.trim()) {
-      alert('Please enter a project name.');
+      showNotification({
+        title: t.warning,
+        message: t.pleaseEnterProjectName,
+        color: 'orange',
+      });
+      
       return;
     }
+    
     setIsLoading(true);
     try {
       const csvData = createCsvData();
@@ -88,31 +90,31 @@ const AllProfiles = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data = await response.json();
-      alert('Projekts veiksmīgi izveidots!');
+      
+      showNotification({
+        title: t.success,
+        message: t.projectCreated,
+        color: 'green',
+      });
+  
       setProjectName('');
+      fetchProjects();
     } catch (error) {
-      console.error('Error:', error);
-      alert('Error saving the project. Please try again.');
+      console.error('Error saving the project:', error);
+      showNotification({
+        title: t.error,
+        message: t.errorSavingProject,
+        color: 'red',
+      });
     } finally {
       setIsLoading(false);
     }
   };
+  
 
-  const handleFileDrop = (event) => {
-    event.preventDefault();
-    const file = event.dataTransfer.files[0];
-    if (file && file.type === 'text/csv') {
-      setCsvFile(file);
-    } else {
-      alert('Please upload a CSV file.');
-    }
-  };
-
-  const handleFileUpload = async () => {
-    if (!csvFile) return;
+  const handleFileUpload = async (file) => {
     const formData = new FormData();
-    formData.append('file', csvFile);
+    formData.append('file', file);
     try {
       const response = await fetch('http://localhost:5001/upload-csv', {
         method: 'POST',
@@ -122,78 +124,151 @@ const AllProfiles = () => {
         throw new Error('Failed to upload file');
       }
       const data = await response.json();
-      alert('CSV file uploaded successfully');
+      
+      // Use showNotification for success message
+      showNotification({
+        title: t.success,
+        message: t.csvUploaded,
+        color: 'green',
+      });
+  
       setCsvFile(null);
+      fetchProjects();
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('Error uploading file');
+      showNotification({
+        title: t.error,
+        message: t.errorUploadingFile,
+        color: 'red',
+      });
     }
   };
+
+  const deleteProject = async (projectId) => {
+    try {
+      const response = await fetch(`http://localhost:5001/delete-project/${projectId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete project');
+      }
+  
+      showNotification({
+        title: t.success,
+        message: t.projectDeleted,
+        color: 'green',
+      });
+  
+      setProjects((prevProjects) => prevProjects.filter(project => project.id !== projectId));
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      showNotification({
+        title: t.error,
+        message: t.errorDeletingProject,
+        color: 'red',
+      });
+    }
+  };
+  
 
   const handleLanguageChange = (value) => {
     setLanguage(value);
     localStorage.setItem('lang', value);
   };
-  
+
   return (
     <AppShell withBorder={false} header={{ height: 60 }}>
       <AppShell.Header p={12}>
         <Flex align="center" justify="flex-end" w="100%">
-          <Select
-            leftSection={<IconLanguage size={26} />}
-            variant='unstyled'
-            allowDeselect={false}
-            value={language}
-            onChange={handleLanguageChange}
-            data={['Latviešu', 'English']}
-            classNames={dropdown}
-            comboboxProps={{
-              transitionProps: { transition: 'pop', duration: 200 },
-              position: 'bottom',
-              middlewares: { flip: false, shift: false },
-              offset: 0 
-            }}
-          />
+          <Group>
+            <ActionIcon
+              onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
+              variant="default"
+              size="xl"
+              aria-label="Toggle color scheme"
+            >
+              {computedColorScheme === 'light' ? (
+                <IconMoon stroke={1.5} />
+              ) : (
+                <IconSun stroke={1.5} />
+              )}
+            </ActionIcon>
+            <Select
+              leftSection={<IconLanguage size={26} />}
+              variant='unstyled'
+              allowDeselect={false}
+              value={language}
+              onChange={handleLanguageChange}
+              data={['Latviešu', 'English']}
+              classNames={dropdown}
+              comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 }}
+            />
+          </Group>
         </Flex>
       </AppShell.Header>
       <AppShell.Main ref={ref}>
         <Flex w={width} h={height} gap="md" align="center" direction="column">
+
           <section className="section">
-            <h1 className="section-title">{t.createNewProject}</h1>
+            <h1 className="section-title">
+              <Text fz={24} fw={600}>{t.createNewProject}</Text>
+            </h1>
             <div className="create-form">
-              <input 
-                className="input-field"
-                placeholder={t.projectName}
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                disabled={isLoading}
-              />
-              <button 
-                className="create-button" 
-                onClick={saveCsvFile}
-                disabled={isLoading}
+              <Input.Wrapper>
+                <Input
+                  variant='filled'
+                  placeholder={t.projectName}
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  disabled={isLoading}
+                  size='xl'
+                  mb={20}
+                />
+              </Input.Wrapper>
+              <Button
+               size='xl'
+               onClick={saveCsvFile}
+               disabled={isLoading}
               >
                 {isLoading ? t.loading : t.create}
-              </button>
+              </Button>
             </div>
-            <div 
-              className="drag-and-drop-box"
-              onDrop={handleFileDrop}
-              onDragOver={(e) => e.preventDefault()}
+
+            <Dropzone
+              onDrop={(files) => {
+                setCsvFile(files[0]);
+                handleFileUpload(files[0]);
+              }}
+              onReject={(files) => console.log('rejected files', files)}
+              maxSize={5 * 1024 ** 2}
+              accept={['text/csv']}
             >
-              {csvFile ? (
-                <div className="file-info">
-                  <p>File: {csvFile.name}</p>
-                  <button onClick={handleFileUpload}>Upload CSV</button>
+              <Group justify="center" gap="xl" mih={220} style={{ pointerEvents: 'none' }}>
+                <Dropzone.Accept>
+                  <IconUpload style={{ width: rem(52), height: rem(52), color: 'var(--mantine-color-blue-6)' }} stroke={1.5} />
+                </Dropzone.Accept>
+                <Dropzone.Reject>
+                  <IconX style={{ width: rem(52), height: rem(52), color: 'var(--mantine-color-red-6)' }} stroke={1.5} />
+                </Dropzone.Reject>
+                <Dropzone.Idle>
+                  <IconPhoto style={{ width: rem(52), height: rem(52), color: 'var(--mantine-color-dimmed)' }} stroke={1.5} />
+                </Dropzone.Idle>
+                <div>
+                  <Text size="xl" inline>
+                    {t.attachCsvNote}
+                  </Text>
+                  <Text size="sm" color="dimmed" inline mt={7}>
+                    {t.attachCsvNote}
+                  </Text>
                 </div>
-              ) : (
-                <p>{t.dragAndDropFile}</p>
-              )}
-            </div>
+              </Group>
+            </Dropzone>
           </section>
 
           <section className="section">
-            <h1 className="section-title">{t.searchProject}</h1>
+            <h1 className="section-title">
+              <Text fz={24} fw={600}>{t.searchProject} </Text>
+            </h1>
             <div className="search-container">
               <div className="search-wrapper">
                 <input 
@@ -211,35 +286,32 @@ const AllProfiles = () => {
                 {displayItems.length > 0 ? (
                   displayItems.map((project) => (
                     <div key={project.id} className="result-item">
-                      <span className="result-text">{project.name}</span>
-                      <div className="result-actions">
-                        <Link to="/SingleProfile">
-                          <IconExternalLink className="edit-icon" size={30} />
-                        </Link>
-                        <IconTrashXFilled className="delete-icon" size={30} />
-                      </div>
+                      <Link to={`/singleProfile`}>
+                        <Text color='black'>{project.name}</Text>
+                      </Link>
+                      <Group>
+                          <ActionIcon h={40} w={40} p={2} variant='transparent' color='black' onClick={() => deleteProject(project.id)}>
+                            <IconExternalLink />
+                          </ActionIcon>
+                        <ActionIcon h={40} w={40} p={2}  color="red" onClick={() => deleteProject(project.id)}>
+                          <IconTrashXFilled />
+                        </ActionIcon>
+                      </Group>
                     </div>
                   ))
                 ) : (
-                  <p className="no-results">{t.noResults}</p>
+                  <Text size="md" color="dimmed">
+                    {t.noProjects}
+                  </Text>
                 )}
               </div>
-              <div className="pagination-wrapper">
-                <Pagination 
-                  total={totalPages}
-                  color="blue"
-                  radius="md"
-                  value={currentPage}
-                  onChange={setCurrentPage}
-                  siblings={2}
-                />
-              </div>
+              <Pagination total={totalPages} value={currentPage} onChange={setCurrentPage} />
             </div>
           </section>
         </Flex>
       </AppShell.Main>
     </AppShell>
-    );
+  );
 };
 
 export default AllProfiles;
