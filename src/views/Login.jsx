@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import "../styles/overviewStyles.scss"; // Custom styles
 import logo from "../images/logo2.png";
+import { Link } from 'react-router-dom';
 
-const LandingPage = () => {
+const Login = () => {
   const [showLogin, setShowLogin] = useState(false); // To control login form visibility
 
   useEffect(() => {
@@ -26,10 +27,13 @@ const LandingPage = () => {
       <div className={`loginContainer ${showLogin ? 'showLogin' : ''}`}>
         <input type="text" placeholder="LIETOTĀJVĀRDS" className="loginInput" />
         <input type="password" placeholder="PAROLE" className="loginInput" />
-        <button className="loginButton">IELOGOTIES</button>
+        <Link to="/landing">
+          <button className="loginButton">PIESLĒGTIES</button>
+        </Link>
+
       </div>
     </div>
   );
 };
 
-export default LandingPage;
+export default Login;

@@ -677,7 +677,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 100%;
     height: 60px;
     padding: 10px;
-    margin-bottom: 15px;
+    /* margin-bottom: 15px; */
     border: none;
     border-bottom: 2px solid #ccc;
     box-shadow: inset 0px 1px 2px rgba(0, 0, 0, 0.1);
@@ -693,8 +693,8 @@ input:focus {
 
 input::placeholder {
     color: #ccc;
-    text-align: center;
-    text-transform: uppercase;
+    /* text-align: center;
+    text-transform: uppercase; */
 }
   .loginButton {
     margin-top: 20px;
