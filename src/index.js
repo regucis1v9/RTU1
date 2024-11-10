@@ -23,9 +23,8 @@ root.render(
         <Route path="/overView" element={<Overview />} />
         <Route path="/SingleProfile" element={<SingleProfile />} />
         <Route path="/" element={<Login />} />
-        <Route path="/Landing" element={<LandingPage />} />
-        <Route path="/Testing" element={<TestingPage />} />
-
+        <Route path="/testing" element={<TestingPage />} />
+        
       </Routes>
     </Router>
   </MantineProvider>

@@ -29,8 +29,9 @@
 .section {
   display: flex;
   flex-direction: column;
-  width: 60%;
+  width: 90%;
   max-width: 800px;
+  min-width: 300px;
 }
 
 .section-title {
