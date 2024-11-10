@@ -127,7 +127,7 @@ export default function Overview() {
             <button
               key={range}
               onClick={() => handleTimeRangeChange(range)}
-              className={`px-4 py-2 rounded ${timeRange === range ? 'active' : ''}`} // Use active class for the selected button
+              className={`px-4 py-2 rounded width13 ${timeRange === range ? 'active' : ''}`} // Use active class for the selected button
             >
               {range.toUpperCase()}
             </button>
