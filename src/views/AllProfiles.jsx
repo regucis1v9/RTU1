@@ -184,8 +184,7 @@ const AllProfiles = () => {
       <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
         {t.tutorialDescription}
       </Text>
-
-      <Text style={{ color: theme.colors.gray[0], fontSize: '21px', fontWeight: 'bold', marginTop: '20px' }}>
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
         1. {t.tutorialStep1}
       </Text>
       <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
@@ -207,7 +206,6 @@ const AllProfiles = () => {
       </Text>
     </div>
   );
-
   return (
     <AppShell withBorder={false} header={{ height: 60 }}>
       <AppShell.Header p={12}>
