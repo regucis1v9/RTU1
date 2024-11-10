@@ -5,11 +5,13 @@ const ChartSettings = () => {
   const [activeButton, setActiveButton] = useState('PLAUKTU TEMPERATŪRAS');
 
   const buttons = [
-    { id: 'PLAUTU TEMPERATŪRAS', label: 'PLAUKTU TEMPERATŪRAS' },
+    { id: 'PLAUKTU TEMPERATŪRAS', label: 'PLAUKTU TEMPERATŪRAS' },
     { id: 'KAMERAS SPIEDIENS', label: 'KAMERAS SPIEDIENS' },
     { id: 'KAMERAS TEMPERATŪRA', label: 'KAMERAS TEMPERATŪRA' },
     { id: 'CITI GRAFIKI', label: 'CITI GRAFIKI' },
   ];
+
+
 
   return (
     <div className="chart-settings-box">

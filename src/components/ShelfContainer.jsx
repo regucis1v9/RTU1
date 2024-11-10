@@ -7,25 +7,25 @@ const ShelfContainer = () => {
       id: 'T3',
       label: 'Augšējais Plaukts',
       temp: -3,
-      color: '#93C5FD',
-      gradientStart: '#93C5FD33',
-      gradientEnd: '#93C5FD'
+      color: '#00ff09',
+      gradientStart: '#00ff0854',
+      gradientEnd: '#00ff09'
     },
     { 
       id: 'T2',
       label: 'Vidējais Plaukts',
       temp: 12,
-      color: '#FBCFE8',
-      gradientStart: '#FBCFE833',
-      gradientEnd: '#FBCFE8'
+      color: '#0AF7DD',
+      gradientStart: '#0af7db67',
+      gradientEnd: '#0AF7DD'
     },
     { 
       id: 'T1',
       label: 'Apakšējais Plaukts',
       temp: 25,
-      color: '#FB7185',
-      gradientStart: '#FB718533',
-      gradientEnd: '#FB7185'
+      color: '#ff9f1c',
+      gradientStart: '#ffa01c85',
+      gradientEnd: '#ff9f1c'
     }
   ];
 
