@@ -1,6 +1,6 @@
-import { AppShell, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select, ActionIcon, useMantineColorScheme, useComputedColorScheme} from '@mantine/core';
+import { AppShell, useMantineTheme, rem,Tabs,Modal,Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select, ActionIcon, useMantineColorScheme, useComputedColorScheme} from '@mantine/core';
 import { useState } from 'react';
-import { IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage, IconSun, IconMoon } from '@tabler/icons-react';
+import { IconGraph, IconList, IconPencilPlus, IconHelp, IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage, IconSun, IconMoon } from '@tabler/icons-react';
 import { useElementSize } from '@mantine/hooks';
 import translations from '../locales/translations';
 import classes from "../styles/Table.module.css";
@@ -14,6 +14,8 @@ const fromFahrenheitToCelsius = (fahrenheit) => (fahrenheit - 32) * 5/9;
 const fromKelvinToCelsius = (kelvin) => kelvin - 273.15;
 
 export default function SingleProfile() {
+  const theme = useMantineTheme();
+  const iconStyle = { width: rem(12), height: rem(12) };
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
   const { ref, width, height } = useElementSize();
@@ -23,6 +25,7 @@ export default function SingleProfile() {
   const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
   const t = translations[language] || translations['Latviešu']; 
   const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
+  const [tutorialOpen, setTutorialOpen] = useState(false);
 
   const handleLanguageChange = (value) => {
     setLanguage(value);
@@ -84,6 +87,37 @@ export default function SingleProfile() {
 
   const totalProgramTime = data.reduce((total, row) => total + row.time, 0);
   const formattedProgramTime = formatTimeDuration(totalProgramTime);
+
+  const tutorialContent = (
+    <div style={{ padding: 20 }}>
+      <h2 style={{ color: theme.colors.gray[0], fontSize: '24px' }}>{t.tutorialTitle}</h2>
+      
+      <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
+        {t.tutorialDescription}
+      </Text>
+
+      <Text style={{ color: theme.colors.gray[0], fontSize: '21px', fontWeight: 'bold', marginTop: '20px' }}>
+        1. {t.tutorialStep1}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+        {t.tutorialStep1Description}
+      </Text>
+
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+        2. {t.tutorialStep2}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+        {t.tutorialStep2Description}
+      </Text>
+
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+        3. {t.tutorialStep3}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+        {t.tutorialStep3Description}
+      </Text>
+    </div>
+  );
 
   const rows = data.map((row, index) => (
     <Table.Tr key={row.step}>
@@ -152,6 +186,14 @@ export default function SingleProfile() {
                     <IconSun stroke={1.5} />
                 )}
             </ActionIcon>
+            <ActionIcon
+              onClick={() => setTutorialOpen(true)}
+              variant="default"
+              size="xl"
+              aria-label="Show Tutorial"
+            >
+              <IconHelp stroke={1.5} />
+            </ActionIcon>
             <Select
                 leftSection={<IconLanguage size={26} />}
                 variant='unstyled'
@@ -196,6 +238,38 @@ export default function SingleProfile() {
           </Group>
         </Flex>
       </AppShell.Main>
+      <Modal
+        opened={tutorialOpen}
+        onClose={() => setTutorialOpen(false)}
+        title={t.tutorialTitle}
+        centered
+        size="lg"
+      >
+        <Tabs variant="outline" defaultValue="gallery">
+      <Tabs.List>
+        <Tabs.Tab value="gallery" leftSection={<IconPencilPlus style={iconStyle} />}>
+          Projekta izveide
+        </Tabs.Tab>
+        <Tabs.Tab value="messages" leftSection={<IconList style={iconStyle} />}>
+          Soļu izveide
+        </Tabs.Tab>
+        <Tabs.Tab value="settings" leftSection={<IconGraph style={iconStyle} />}>
+          Pārksats
+        </Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Panel value="gallery">
+        {tutorialContent}
+      </Tabs.Panel>
+
+      <Tabs.Panel value="messages">
+      {tutorialContent}
+      </Tabs.Panel>
+
+      <Tabs.Panel value="settings">
+      {tutorialContent}
+      </Tabs.Panel>
+    </Tabs>
+      </Modal>
     </AppShell>
   );
 }

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { IconSearch, IconExternalLink, IconTrashXFilled, IconLanguage, IconSun, IconMoon, IconUpload, IconPhoto, IconX } from '@tabler/icons-react';
+import { IconPencilPlus, IconGraph, IconList,IconSearch, IconExternalLink, IconTrashXFilled, IconLanguage, IconSun, IconMoon, IconUpload, IconPhoto, IconX, IconHelp } from '@tabler/icons-react';
 import "../styles/AllProfiles.css";
-import { AppShell, Pagination, Flex, Select, Group, ActionIcon, useMantineColorScheme, useComputedColorScheme, Text, Input, Button, rem } from '@mantine/core';
+import { Tabs, AppShell, Pagination, Flex, Select, Group, ActionIcon, useMantineColorScheme, useComputedColorScheme, Text, Input, Button, rem, Modal, useMantineTheme} from '@mantine/core';
 import { Dropzone } from '@mantine/dropzone';
 import { showNotification } from '@mantine/notifications';
 import { useElementSize } from '@mantine/hooks';
@@ -14,17 +14,19 @@ import '@mantine/notifications/styles.css';
 const RESULTS_PER_PAGE = 5;
 
 const AllProfiles = () => {
+  const iconStyle = { width: rem(12), height: rem(12) };
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [projects, setProjects] = useState([]);
+  const theme = useMantineTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [csvFile, setCsvFile] = useState(null);
   const { ref, width, height } = useElementSize();
   const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
-  const t = translations[language] || translations['Latviešu']; 
+  const t = translations[language] || translations['Latviešu'];
 
   const fetchProjects = async () => {
     setIsLoading(true);
@@ -110,7 +112,6 @@ const AllProfiles = () => {
       setIsLoading(false);
     }
   };
-  
 
   const handleFileUpload = async (file) => {
     const formData = new FormData();
@@ -125,7 +126,6 @@ const AllProfiles = () => {
       }
       const data = await response.json();
       
-      // Use showNotification for success message
       showNotification({
         title: t.success,
         message: t.csvUploaded,
@@ -169,12 +169,44 @@ const AllProfiles = () => {
       });
     }
   };
-  
 
   const handleLanguageChange = (value) => {
     setLanguage(value);
     localStorage.setItem('lang', value);
   };
+
+  const [tutorialOpen, setTutorialOpen] = useState(false);
+
+  const tutorialContent = (
+    <div style={{ padding: 20 }}>
+      <h2 style={{ color: theme.colors.gray[0], fontSize: '24px' }}>{t.tutorialTitle}</h2>
+      
+      <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
+        {t.tutorialDescription}
+      </Text>
+
+      <Text style={{ color: theme.colors.gray[0], fontSize: '21px', fontWeight: 'bold', marginTop: '20px' }}>
+        1. {t.tutorialStep1}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+        {t.tutorialStep1Description}
+      </Text>
+
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+        2. {t.tutorialStep2}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+        {t.tutorialStep2Description}
+      </Text>
+
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+        3. {t.tutorialStep3}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+        {t.tutorialStep3Description}
+      </Text>
+    </div>
+  );
 
   return (
     <AppShell withBorder={false} header={{ height: 60 }}>
@@ -193,6 +225,14 @@ const AllProfiles = () => {
                 <IconSun stroke={1.5} />
               )}
             </ActionIcon>
+            <ActionIcon
+              onClick={() => setTutorialOpen(true)}
+              variant="default"
+              size="xl"
+              aria-label="Show Tutorial"
+            >
+              <IconHelp stroke={1.5} />
+            </ActionIcon>
             <Select
               leftSection={<IconLanguage size={26} />}
               variant='unstyled'
@@ -208,7 +248,6 @@ const AllProfiles = () => {
       </AppShell.Header>
       <AppShell.Main ref={ref}>
         <Flex w={width} h={height} gap="md" align="center" direction="column">
-
           <section className="section">
             <h1 className="section-title">
               <Text fz={24} fw={600}>{t.createNewProject}</Text>
@@ -223,7 +262,6 @@ const AllProfiles = () => {
                   disabled={isLoading}
                   size='xl'
                   mb={20}
-
                 />
               </Input.Wrapper>
               <Button
@@ -292,11 +330,11 @@ const AllProfiles = () => {
                       </Link>
                       <Group>
                         <Link to="/singleProfile">
-                          <ActionIcon h={40} w={40} p={2} variant='transparent' color='black'>
-                            <IconExternalLink />
-                          </ActionIcon>
+                        <ActionIcon h={40} w={40} p={2} variant='transparent' color='black'>
+                          <IconExternalLink />
+                        </ActionIcon>
                         </Link>
-                        <ActionIcon h={40} w={40} p={2}  color="red" onClick={() => deleteProject(project.id)}>
+                        <ActionIcon h={40} w={40} p={2} color="red" onClick={() => deleteProject(project.id)}>
                           <IconTrashXFilled />
                         </ActionIcon>
                       </Group>
@@ -313,6 +351,38 @@ const AllProfiles = () => {
           </section>
         </Flex>
       </AppShell.Main>
+      <Modal
+        opened={tutorialOpen}
+        onClose={() => setTutorialOpen(false)}
+        title={t.tutorialTitle}
+        centered
+        size="lg"
+      >
+        <Tabs variant="outline" defaultValue="gallery">
+      <Tabs.List>
+        <Tabs.Tab value="gallery" leftSection={<IconPencilPlus style={iconStyle} />}>
+          Projekta izveide
+        </Tabs.Tab>
+        <Tabs.Tab value="messages" leftSection={<IconList style={iconStyle} />}>
+          Soļu izveide
+        </Tabs.Tab>
+        <Tabs.Tab value="settings" leftSection={<IconGraph style={iconStyle} />}>
+          Pārksats
+        </Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Panel value="gallery">
+        {tutorialContent}
+      </Tabs.Panel>
+
+      <Tabs.Panel value="messages">
+      {tutorialContent}
+      </Tabs.Panel>
+
+      <Tabs.Panel value="settings">
+      {tutorialContent}
+      </Tabs.Panel>
+    </Tabs>
+      </Modal>
     </AppShell>
   );
 };
