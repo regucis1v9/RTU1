@@ -268,7 +268,7 @@ export default function SingleProfile() {
     <AppShell withBorder={false} header={{ height: 60 }}>
       <AppShell.Header p={12}>
         <Flex align="center" justify="space-between" w="100%">
-            <Link to="/">
+            <Link to="/allProfiles">
                 <Button variant="transparent" color={buttonColor}>
                     <IconArrowLeft stroke={3}></IconArrowLeft>
                 </Button>
