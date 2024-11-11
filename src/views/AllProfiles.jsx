@@ -312,7 +312,7 @@ const AllProfiles = () => {
             <h1 className="section-title">
               <Text fz={24} fw={600}>{t.searchProject} </Text>
             </h1>
-            <div className="search-container" style={{ backgroundColor: theme.colors.dark[6] }}>
+            <div className="search-container" >
               <div className="search-wrapper">
                 <input 
                   className="search-input"
@@ -328,15 +328,15 @@ const AllProfiles = () => {
               <div className="results-container">
                 {displayItems.length > 0 ? (
                   displayItems.map((project) => (
-                    <div key={project.id} className="result-item" style={{ backgroundColor: theme.colors.dark[8] }}>
+                    <div key={project.id} className="result-item" >
                       <Link to={`/singleProfile/${project.name}`}>
-                        <Text style={{ color: theme.colors.gray[1] }}>{project.name}</Text>
+                        <Text>{project.name}</Text>
                       </Link>
                       <Group>
                         <Link to={`/singleProfile/${project.name}`}>
-                        <ActionIcon h={40} w={40} p={2} variant='transparent' color='black'>
-                          <IconExternalLink />
-                        </ActionIcon>
+                          <ActionIcon h={40} w={40} p={2} variant='transparent' className='redirect-button'>
+                            <IconExternalLink />
+                          </ActionIcon>
                         </Link>
                         <ActionIcon h={40} w={40} p={2} color="red" onClick={() => deleteProject(project.id)}>
                           <IconTrashXFilled />
