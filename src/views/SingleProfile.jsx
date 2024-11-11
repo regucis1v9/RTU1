@@ -150,13 +150,23 @@ export default function SingleProfile() {
 
     const updateRow = (index, field, value) => {
         const updatedData = [...data];
+    
         if (field === 'time') {
             const previousTime = updatedData[index][field];
             setTotalTime(totalTime - previousTime + value); // Update totalTime
         }
+    
+        // Update the current row's field with the new value
         updatedData[index][field] = value;
+    
+        // If updating tMax, set the next row's tMin to this tMax
+        if (field === 'tMax' && index < updatedData.length - 1) {
+            updatedData[index + 1].tMin = value;
+        }
+    
         setData(updatedData);
     };
+    
     
     const convertTemperature = (value, fromUnit, toUnit) => {
         if (fromUnit === toUnit) return value;
