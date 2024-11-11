@@ -148,8 +148,6 @@ export default function Landing() {
           </Link>
         </Flex>
       </AppShell.Main>
-
-      {/* Tutorial Modal */}
       <Modal
         opened={tutorialOpen}
         onClose={() => setTutorialOpen(false)}
