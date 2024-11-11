@@ -147,7 +147,7 @@ export default function Overview() {
       </div>
       
       <div className="shelfContainer2">
-        <PressureDisplay/>
+      <PressureDisplay isPaused={isPaused} />
       </div>
     </div>
   );
