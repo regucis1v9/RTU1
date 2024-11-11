@@ -23,7 +23,7 @@ export default function SettingsBox() {
       </div>
 
       <div className="setting-item">
-        <Text color="white">VAKŪMŪKNIS</Text>
+        <Text color="white">V.SŪKNIS</Text>
         <Switch
           checked={vacuumPump}
           onChange={(event) => setVacuumPump(event.currentTarget.checked)}
