@@ -14,7 +14,8 @@ const fromFahrenheitToCelsius = (fahrenheit) => (fahrenheit - 32) * 5/9;
 const fromKelvinToCelsius = (kelvin) => kelvin - 273.15;
 
 export default function SingleProfile() {
-    const { fileName } = useParams(); // Extract the filename from the URL
+    const [originalData, setOriginalData] = useState([]); 
+    const { fileName } = useParams();
     const [projectName, setProjectName] = useState('');
     const theme = useMantineTheme();
     const iconStyle = { width: rem(12), height: rem(12) };
@@ -34,16 +35,108 @@ export default function SingleProfile() {
         setLanguage(value);
         localStorage.setItem('lang', value);
     };
-  
+    const saveChanges = async () => {
+        const updatedData = data.map((row) => ({
+          step: row.step,
+          tMin: row.tMin,
+          tMax: row.tMax,
+          time: row.time,
+          tMinUnit: row.tMinUnit,
+          tMaxUnit: row.tMaxUnit
+        }));
+        console.log(updatedData)
+        try {
+          const response = await fetch(`http://localhost:5001/updateFile`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              fileName: fileName,
+              data: updatedData
+            }),
+          });
+    
+          if (!response.ok) {
+            console.error('Error saving changes');
+            return;
+          }
+    
+          const result = await response.json();
+          console.log('Save success:', result);
+        } catch (error) {
+          console.error('Failed to save changes:', error);
+        }
+      };
+    
+      // Button click handler for saving changes
+      const handleSaveChanges = () => {
+        saveChanges();
+      };
+      useEffect(() => {
+        const fetchCsvData = async () => {
+            try {
+                const response = await fetch(`http://localhost:5001/get-csv/${fileName}`);
+                if (!response.ok) {
+                    console.error('Error fetching CSV data');
+                    return;
+                }
+                const csvData = await response.text();
+                console.log('CSV Data:', csvData);
+
+                const rows = csvData.split('\n').map(row => row.split(','));
+
+                // Skip the first row (header) and process the rest
+                const dataRows = rows.slice(1).map(row => ({
+                    step: parseInt(row[0]),
+                    tMin: parseFloat(row[1]),
+                    tMax: parseFloat(row[2]),
+                    time: parseInt(row[3]),
+                    tMinUnit: row[4],
+                    tMaxUnit: row[5]
+                }));
+
+                setData(dataRows);
+                setOriginalData(dataRows); // Store the initial fetched data
+            } catch (error) {
+                console.error('Failed to fetch CSV data:', error);
+            }
+        };
+
+        if (fileName) {
+            fetchCsvData();
+        }
+    }, [fileName]);
+
     const addRow = (index, position) => {
-        const newRow = { step: data.length + 1, tMin: 0, tMax: 0, time: 1, tMinUnit: temperatureUnit, tMaxUnit: temperatureUnit };
+        // Create a new row
+        const newRow = {
+            step: data.length + 1, 
+            tMin: position === 'below' && index < data.length ? data[index].tMax : 0, // Set TMin to TMax of the previous row if it's 'below'
+            tMax: 0, 
+            time: 1, 
+            tMinUnit: temperatureUnit, 
+            tMaxUnit: temperatureUnit 
+        };
+    
         const newData = [...data];
-        if (position === 'above') newData.splice(index, 0, newRow);
-        else if (position === 'below') newData.splice(index + 1, 0, newRow);
-        newData.forEach((row, i) => (row.step = i + 1));
+        
+        if (position === 'above') {
+            newData.splice(index, 0, newRow);
+        } else if (position === 'below') {
+            newData.splice(index + 1, 0, newRow);  // Insert the new row below the current row
+        }
+    
+        // Recalculate step numbers
+        newData.forEach((row, i) => row.step = i + 1);
+    
+        // Update the state with the new data
         setData(newData);
-        setTotalTime(totalTime + newRow.time); // Update totalTime
+    
+        // Update the total time
+        setTotalTime(totalTime + newRow.time); 
     };
+    
 
     const removeRow = (index) => {
         if (data.length > 1) {
@@ -97,6 +190,11 @@ export default function SingleProfile() {
     
       const totalProgramTime = data.reduce((total, row) => total + row.time, 0);
       const formattedProgramTime = formatTimeDuration(totalProgramTime);
+
+      const cancelChanges = () => {
+        setData([...originalData]); // Reset data to the original state
+        setTotalTime(originalData.reduce((total, row) => total + row.time, 0)); // Reset totalTime to the original value
+    };
     
       const tutorialContent = (
         <div style={{ padding: 20 }}>
@@ -134,13 +232,13 @@ export default function SingleProfile() {
             <Table.Td ta='center'>{row.step}</Table.Td>
             <Table.Td ta='center'>
                 <Group align='center' justify='center'>
-                    <NumberInput w={70} variant="filled" value={row.tMin} onChange={(val) => updateRow(index, 'tMin', val)} />
+                    <NumberInput w={90} variant="filled" value={row.tMin} onChange={(val) => updateRow(index, 'tMin', val)} />
                     <Text>{row.tMinUnit}</Text>
                 </Group>
             </Table.Td>
             <Table.Td ta='center'>
                 <Group align='center' justify='center'>
-                    <NumberInput w={70} variant="filled" value={row.tMax} onChange={(val) => updateRow(index, 'tMax', val)} />
+                    <NumberInput w={90} variant="filled" value={row.tMax} onChange={(val) => updateRow(index, 'tMax', val)} />
                     <Text>{row.tMaxUnit}</Text>
                 </Group>
             </Table.Td>
@@ -224,8 +322,8 @@ export default function SingleProfile() {
               <Input placeholder="..." variant='filled' value={fileName} onChange={(e) => setProjectName(e.target.value)}/>
             </Input.Wrapper>
             <Group>
-              <Button rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>
-              <Button rightSection={<IconCheck size={16} />}>{t.saveChanges}</Button>
+              <Button onClick={cancelChanges} rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>
+              <Button onClick={handleSaveChanges} rightSection={<IconCheck size={16} />}>{t.saveChanges}</Button>
             </Group>
           </Group>
           <ScrollArea h={height * 0.7} w={width * 0.8} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
