@@ -328,7 +328,7 @@ const AllProfiles = () => {
               </div>
               <div className="results-container">
                 {displayItems.length > 0 ? (
-                  displayItems.map((project) => (
+                  displayItems.map((project) => ( 
                     <div key={project.id} className="result-item" >
                       <Link to={`/singleProfile/${project.name}`}>
                         <Text>{project.name}</Text>
