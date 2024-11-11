@@ -287,7 +287,7 @@ const AllProfiles = () => {
               maxSize={5 * 1024 ** 2}
               accept={['text/csv']}
             >
-              <Group justify="center" gap="xl" mih={220} style={{ pointerEvents: 'none' }}>
+              <Group justify="center" gap="xl" mih={125} style={{ pointerEvents: 'none' }}>
                 <Dropzone.Accept>
                   <IconUpload style={{ width: rem(52), height: rem(52), color: 'var(--mantine-color-blue-6)' }} stroke={1.5} />
                 </Dropzone.Accept>
@@ -313,7 +313,7 @@ const AllProfiles = () => {
             <h1 className="section-title">
               <Text fz={24} fw={600}>{t.searchProject} </Text>
             </h1>
-            <div className="search-container">
+            <div className="search-container" style={{ backgroundColor: theme.colors.dark[6] }}>
               <div className="search-wrapper">
                 <input 
                   className="search-input"
@@ -329,9 +329,9 @@ const AllProfiles = () => {
               <div className="results-container">
                 {displayItems.length > 0 ? (
                   displayItems.map((project) => (
-                    <div key={project.id} className="result-item">
+                    <div key={project.id} className="result-item" style={{ backgroundColor: theme.colors.dark[8] }}>
                       <Link to={`/singleProfile/${project.name}`}>
-                        <Text color='black'>{project.name}</Text>
+                        <Text style={{ color: theme.colors.gray[1] }}>{project.name}</Text>
                       </Link>
                       <Group>
                         <Link to={`/singleProfile/${project.name}`}>

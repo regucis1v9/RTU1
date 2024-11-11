@@ -80,7 +80,6 @@
 }
 
 .search-container {
-  background-color: #D3D3D3;
   border-radius: 14px;
   padding: 24px;
   box-shadow: 3px 6px 10px rgba(0, 0, 0, 0.3);
@@ -104,8 +103,6 @@
   border: 2px solid #0077FF;
   border-radius: 8px;
   font-size: 16px;
-  color: #666;
-  background: rgba(227, 225, 225, 1);
   outline: none;
 }
 
