@@ -10,10 +10,11 @@ import translations from '../locales/translations';
 import dropdown from "../styles/Dropdown.module.css";
 import '@mantine/dropzone/styles.css';
 import '@mantine/notifications/styles.css';
-
+import { useNavigate } from 'react-router-dom';
 const RESULTS_PER_PAGE = 5;
 
 const AllProfiles = () => {
+  const navigate = useNavigate();
   const iconStyle = { width: rem(12), height: rem(12) };
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
@@ -72,7 +73,6 @@ const AllProfiles = () => {
         message: t.pleaseEnterProjectName,
         color: 'orange',
       });
-      
       return;
     }
     
@@ -99,6 +99,9 @@ const AllProfiles = () => {
         color: 'green',
       });
   
+      // Navigate to /singleProfile/:filename upon success
+      navigate(`/singleProfile/${projectName}`);
+  
       setProjectName('');
       fetchProjects();
     } catch (error) {
@@ -112,7 +115,7 @@ const AllProfiles = () => {
       setIsLoading(false);
     }
   };
-
+  
   const handleFileUpload = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -132,6 +135,9 @@ const AllProfiles = () => {
         color: 'green',
       });
   
+      // Navigate to /singleProfile/:filename upon success
+      navigate(`/singleProfile/${data.fileName}`);
+  
       setCsvFile(null);
       fetchProjects();
     } catch (error) {
@@ -143,6 +149,7 @@ const AllProfiles = () => {
       });
     }
   };
+  
 
   const deleteProject = async (projectId) => {
     try {
@@ -323,11 +330,11 @@ const AllProfiles = () => {
                 {displayItems.length > 0 ? (
                   displayItems.map((project) => (
                     <div key={project.id} className="result-item">
-                      <Link to={`/singleProfile`}>
+                      <Link to={`/singleProfile/${project.name}`}>
                         <Text color='black'>{project.name}</Text>
                       </Link>
                       <Group>
-                        <Link to="/singleProfile">
+                        <Link to={`/singleProfile/${project.name}`}>
                         <ActionIcon h={40} w={40} p={2} variant='transparent' color='black'>
                           <IconExternalLink />
                         </ActionIcon>

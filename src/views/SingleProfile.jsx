@@ -1,12 +1,12 @@
 import { AppShell, useMantineTheme, rem,Tabs,Modal,Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select, ActionIcon, useMantineColorScheme, useComputedColorScheme} from '@mantine/core';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IconGraph, IconList, IconPencilPlus, IconHelp, IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage, IconSun, IconMoon } from '@tabler/icons-react';
 import { useElementSize } from '@mantine/hooks';
 import translations from '../locales/translations';
 import classes from "../styles/Table.module.css";
 import dropdown from "../styles/Dropdown.module.css";
 import cx from 'clsx';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 const toFahrenheit = (celsius) => (celsius * 9/5) + 32;
 const toKelvin = (celsius) => celsius + 273.15;
@@ -14,6 +14,8 @@ const fromFahrenheitToCelsius = (fahrenheit) => (fahrenheit - 32) * 5/9;
 const fromKelvinToCelsius = (kelvin) => kelvin - 273.15;
 
 export default function SingleProfile() {
+    const { fileName } = useParams(); // Extract the filename from the URL
+    const [projectName, setProjectName] = useState('');
   const theme = useMantineTheme();
   const iconStyle = { width: rem(12), height: rem(12) };
   const { setColorScheme } = useMantineColorScheme();
@@ -31,7 +33,6 @@ export default function SingleProfile() {
     setLanguage(value);
     localStorage.setItem('lang', value);
   };
-
   const addRow = (index, position) => {
     const newRow = { step: data.length + 1, tMin: 0, tMax: 0, time: 1, tMinUnit: temperatureUnit, tMaxUnit: temperatureUnit };
     const newData = [...data];
@@ -54,6 +55,22 @@ export default function SingleProfile() {
     updatedData[index][field] = value;
     setData(updatedData);
   };
+  useEffect(() => {
+    const fetchCsvFile = async () => {
+      try {
+        const response = await fetch(`http://localhost:5001/get-csv/${fileName}`);
+        const fileData = await response.json();
+        setProjectName(fileName); // Set the project name as the filename
+        setData(fileData.rows); // Assuming the fileData contains 'rows' with data
+      } catch (error) {
+        console.error('Error fetching CSV file:', error);
+      }
+    };
+
+    if (fileName) {
+      fetchCsvFile();
+    }
+  }, [fileName]);
 
   const convertTemperature = (value, fromUnit, toUnit) => {
     if (fromUnit === toUnit) return value;
@@ -211,7 +228,7 @@ export default function SingleProfile() {
         <Flex w={width} h={height} gap="md" justify="center" align="center" direction="column">
           <Group w={width * 0.8} justify='space-between'>
             <Input.Wrapper label={t.programName} withAsterisk>
-              <Input placeholder="..." variant='filled' />
+              <Input placeholder="..." variant='filled' value={fileName} onChange={(e) => setProjectName(e.target.value)}/>
             </Input.Wrapper>
             <Group>
               <Button rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>

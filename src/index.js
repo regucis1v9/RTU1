@@ -21,7 +21,7 @@ root.render(
         <Route path="/landing" element={<Landing />} />
         <Route path="/allProfiles" element={<AllProfiles />} />
         <Route path="/overView" element={<Overview />} />
-        <Route path="/SingleProfile" element={<SingleProfile />} />
+        <Route path="/singleProfile/:fileName" element={<SingleProfile />} />
         <Route path="/" element={<Login />} />
         <Route path="/testing" element={<TestingPage />} />
         
