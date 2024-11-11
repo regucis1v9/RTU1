@@ -82,10 +82,11 @@
 .search-container {
   border-radius: 14px;
   padding: 24px;
-  box-shadow: 3px 6px 10px rgba(0, 0, 0, 0.3);
-  max-height:60vh;
+  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
+  box-shadow: var(--mantine-shadow-md);
+  max-height: 60vh;
   display: flex;
-  flex-direction:column;
+  flex-direction: column;
   align-items: center;
 }
 
@@ -100,10 +101,16 @@
   height: 55px;
   padding: 0 16px;
   padding-right: 48px;
-  border: 2px solid #0077FF;
+  border: 2px solid var(--mantine-color-blue-6);
   border-radius: 8px;
   font-size: 16px;
   outline: none;
+  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-7));
+  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+}
+
+.search-input::placeholder {
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
 }
 
 .search-icon {
@@ -129,15 +136,27 @@
 .result-item {
   text-decoration: none;
   height: 55px;
-  background-color: rgba(227, 225, 225, 1);
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
+  border: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
   border-radius: 8px;
   padding: 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  transition: all 0.2s ease;
 }
-.result-item a{
+
+.result-item:hover {
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4));
+}
+
+.redirect-button {
+  color: light-dark(var(--mantine-color-blue-9  ), var(--mantine-color-blue-4));
+}
+
+.result-item a {
   text-decoration: none;
+  color: light-dark(var(--mantine-color-dark-9), var(--mantine-color-gray-0));
 }
 
 .result-item.empty {
@@ -145,7 +164,7 @@
 }
 
 .result-text {
-  color: #333;
+  color: light-dark(var(--mantine-color-dark-9), var(--mantine-color-gray-0));
   font-size: 16px;
 }
 
@@ -155,15 +174,6 @@
   gap: 16px;
 }
 
-.edit-icon {
-  color: #000000;
-  cursor: pointer;
-}
-
-.delete-icon {
-  color: rgba(202, 11, 11, 1);
-  cursor: pointer;
-}
 
 .pagination-wrapper {
   display: flex;
@@ -173,7 +183,6 @@
 /* Mantine Pagination Override Styles */
 .mantine-Pagination-control {
   border: none !important;
-  color: #666 !important;
   background: transparent !important;
   min-width: 32px !important;
   height: 32px !important;
@@ -197,65 +206,6 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px white inset;
 }
-
-.drag-and-drop-box {
-  width: 100%;
-  height: 100px;
-  margin-top: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(217, 217, 217, 1);
-  border: 2px dashed #0077FF;
-  border-radius: 8px;
-  color: #666;
-  font-size: 16px;
-  text-align: center;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-  cursor: pointer;
-}
-
-.drag-and-drop-box:hover {
-  background-color: rgba(227, 225, 225, 1);
-  border-color: #005bb5;
-}
-
-.drag-and-drop-box p {
-  margin: 0;
-  color: #666;
-}
-
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.file-info p {
-  font-weight: 500;
-  color: #333;
-}
-
-.file-info button {
-  height: 35px;
-  padding: 0 12px;
-  background-color: #0077FF;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: opacity 0.2s;
-  text-transform: uppercase;
-  box-shadow: 2px 4px 5px rgba(0, 0, 0, 0.3);
-}
-
-.file-info button:hover {
-  opacity: 0.9;
-}
-
-
 
 
 /* tutorial */
