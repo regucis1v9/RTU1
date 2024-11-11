@@ -89,6 +89,42 @@ app.post('/upload-csv', upload.single('file'), (req, res) => {
   res.json({ message: 'File uploaded successfully', filePath: req.file.path });
 });
 
+// New endpoint to fetch CSV content by filename
+app.get('/get-csv/:filename', (req, res) => {
+  const { filename } = req.params;
+  const filePath = path.join(PROJECTS_DIR, filename);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ message: 'File not found' });
+  }
+
+  // Read the CSV file and send its content
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error reading the file' });
+    }
+
+    // Assuming you want to parse the CSV into JSON:
+    const rows = parseCSVToJson(data); // Replace with actual CSV parsing logic
+    res.json({ rows }); // Send the parsed CSV data
+  });
+});
+
+// A simple CSV parsing function (you can replace this with a more sophisticated one)
+const parseCSVToJson = (csv) => {
+  const lines = csv.split('\n');
+  const headers = lines[0].split(',');
+  const rows = lines.slice(1).map((line) => {
+    const values = line.split(',');
+    let rowObj = {};
+    headers.forEach((header, index) => {
+      rowObj[header.trim()] = values[index]?.trim();
+    });
+    return rowObj;
+  });
+  return rows;
+};
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

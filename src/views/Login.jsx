@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import "../styles/overviewStyles.scss"; // Custom styles
 import logo from "../images/logo2.png";
 import { Link } from 'react-router-dom';
-
+import { Input, Button } from '@mantine/core';
 const Login = () => {
   const [showLogin, setShowLogin] = useState(false); // To control login form visibility
 
@@ -20,15 +20,29 @@ const Login = () => {
       {/* Logo container that animates from the bottom to the top */}
       <div className={`logoContainer ${showLogin ? 'logoExit' : 'logoEnter'}`}>
         <img className='logo' src={logo} alt="Logo" />
-        <div className="text">LEOTECH</div>
+        <div className="text">Leofilizācijas Zinātniskā Laboratorija</div>
       </div>
 
       {/* Login form that appears after 4 seconds */}
       <div className={`loginContainer ${showLogin ? 'showLogin' : ''}`}>
-        <input type="text" placeholder="LIETOTĀJVĀRDS" className="loginInput" />
-        <input type="password" placeholder="PAROLE" className="loginInput" />
+              <Input.Wrapper>
+                <Input
+                  variant='filled'
+                  placeholder="Lietotājvārds"
+                  size='xl'
+                  mb={20}
+                />
+              </Input.Wrapper>
+              <Input.Wrapper>
+                <Input
+                  variant='filled'
+                  placeholder="Parole"
+                  size='xl'
+                  mb={20}
+                />
+              </Input.Wrapper>
         <Link to="/landing">
-          <button className="loginButton">PIESLĒGTIES</button>
+          <Button size='md'>PIESLĒGTIES</Button>
         </Link>
 
       </div>
