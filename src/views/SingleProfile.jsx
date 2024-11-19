@@ -284,7 +284,7 @@ export default function SingleProfile() {
                 </Button>
             </Link>
           <Group>
-            <Link to="/">
+            <Link to="/landing">
                 <Button color={buttonColor} variant="transparent" leftSection={<IconHomeFilled />}>{t.home}</Button>
             </Link>
             <Link to={`/overview/${fileName}`}>
