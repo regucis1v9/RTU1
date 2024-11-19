@@ -20,7 +20,7 @@ const Login = () => {
       {/* Logo container that animates from the bottom to the top */}
       <div className={`logoContainer ${showLogin ? 'logoExit' : 'logoEnter'}`}>
         <img className='logo' src={logo} alt="Logo" />
-        <div className="text">LEOFILIZĀCIJAS ZINĀTNISKĀ LABORATORIJA</div>
+        <div className="text">LIOFILIZĀCIJAS ZINĀTNISKĀ LABORATORIJA</div>
       </div>
 
       {/* Login form that appears after 4 seconds */}

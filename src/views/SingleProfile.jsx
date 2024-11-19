@@ -287,7 +287,7 @@ export default function SingleProfile() {
             <Link to="/">
                 <Button color={buttonColor} variant="transparent" leftSection={<IconHomeFilled />}>{t.home}</Button>
             </Link>
-            <Link to="/overview">
+            <Link to={`/overview/${fileName}`}>
                 <Button color={buttonColor} variant="transparent" leftSection={<IconChartSankey />}>{t.graphs}</Button>
             </Link>
           </Group>

@@ -20,7 +20,7 @@ root.render(
       <Routes>
         <Route path="/landing" element={<Landing />} />
         <Route path="/allProfiles" element={<AllProfiles />} />
-        <Route path="/overView" element={<Overview />} />
+        <Route path="/overView/:fileName" element={<Overview />} />
         <Route path="/singleProfile/:fileName" element={<SingleProfile />} />
         <Route path="/" element={<Login />} />
         <Route path="/testing" element={<TestingPage />} />
