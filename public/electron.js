@@ -2,21 +2,28 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+let mainWindow;
+
 function createConfigWindow() {
-    const win = new BrowserWindow({
-        width: 500,
-        height: 400,
+    mainWindow = new BrowserWindow({
+        width: 700,
+        height: 550,
+        center: true,
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: false,
         },
         resizable: false,
         frame: true,
-        title: 'Project Configuration'
+        title: 'Project Configuration',
     });
 
     // Load the configuration HTML file
-    win.loadFile('config.html');
+    mainWindow.loadFile(path.join(__dirname, '../config.html'));
+
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
 }
 
 app.whenReady().then(createConfigWindow);
@@ -36,9 +43,9 @@ app.on('activate', () => {
 // Handle title and logo updates
 ipcMain.on('update-config', (event, { title, logoPath }) => {
     try {
-        // Update the configuration files as needed
         console.log('Title:', title, 'Logo Path:', logoPath);
-        // Send a response back to the renderer process
+
+        // Here you can add logic to update files or configurations
         event.reply('update-config-response', { success: true });
     } catch (error) {
         event.reply('update-config-response', { success: false, error: error.message });

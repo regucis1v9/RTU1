@@ -4,78 +4,217 @@
     <title>Project Configuration</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0;
+            background: linear-gradient(145deg, #f6f8fd 0%, #f1f5f9 100%);
+            color: #1e293b;
+            min-height: 100vh;
         }
         .container {
-            padding: 20px;
+            max-width: 700px;
+            height: 550px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
         }
         .header {
-            background-color: #1a365d;
+            background: linear-gradient(to right, #0f172a, #1e293b);
             color: white;
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
+            padding: 20px 32px;
+            font-size: 20px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .content {
+            flex: 1;
+            padding: 32px;
+            display: flex;
+            gap: 32px;
+        }
+        .form-section {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1),
+                        0 2px 4px -2px rgba(15, 23, 42, 0.05);
         }
         .form-group {
-            margin: 15px 0;
+            margin-bottom: 24px;
+        }
+        .form-group:last-child {
+            margin-bottom: 0;
         }
         label {
-            display: inline-block;
-            width: 100px;
-            margin-right: 10px;
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #334155;
+            font-size: 14px;
         }
-        input[type="text"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+        .file-input-wrapper {
+            margin-top: 12px;
+        }
+        .custom-file-input {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+            transition: all 0.2s;
+        }
+        .custom-file-input:hover {
+            background: #e2e8f0;
+        }
+        .custom-file-input::before {
+            content: "📁";
+            font-size: 16px;
+        }
         input[type="file"] {
-            padding: 5px;
-            width: 300px;
+            display: none;
+        }
+        .preview-container {
+            margin-top: 24px;
+            text-align: center;
+            background: #f8fafc;
+            border: 2px dashed #e2e8f0;
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.2s;
+            display: flex;
+        }
+        .preview-container:hover {
+            border-color: #94a3b8;
+        }
+        .preview-image {
+            max-width: 240px;
+            margin: auto;
+            max-height: 240px;
+            object-fit: contain;
+            display: none;
+            border-radius: 8px;
+        }
+        .preview-placeholder {
+            color: #94a3b8;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .preview-placeholder::before {
+            content: "🖼️";
+            font-size: 32px;
         }
         .buttons {
-            text-align: right;
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #f1f5f9;
         }
         button {
-            padding: 8px 20px;
-            margin-left: 10px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.2s;
         }
         button.apply {
-            background-color: #48bb78;
+            background: linear-gradient(to right, #3b82f6, #2563eb);
             color: white;
             border: none;
-            border-radius: 4px;
+        }
+        button.apply:hover {
+            background: linear-gradient(to right, #2563eb, #1d4ed8);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
         }
         button.cancel {
-            background-color: #e2e8f0;
-            border: 1px solid #cbd5e0;
-            border-radius: 4px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+        }
+        button.cancel:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
         }
     </style>
 </head>
 <body>
-    <div class="header">Project Configuration</div>
     <div class="container">
-        <div class="form-group">
-            <label>Title:</label>
-            <input type="text" id="titleInput" placeholder="Enter project title">
-        </div>
-        <div class="form-group">
-            <label>Logo:</label>
-            <input type="file" id="logoInput" accept="image/*">
-        </div>
-        <div class="buttons">
-            <button class="cancel" onclick="cancel()">Cancel</button>
-            <button class="apply" onclick="apply()">Apply</button>
+        <div class="header">Project Configuration</div>
+        <div class="content">
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="titleInput">Project Title</label>
+                    <input type="text" id="titleInput" placeholder="Enter your project title">
+                </div>
+                <div class="form-group">
+                    <label for="logoInput">Project Logo</label>
+                    <div class="file-input-wrapper">
+                        <label class="custom-file-input" for="logoInput">
+                            Choose Logo File
+                        </label>
+                        <input type="file" id="logoInput" accept="image/*">
+                    </div>
+                    <div class="preview-container">
+                        <img id="previewImage" class="preview-image" alt="Logo preview">
+                        <div id="previewPlaceholder" class="preview-placeholder">
+                            Drop your logo here or click to select
+                        </div>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button class="cancel" onclick="cancel()">Cancel</button>
+                    <button class="apply" onclick="apply()">Save Changes</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         const { ipcRenderer } = require('electron');
+
+        document.getElementById('logoInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('previewImage');
+                    const placeholder = document.getElementById('previewPlaceholder');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
 
         function apply() {
             const title = document.getElementById('titleInput').value;
