@@ -10,20 +10,21 @@ app.on('ready', () => {
         width: 800,
         height: 600,
         webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
+            nodeIntegration: false, // Disable nodeIntegration for security
+            contextIsolation: true, // Enable contextIsolation for security
+            preload: path.join(__dirname, 'preload.js'), // Load the preload.js to expose safe APIs
         },
     });
 
     // Load the configuration HTML initially
     mainWindow.loadFile(path.join(__dirname, '../config.html'));
 
-    // Read config.json on app load and send to renderer (React)
+    // Send the config data to the renderer process when it's ready
     const configPath = path.join(__dirname, '../config.json');
     if (fs.existsSync(configPath)) {
         const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
         mainWindow.webContents.once('dom-ready', () => {
-            mainWindow.webContents.send('config-data', configData);  // Send config to renderer
+            mainWindow.webContents.send('config-data', configData); // Send the config data to the renderer
         });
     }
 
