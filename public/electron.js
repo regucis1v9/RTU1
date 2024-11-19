@@ -16,7 +16,7 @@ app.on('ready', () => {
     });
 
     // Load the configuration HTML
-    mainWindow.loadFile(path.join(__dirname, './config.html'));
+    mainWindow.loadFile(path.join(__dirname, '../config.html'));
 
     // Listen for configuration updates
     ipcMain.on('update-config', (event, data) => {
