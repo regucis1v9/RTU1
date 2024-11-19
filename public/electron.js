@@ -16,11 +16,11 @@ app.on('ready', () => {
     });
 
     // Load the configuration HTML
-    mainWindow.loadFile(path.join(__dirname, 'public/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../config.html'));
 
     // Listen for configuration updates
     ipcMain.on('update-config', (event, data) => {
-        const configPath = path.join(__dirname, 'config.json');
+        const configPath = path.join(__dirname, '../config.json');
         const configData = {
             title: data.title,
             logoPath: data.logoPath,
