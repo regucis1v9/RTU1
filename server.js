@@ -17,26 +17,34 @@ if (!fs.existsSync(PROJECTS_DIR)) {
 app.use(cors());
 app.use(bodyParser.json());
 
-// Configure multer for file upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, PROJECTS_DIR);
   },
   filename: (req, file, cb) => {
-    const { name, ext } = path.parse(file.originalname); // original name and extension
+    const { name, ext } = path.parse(file.originalname);
     const today = new Date().toISOString().split('T')[0];
     let finalName = `${name}-${today}${ext}`;
     let counter = 1;
-
     while (fs.existsSync(path.join(PROJECTS_DIR, finalName))) {
-      finalName = `${name} (${counter})-${today}${ext}`; // Bracket format for duplicates
+      finalName = `${name} (${counter})-${today}${ext}`;
       counter++;
     }
     cb(null, finalName);
   }
 });
 
-// Endpoint to fetch all projects
+function findCsvFile(filename) {
+  const filePath = path.join(PROJECTS_DIR, filename);
+
+  if (fs.existsSync(filePath)) {
+    const data = fs.readFileSync(filePath, 'utf8');
+    return { data };
+  } else {
+    return { error: 'File not found' };
+  }
+}
+
 app.get('/csvFiles', (req, res) => {
   try {
     const projectFiles = fs.readdirSync(PROJECTS_DIR);
@@ -47,7 +55,7 @@ app.get('/csvFiles', (req, res) => {
       const filePath = path.join(PROJECTS_DIR, file);
       const fileStat = fs.statSync(filePath);
       const fileDate = fileStat.mtime.toISOString().split('T')[0];
-      const fileTime = fileStat.mtime.toISOString().split('T')[1].slice(0, 5); // "HH:MM" format
+      const fileTime = fileStat.mtime.toISOString().split('T')[1].slice(0, 5);
       return { name: file, date: fileDate, time: fileTime };
     });
     res.json(projects);
@@ -57,31 +65,45 @@ app.get('/csvFiles', (req, res) => {
   }
 });
 
-// Endpoint to save CSV file from form input
 app.post('/save-csv', (req, res) => {
-  const { fileName, csvData } = req.body;
-  const today = new Date().toISOString().split('T')[0];
-  const filePath = path.join(PROJECTS_DIR, `${fileName}-${today}.csv`);
-  let finalFilePath = filePath;
-  let counter = 1;
-
-  while (fs.existsSync(finalFilePath)) {
-    finalFilePath = path.join(PROJECTS_DIR, `${fileName} (${counter})-${today}.csv`);
-    counter++;
-  }
-
-  fs.writeFile(finalFilePath, csvData, 'utf8', (err) => {
-    if (err) {
-      console.error('Error saving the CSV file:', err);
-      return res.status(500).json({ message: 'Error saving the CSV file' });
+    const { fileName, csvData } = req.body;
+  
+    const defaultHeader = 'step,t1Min,t1Max,t2Min,t2Max,t3Min,t3Max,time,tMinUnit,tMaxUnit';
+    const defaultRow = '1,0,0,1,1,2,2,1,C,C';
+  
+    let finalCsvData = defaultRow;
+  
+    if (finalCsvData === defaultRow) {
+      finalCsvData = defaultHeader + '\n' + defaultRow;
+    } else {
+      if (!csvData.startsWith(defaultHeader)) {
+        finalCsvData = defaultHeader + '\n' + csvData;
+      }
     }
-    res.json({ message: 'CSV file saved successfully', filePath: finalFilePath });
+  
+    const today = new Date().toISOString().split('T')[0];
+    const filePath = path.join(PROJECTS_DIR, `${fileName}-${today}.csv`);
+    let finalFilePath = filePath;
+    let counter = 1;
+  
+    while (fs.existsSync(finalFilePath)) {
+      finalFilePath = path.join(PROJECTS_DIR, `${fileName} (${counter})-${today}.csv`);
+      counter++;
+    }
+  
+    fs.writeFile(finalFilePath, finalCsvData, 'utf8', (err) => {
+      if (err) {
+        console.error('Error saving the CSV file:', err);
+        return res.status(500).json({ message: 'Error saving the CSV file' });
+      }
+      res.json({ message: 'CSV file saved successfully', filePath: finalFilePath });
+    });
   });
-});
+  
 
-// Configure multer upload
+
 const upload = multer({ storage: storage });
-// New endpoint for drag-and-drop CSV file upload
+
 app.post('/upload-csv', upload.single('file'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file uploaded' });
@@ -89,42 +111,78 @@ app.post('/upload-csv', upload.single('file'), (req, res) => {
   res.json({ message: 'File uploaded successfully', filePath: req.file.path });
 });
 
-// New endpoint to fetch CSV content by filename
 app.get('/get-csv/:filename', (req, res) => {
-  const { filename } = req.params;
-  const filePath = path.join(PROJECTS_DIR, filename);
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ message: 'File not found' });
-  }
-
-  // Read the CSV file and send its content
-  fs.readFile(filePath, 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error reading the file' });
+    const { filename } = req.params;
+    const result = findCsvFile(filename);
+  
+    if (result.error) {
+      return res.status(404).json({ message: result.error });
     }
-
-    // Assuming you want to parse the CSV into JSON:
-    const rows = parseCSVToJson(data); // Replace with actual CSV parsing logic
-    res.json({ rows }); // Send the parsed CSV data
+  
+    res.header('Content-Type', 'text/csv');
+    res.send(result.data);
   });
-});
-
-// A simple CSV parsing function (you can replace this with a more sophisticated one)
-const parseCSVToJson = (csv) => {
-  const lines = csv.split('\n');
-  const headers = lines[0].split(',');
-  const rows = lines.slice(1).map((line) => {
-    const values = line.split(',');
-    let rowObj = {};
-    headers.forEach((header, index) => {
-      rowObj[header.trim()] = values[index]?.trim();
-    });
-    return rowObj;
-  });
-  return rows;
-};
+  
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+app.post('/updateFile', (req, res) => {
+  const { fileName, data } = req.body;
+
+  const filePath = path.join(PROJECTS_DIR, fileName);
+
+  if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: 'File not found' });
+  }
+
+  const existingCsv = fs.readFileSync(filePath, 'utf8');
+  const rows = existingCsv.split('\n');
+
+  const header = rows[0];
+  let dataRows = rows.slice(1); 
+
+  // Update the new rows based on incoming data
+  const newRows = data.map((newRow) => {
+      const { step, t1Min, t1Max, t2Min, t2Max, t3Min, t3Max, time, tMinUnit, tMaxUnit } = newRow;
+      return `${step},${t1Min},${t1Max},${t2Min},${t2Max},${t3Min},${t3Max},${time},${tMinUnit},${tMaxUnit}`;
+  });
+
+  // Iterate over the existing data rows and update or keep rows as needed
+  const rowsToKeep = dataRows.map((row) => {
+      const step = row.split(',')[0]; 
+      const matchingNewRow = newRows.find((newRow) => newRow.startsWith(`${step},`)); 
+      return matchingNewRow || row; 
+  });
+
+  // Add new rows if they don't already exist in the file
+  newRows.forEach((newRow) => {
+      const step = newRow.split(',')[0]; 
+      const existsInDataRows = rowsToKeep.some((row) => row.startsWith(`${step},`));
+      if (!existsInDataRows) {
+          rowsToKeep.push(newRow);
+      }
+  });
+
+  // Filter out rows that should be deleted (rows that don't have a matching entry in the new data)
+  const rowsToDelete = dataRows.filter((row) => {
+      const step = row.split(',')[0];
+      return !newRows.some((newRow) => newRow.startsWith(`${step},`));
+  });
+
+  const updatedRowsToKeep = rowsToKeep.filter((row) => {
+      const step = row.split(',')[0];
+      return !rowsToDelete.some((deletedRow) => deletedRow.startsWith(`${step},`)); 
+  });
+
+  const updatedCsvContent = [header, ...updatedRowsToKeep].join('\n');
+
+  fs.writeFile(filePath, updatedCsvContent, 'utf8', (err) => {
+      if (err) {
+          console.error('Error saving the updated CSV file:', err);
+          return res.status(500).json({ message: 'Error saving the updated CSV file' });
+      }
+
+      res.json({ message: 'CSV file updated successfully', filePath });
+  });
 });

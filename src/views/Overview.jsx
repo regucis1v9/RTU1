@@ -100,7 +100,7 @@ export default function Overview() {
         handleResume={handleResume}
       />
 
-      <Link to="/SingleProfile">
+      <Link to="/singleProfile/:fileName">
         <Button className='backButton' variant="transparent" color={buttonColor}>
           <IconArrowLeft stroke={3}></IconArrowLeft>
         </Button>
@@ -109,8 +109,8 @@ export default function Overview() {
       {isPaused && (
         <div className="pausedScreen">
           <div className="labelBox">
-            <div className="pausedLabel">PAUSED</div>
-            <button className="resumeButton" onClick={handleResume}>RESUME</button>
+            <div className="pausedLabel">APSTĀDINĀTS</div>
+            <button className="resumeButton" onClick={handleResume}>TURPINĀT</button>
           </div>
         </div>
       )}
@@ -147,7 +147,7 @@ export default function Overview() {
       </div>
       
       <div className="shelfContainer2">
-        <PressureDisplay/>
+      <PressureDisplay isPaused={isPaused} />
       </div>
     </div>
   );

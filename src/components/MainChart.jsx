@@ -79,7 +79,7 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
   
 
   const showProgramEndDialog = () => {
-    Notiflix.Notify.failure('Data collection has completed. What would you like to do?', {
+    Notiflix.Notify.failure('Visi soļi tika izpildīti, ko jūs vēlaties darīt?', {
       position: 'center-center',
       timeout: 0, // Prevent auto-hide
       backOverlay: true, // Optional, show overlay
@@ -89,10 +89,10 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
   
     // Showing a custom dialog using Notiflix's Confirm dialog
     Notiflix.Confirm.show(
-      'Program Ended', 
-      'Data collection has completed. What would you like to do?',
-      'View Graphs',
-      'Go Home',
+      'Programmas Beigas', 
+      'Visi soļi tika izpildīti, ko jūs vēlaties darīt?',
+      'Skatīt Grafiku',
+      'Uz Mājām',
       function () {
         console.log('View Graphs clicked');
         // Optionally, you can navigate to another route here
@@ -191,7 +191,7 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
         .attr('dominant-baseline', 'middle')
         .attr('font-size', '24px')
         .attr('fill', '#666')
-        .text('Collecting Data...');
+        .text('Ievāc Datus...');
       return;
     }
 

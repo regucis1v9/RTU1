@@ -1,11 +1,11 @@
-import { AppShell, useMantineTheme, rem,Tabs,Modal,Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select, ActionIcon, useMantineColorScheme, useComputedColorScheme} from '@mantine/core';
-import { useState, useEffect } from 'react';
-import { IconGraph, IconList, IconPencilPlus, IconHelp, IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage, IconSun, IconMoon } from '@tabler/icons-react';
-import { useElementSize } from '@mantine/hooks';
-import translations from '../locales/translations';
-import classes from "../styles/Table.module.css";
-import dropdown from "../styles/Dropdown.module.css";
-import cx from 'clsx';
+import { AppShell, useMantineTheme, rem, Tabs, Modal, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select, ActionIcon, useMantineColorScheme, useComputedColorScheme, Transition } from '@mantine/core'; 
+import { useState, useEffect } from 'react'; 
+import { IconGraph, IconList, IconPencilPlus, IconHelp, IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage, IconSun, IconMoon } from '@tabler/icons-react'; 
+import { useElementSize } from '@mantine/hooks'; 
+import translations from '../locales/translations'; 
+import classes from "../styles/Table.module.css"; 
+import dropdown from "../styles/Dropdown.module.css"; 
+import cx from 'clsx'; 
 import { Link, useParams } from 'react-router-dom';
 
 const toFahrenheit = (celsius) => (celsius * 9/5) + 32;
@@ -14,170 +14,324 @@ const fromFahrenheitToCelsius = (fahrenheit) => (fahrenheit - 32) * 5/9;
 const fromKelvinToCelsius = (kelvin) => kelvin - 273.15;
 
 export default function SingleProfile() {
-    const { fileName } = useParams(); // Extract the filename from the URL
+    const [originalData, setOriginalData] = useState([]); 
+    const { fileName } = useParams();
     const [projectName, setProjectName] = useState('');
-  const theme = useMantineTheme();
-  const iconStyle = { width: rem(12), height: rem(12) };
-  const { setColorScheme } = useMantineColorScheme();
-  const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
-  const { ref, width, height } = useElementSize();
-  const [scrolled, setScrolled] = useState(false);
-  const [data, setData] = useState([{ step: 1, tMin: 0, tMax: 0, time: 1, tMinUnit: 'C', tMaxUnit: 'C' }]);
-  const [temperatureUnit, setTemperatureUnit] = useState('C');
-  const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
-  const t = translations[language] || translations['Latviešu']; 
-  const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
-  const [tutorialOpen, setTutorialOpen] = useState(false);
-
-  const handleLanguageChange = (value) => {
-    setLanguage(value);
-    localStorage.setItem('lang', value);
-  };
-  const addRow = (index, position) => {
-    const newRow = { step: data.length + 1, tMin: 0, tMax: 0, time: 1, tMinUnit: temperatureUnit, tMaxUnit: temperatureUnit };
-    const newData = [...data];
-    if (position === 'above') newData.splice(index, 0, newRow);
-    else if (position === 'below') newData.splice(index + 1, 0, newRow);
-    newData.forEach((row, i) => (row.step = i + 1));
-    setData(newData); 
-  };
-
-  const removeRow = (index) => {
-    if (data.length > 1) {
-      const newData = data.filter((_, i) => i !== index);
-      newData.forEach((row, i) => (row.step = i + 1));
-      setData(newData);
-    }
-  };
-
-  const updateRow = (index, field, value) => {
-    const updatedData = [...data];
-    updatedData[index][field] = value;
-    setData(updatedData);
-  };
-  useEffect(() => {
-    const fetchCsvFile = async () => {
-      try {
-        const response = await fetch(`http://localhost:5001/get-csv/${fileName}`);
-        const fileData = await response.json();
-        setProjectName(fileName); // Set the project name as the filename
-        setData(fileData.rows); // Assuming the fileData contains 'rows' with data
-      } catch (error) {
-        console.error('Error fetching CSV file:', error);
-      }
+    const theme = useMantineTheme();
+    const iconStyle = { width: rem(12), height: rem(12) };
+    const { setColorScheme } = useMantineColorScheme();
+    const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
+    const { ref, width, height } = useElementSize();
+    const [scrolled, setScrolled] = useState(false);
+    const [data, setData] = useState([{ step: 1, tMin: 0, tMax: 0, time: 1, tMinUnit: 'C', tMaxUnit: 'C' }]);
+    const [temperatureUnit, setTemperatureUnit] = useState('C');
+    const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
+    const t = translations[language] || translations['Latviešu'];
+    const [collapsedRows, setCollapsedRows] = useState({});
+    const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
+    const [tutorialOpen, setTutorialOpen] = useState(false);
+    const [totalTime, setTotalTime] = useState(data.reduce((total, row) => total + row.time, 0)); 
+    
+    const handleLanguageChange = (value) => {
+        setLanguage(value);
+        localStorage.setItem('lang', value);
     };
-
-    if (fileName) {
-      fetchCsvFile();
-    }
-  }, [fileName]);
-
-  const convertTemperature = (value, fromUnit, toUnit) => {
-    if (fromUnit === toUnit) return value;
-    if (fromUnit === 'C' && toUnit === 'F') return toFahrenheit(value);
-    if (fromUnit === 'C' && toUnit === 'K') return toKelvin(value);
-    if (fromUnit === 'F' && toUnit === 'C') return fromFahrenheitToCelsius(value);
-    if (fromUnit === 'F' && toUnit === 'K') return toKelvin(fromFahrenheitToCelsius(value));
-    if (fromUnit === 'K' && toUnit === 'C') return fromKelvinToCelsius(value);
-    if (fromUnit === 'K' && toUnit === 'F') return toFahrenheit(fromKelvinToCelsius(value));
+    const saveChanges = async () => {
+      const updatedData = data.map((row) => ({
+          step: row.step,
+          t1Min: row.t1Min,
+          t1Max: row.t1Max,
+          t2Min: row.t2Min,
+          t2Max: row.t2Max,
+          t3Min: row.t3Min,
+          t3Max: row.t3Max,
+          time: row.time,
+          tMinUnit: row.tMinUnit,
+          tMaxUnit: row.tMaxUnit
+      }));
+      console.log(updatedData);
+      try {
+          const response = await fetch(`http://localhost:5001/updateFile`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  fileName: fileName,
+                  data: updatedData
+              }),
+          });
+  
+          if (!response.ok) {
+              console.error('Error saving changes');  
+              return;
+          }
+  
+          const result = await response.json();
+          console.log('Save success:', result);
+      } catch (error) {
+          console.error('Failed to save changes:', error);
+      }
   };
 
-  const toggleUnitsForAll = () => {
-    const newUnit = temperatureUnit === 'C' ? 'F' : temperatureUnit === 'F' ? 'K' : 'C';
-    setTemperatureUnit(newUnit);
-    const updatedData = data.map(row => {
-      const newRow = { ...row };
-      newRow.tMinUnit = newUnit;
-      newRow.tMaxUnit = newUnit;
-      newRow.tMin = convertTemperature(newRow.tMin, row.tMinUnit, newUnit);
-      newRow.tMax = convertTemperature(newRow.tMax, row.tMaxUnit, newUnit);
-      return newRow;
+  const toggleRowExpansion = (index) => {
+    setCollapsedRows((prev) => {
+        const newCollapsedState = { ...prev };
+
+        // Close all rows except the one that was clicked
+        Object.keys(newCollapsedState).forEach((key) => {
+            if (key !== String(index)) {
+                newCollapsedState[key] = false; // Collapse other rows
+            }
+        });
+
+        // Toggle the clicked row
+        newCollapsedState[index] = !newCollapsedState[index];
+
+        return newCollapsedState;
     });
-    setData(updatedData); 
+};
+    
+      const handleSaveChanges = () => {
+        saveChanges();
+      };
+      useEffect(() => {
+        const fetchCsvData = async () => {
+            try {
+                const response = await fetch(`http://localhost:5001/get-csv/${fileName}`);
+                if (!response.ok) {
+                    console.error('Error fetching CSV data');
+                    return;
+                }
+                const csvData = await response.text();
+                console.log('CSV Data:', csvData);
+    
+                const rows = csvData.split('\n').map(row => row.split(','));
+    
+                // Start from index 1 to skip the header row
+                const dataRows = rows.slice(1).map(row => ({
+                    step: parseInt(row[0]),
+                    t1Min: parseFloat(row[1]),
+                    t1Max: parseFloat(row[2]),
+                    t2Min: parseFloat(row[3]),
+                    t2Max: parseFloat(row[4]),
+                    t3Min: parseFloat(row[5]),
+                    t3Max: parseFloat(row[6]),
+                    time: parseInt(row[7]),
+                    tMinUnit: row[8],
+                    tMaxUnit: row[9]
+                }));
+    
+                setData(dataRows);
+                setOriginalData(dataRows); 
+            } catch (error) {
+                console.error('Failed to fetch CSV data:', error);
+            }
+        };
+    
+        if (fileName) {
+            fetchCsvData();
+        }
+    }, [fileName]);
+
+    const addRow = (index, position) => {
+      const newRow = {
+          step: data.length + 1,
+          t1Min: 0,
+          t1Max: 0,
+          t2Min: 0,
+          t2Max: 0,
+          t3Min: 0,
+          t3Max: 0,
+          time: 1,
+          tMinUnit: temperatureUnit,
+          tMaxUnit: temperatureUnit,
+      };
+  
+      const newData = [...data];
+      if (position === 'above') {
+          newData.splice(index, 0, newRow);
+      } else if (position === 'below') {
+          newData.splice(index + 1, 0, newRow);
+      }
+  
+      // Recalculate step numbers
+      newData.forEach((row, i) => {
+          row.step = i + 1;
+          if (position === 'below' && i === index + 1) {
+              row.tMin = data[index].tMax;
+          }
+      });
+  
+      setData(newData);
+      setTotalTime(totalTime + newRow.time);
+  
+      // Initialize the new row as collapsed
+      setCollapsedRows(prev => ({
+          ...prev,
+          [newData.length - 1]: false, // Ensure new rows are collapsed by default
+      }));
   };
 
-  const formatTimeDuration = (totalMinutes) => {
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    return hours > 0 ? `${hours}h ${minutes} min` : `${minutes} min`;
-  };
+const removeRow = (index) => {
+    if (data.length > 1) {
+        const rowTime = data[index]; 
+        const newData = data.filter((_, i) => i !== index);
+        newData.forEach((row, i) => (row.step = i + 1));
+        
+        // Remove the removed row from collapsedRows
+        const newCollapsedState = { ...collapsedRows };
+        delete newCollapsedState[index]; // Remove the row's expansion state
 
-  const totalProgramTime = data.reduce((total, row) => total + row.time, 0);
-  const formattedProgramTime = formatTimeDuration(totalProgramTime);
+        setCollapsedRows(newCollapsedState);
+        setData(newData);
+        setTotalTime(totalTime - rowTime.time);
+    }
+};
 
-  const tutorialContent = (
-    <div style={{ padding: 20 }}>
-      <h2 style={{ color: theme.colors.gray[0], fontSize: '24px' }}>{t.tutorialTitle}</h2>
+    const updateRow = (index, field, value) => {
+        const updatedData = [...data];
+        if (field === 'time') {
+            const previousTime = updatedData[index][field];
+            setTotalTime(totalTime - previousTime + value); 
+        }
+        updatedData[index][field] = value;
+        setData(updatedData);
+    };
+    
+    const convertTemperature = (value, fromUnit, toUnit) => {
+        if (fromUnit === toUnit) return value;
+        if (fromUnit === 'C' && toUnit === 'F') return toFahrenheit(value);
+        if (fromUnit === 'C' && toUnit === 'K') return toKelvin(value);
+        if (fromUnit === 'F' && toUnit === 'C') return fromFahrenheitToCelsius(value);
+        if (fromUnit === 'F' && toUnit === 'K') return toKelvin(fromFahrenheitToCelsius(value));
+        if (fromUnit === 'K' && toUnit === 'C') return fromKelvinToCelsius(value);
+        if (fromUnit === 'K' && toUnit === 'F') return toFahrenheit(fromKelvinToCelsius(value));
+      };
+    
+      const toggleUnitsForAll = () => {
+        const newUnit = temperatureUnit === 'C' ? 'F' : temperatureUnit === 'F' ? 'K' : 'C';
+        setTemperatureUnit(newUnit);
+        const updatedData = data.map(row => {
+          const newRow = { ...row };
+          newRow.tMinUnit = newUnit;
+          newRow.tMaxUnit = newUnit;
+          newRow.tMin = convertTemperature(newRow.tMin, row.tMinUnit, newUnit);
+          newRow.tMax = convertTemperature(newRow.tMax, row.tMaxUnit, newUnit);
+          return newRow;
+        });
+        setData(updatedData); 
+      };
+    
+      const formatTimeDuration = (totalMinutes) => {
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        return hours > 0 ? `${hours}h ${minutes} min` : `${minutes} min`;
+      };
+    
+      const totalProgramTime = data.reduce((total, row) => total + row.time, 0);
+      const formattedProgramTime = formatTimeDuration(totalProgramTime);
+
+      const cancelChanges = () => {
+        setData([...originalData]); 
+        setTotalTime(originalData.reduce((total, row) => total + row.time, 0));
+    };
+    
+      const tutorialContent = (
+        <div style={{ padding: 20 }}>
+          <h2 style={{ color: theme.colors.gray[0], fontSize: '24px' }}>{t.tutorialTitle}</h2>
+          
+          <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
+            {t.tutorialDescription}
+          </Text>
+    
+          <Text style={{ color: theme.colors.gray[0], fontSize: '21px', fontWeight: 'bold', marginTop: '20px' }}>
+            1. {t.tutorialStep1}
+          </Text>
+          <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+            {t.tutorialStep1Description}
+          </Text>
+    
+          <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+            2. {t.tutorialStep2}
+          </Text>
+          <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+            {t.tutorialStep2Description}
+          </Text>
+    
+          <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+            3. {t.tutorialStep3}
+          </Text>
+          <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+            {t.tutorialStep3Description}
+          </Text>
+        </div>
+      );
+    
+      const rows = data.map((row, index) => (
+        <>
+          <Table.Tr key={row.step}>
+            <Table.Td ta='center'>{row.step}</Table.Td>
+            
+            <Table.Td ta='center' colSpan={2}>
+              <Group align='center' justify='center'>
+                <Button
+                  variant="outline"
+                  color="blue"
+                  size="xs"
+                  onClick={() => toggleRowExpansion(index)}
+                >
+                  {collapsedRows[index] ? "Hide Temps" : "Set Temps"}
+                </Button>
+              </Group>
+            </Table.Td>
+            
+            <Table.Td ta='center'>
+              <Group align='center' justify='center'>
+                <NumberInput min={1} w={70} variant="filled" value={row.time} onChange={(val) => updateRow(index, 'time', val)} />
+                min
+              </Group>
+            </Table.Td>
+            
+            <Table.Td>
+              <Group align='center' justify='center'>
+                <Button color="blue" size="xs" variant='transparent' onClick={() => addRow(index, 'above')}>
+                  <IconRowInsertTop stroke={2} size={40}/>
+                </Button>
+                <Button color="blue" size="xs" variant='transparent' onClick={() => addRow(index, 'below')}>
+                  <IconRowInsertBottom stroke={2} size={40}/>
+                </Button>
+                <Button color="red" size="xs" variant='transparent' onClick={() => removeRow(index)}>
+                  <IconTrashXFilled stroke={2} size={30}/>
+                </Button>
+              </Group>
+            </Table.Td>
+          </Table.Tr>
       
-      <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
-        {t.tutorialDescription}
-      </Text>
-
-      <Text style={{ color: theme.colors.gray[0], fontSize: '21px', fontWeight: 'bold', marginTop: '20px' }}>
-        1. {t.tutorialStep1}
-      </Text>
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
-        {t.tutorialStep1Description}
-      </Text>
-
-      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
-        2. {t.tutorialStep2}
-      </Text>
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
-        {t.tutorialStep2Description}
-      </Text>
-
-      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
-        3. {t.tutorialStep3}
-      </Text>
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
-        {t.tutorialStep3Description}
-      </Text>
-    </div>
-  );
-
-  const rows = data.map((row, index) => (
-    <Table.Tr key={row.step}>
-      <Table.Td ta='center'>{row.step}</Table.Td>
-      <Table.Td ta='center'>
-        <Group align='center' justify='center'>
-          <NumberInput w={70} variant="filled" value={row.tMin} onChange={(val) => updateRow(index, 'tMin', val)} />
-          <Text>{row.tMinUnit}</Text>
-        </Group>
-      </Table.Td>
-      <Table.Td ta='center'>
-        <Group align='center' justify='center'>
-          <NumberInput w={70} variant="filled" value={row.tMax} onChange={(val) => updateRow(index, 'tMax', val)} />
-          <Text>{row.tMaxUnit}</Text>
-        </Group>
-      </Table.Td>
-      <Table.Td ta='center'>
-        <Group align='center' justify='center'>
-          <NumberInput min={1} w={70} variant="filled" value={row.time} onChange={(val) => updateRow(index, 'time', val)} />
-          min
-        </Group>
-      </Table.Td>
-      <Table.Td>
-        <Group align='center' justify='center'>
-          <Button color="blue" size="xs" variant='transparent' onClick={() => addRow(index, 'above')}> 
-            <IconRowInsertTop stroke={2} size={40}/> 
-          </Button>
-          <Button color="blue" size="xs" variant='transparent' onClick={() => addRow(index, 'below')}> 
-            <IconRowInsertBottom stroke={2} size={40}/> 
-          </Button>
-          <Button color="red" size="xs" variant='transparent' onClick={() => removeRow(index)}> 
-            <IconTrashXFilled stroke={2} size={30}/> 
-          </Button>
-        </Group>
-      </Table.Td>
-    </Table.Tr>
-  ));
+          <Transition mounted={collapsedRows[index]} transition="scale-y" duration={300} timingFunction="ease">
+            {(styles) => (
+              <Table.Tr style={styles}>
+                <Table.Td colSpan={5}>
+                  <Group align="center" justify="center">
+                    <NumberInput w={90} label="T1 Min" variant="filled" value={row.t1Min} onChange={(val) => updateRow(index, 't1Min', val)} />
+                    <NumberInput w={90} label="T1 Max" variant="filled" value={row.t1Max} onChange={(val) => updateRow(index, 't1Max', val)} />
+                    <NumberInput w={90} label="T2 Min" variant="filled" value={row.t2Min} onChange={(val) => updateRow(index, 't2Min', val)} />
+                    <NumberInput w={90} label="T2 Max" variant="filled" value={row.t2Max} onChange={(val) => updateRow(index, 't2Max', val)} />
+                    <NumberInput w={90} label="T3 Min" variant="filled" value={row.t3Min} onChange={(val) => updateRow(index, 't3Min', val)} />
+                    <NumberInput w={90} label="T3 Max" variant="filled" value={row.t3Max} onChange={(val) => updateRow(index, 't3Max', val)} />
+                  </Group>
+                </Table.Td>
+              </Table.Tr>
+            )}
+          </Transition>
+        </>
+      ));
 
   return (
     <AppShell withBorder={false} header={{ height: 60 }}>
       <AppShell.Header p={12}>
         <Flex align="center" justify="space-between" w="100%">
-            <Link to="/">
+            <Link to="/allProfiles">
                 <Button variant="transparent" color={buttonColor}>
                     <IconArrowLeft stroke={3}></IconArrowLeft>
                 </Button>
@@ -231,8 +385,8 @@ export default function SingleProfile() {
               <Input placeholder="..." variant='filled' value={fileName} onChange={(e) => setProjectName(e.target.value)}/>
             </Input.Wrapper>
             <Group>
-              <Button rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>
-              <Button rightSection={<IconCheck size={16} />}>{t.saveChanges}</Button>
+              <Button onClick={cancelChanges} rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>
+              <Button onClick={handleSaveChanges} rightSection={<IconCheck size={16} />}>{t.saveChanges}</Button>
             </Group>
           </Group>
           <ScrollArea h={height * 0.7} w={width * 0.8} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>

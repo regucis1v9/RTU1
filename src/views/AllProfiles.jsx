@@ -75,7 +75,7 @@ const AllProfiles = () => {
       });
       return;
     }
-    
+  
     setIsLoading(true);
     try {
       const csvData = createCsvData();
@@ -92,15 +92,15 @@ const AllProfiles = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+  
       showNotification({
         title: t.success,
         message: t.projectCreated,
         color: 'green',
       });
   
-      // Navigate to /singleProfile/:filename upon success
-      navigate(`/singleProfile/${projectName}`);
+      // Navigate to /singleProfile/:filename without .csv
+      navigate(`/singleProfile/${projectName.replace('.csv', '')}`);
   
       setProjectName('');
       fetchProjects();
@@ -116,6 +116,7 @@ const AllProfiles = () => {
     }
   };
   
+  
   const handleFileUpload = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -128,15 +129,15 @@ const AllProfiles = () => {
         throw new Error('Failed to upload file');
       }
       const data = await response.json();
-      
+  
       showNotification({
         title: t.success,
         message: t.csvUploaded,
         color: 'green',
       });
   
-      // Navigate to /singleProfile/:filename upon success
-      navigate(`/singleProfile/${data.fileName}`);
+      // Navigate to /singleProfile/:filename without .csv
+      navigate(`/singleProfile/${data.fileName.replace('.csv', '')}`);
   
       setCsvFile(null);
       fetchProjects();
@@ -149,8 +150,6 @@ const AllProfiles = () => {
       });
     }
   };
-  
-
   const deleteProject = async (projectId) => {
     try {
       const response = await fetch(`http://localhost:5001/delete-project/${projectId}`, {
