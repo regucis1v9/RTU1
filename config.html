@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project Configuration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            padding: 20px;
+        }
+        .header {
+            background-color: #1a365d;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: inline-block;
+            width: 100px;
+            margin-right: 10px;
+        }
+        input[type="text"],
+        input[type="file"] {
+            padding: 5px;
+            width: 300px;
+        }
+        .buttons {
+            text-align: right;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-top: 1px solid #ddd;
+        }
+        button {
+            padding: 8px 20px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        button.apply {
+            background-color: #48bb78;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button.cancel {
+            background-color: #e2e8f0;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">Project Configuration</div>
+    <div class="container">
+        <div class="form-group">
+            <label>Title:</label>
+            <input type="text" id="titleInput" placeholder="Enter project title">
+        </div>
+        <div class="form-group">
+            <label>Logo:</label>
+            <input type="file" id="logoInput" accept="image/*">
+        </div>
+        <div class="buttons">
+            <button class="cancel" onclick="cancel()">Cancel</button>
+            <button class="apply" onclick="apply()">Apply</button>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        function apply() {
+            const title = document.getElementById('titleInput').value;
+            const logoInput = document.getElementById('logoInput');
+            const logoPath = logoInput.files[0] ? logoInput.files[0].path : null;
+
+            ipcRenderer.send('update-config', { title, logoPath });
+        }
+
+        function cancel() {
+            window.close();
+        }
+    </script>
+</body>
+</html>
