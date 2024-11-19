@@ -35,6 +35,12 @@ app.on('activate', () => {
 
 // Handle title and logo updates
 ipcMain.on('update-config', (event, { title, logoPath }) => {
-    // Your existing update logic here
-    // This will handle the file operations
+    try {
+        // Update the configuration files as needed
+        console.log('Title:', title, 'Logo Path:', logoPath);
+        // Send a response back to the renderer process
+        event.reply('update-config-response', { success: true });
+    } catch (error) {
+        event.reply('update-config-response', { success: false, error: error.message });
+    }
 });
