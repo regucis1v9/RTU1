@@ -15,22 +15,30 @@ app.on('ready', () => {
         },
     });
 
-    // Load the configuration HTML
+    // Load the configuration HTML initially
     mainWindow.loadFile(path.join(__dirname, '../config.html'));
 
-    // Listen for configuration updates
+    // Read config.json on app load and send to renderer (React)
+    const configPath = path.join(__dirname, '../config.json');
+    if (fs.existsSync(configPath)) {
+        const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+        mainWindow.webContents.once('dom-ready', () => {
+            mainWindow.webContents.send('config-data', configData);  // Send config to renderer
+        });
+    }
+
+    // Listen for configuration updates (e.g., title and logo)
     ipcMain.on('update-config', (event, data) => {
-        const configPath = path.join(__dirname, '../config.json');
         const configData = {
             title: data.title,
             logoPath: data.logoPath,
         };
 
-        // Save configuration to a file
+        // Save the updated config to config.json
         fs.writeFileSync(configPath, JSON.stringify(configData, null, 2), 'utf-8');
         console.log(`Konfigurācija saglabāta...\nTitle: ${data.title}\nLogo Path: ${data.logoPath}`);
 
-        // Close the window
+        // Close the configuration window
         mainWindow.close();
 
         // Start npm and node servers
