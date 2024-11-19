@@ -216,10 +216,21 @@
             }
         });
 
+
         function apply() {
             const title = document.getElementById('titleInput').value;
             const logoInput = document.getElementById('logoInput');
             const logoPath = logoInput.files[0] ? logoInput.files[0].path : null;
+
+            if (!title) {
+                alert('Lūdzu ievadiet projekta nosaukumu!');
+                return;
+            }
+
+            if (!logoPath) {
+                alert('Lūdzu pievienojiet logotipu!');
+                return;
+            }
 
             ipcRenderer.send('update-config', { title, logoPath });
         }

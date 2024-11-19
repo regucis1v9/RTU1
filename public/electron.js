@@ -1,32 +1,42 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { spawn } = require('child_process');
 
 let mainWindow;
 
-function createConfigWindow() {
+app.on('ready', () => {
     mainWindow = new BrowserWindow({
-        width: 700,
-        height: 550,
-        center: true,
+        width: 800,
+        height: 600,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
         },
-        resizable: false,
-        frame: true,
-        title: 'Project Configuration',
     });
 
-    // Load the configuration HTML file
-    mainWindow.loadFile(path.join(__dirname, '../config.html'));
+    // Load the configuration HTML
+    mainWindow.loadFile(path.join(__dirname, 'public/index.html'));
 
-    mainWindow.on('closed', () => {
-        mainWindow = null;
+    // Listen for configuration updates
+    ipcMain.on('update-config', (event, data) => {
+        const configPath = path.join(__dirname, 'config.json');
+        const configData = {
+            title: data.title,
+            logoPath: data.logoPath,
+        };
+
+        // Save configuration to a file
+        fs.writeFileSync(configPath, JSON.stringify(configData, null, 2), 'utf-8');
+        console.log(`Konfigurācija saglabāta...\nTitle: ${data.title}\nLogo Path: ${data.logoPath}`);
+
+        // Close the window
+        mainWindow.close();
+
+        // Start npm and node servers
+        startServers();
     });
-}
-
-app.whenReady().then(createConfigWindow);
+});
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
@@ -34,20 +44,29 @@ app.on('window-all-closed', () => {
     }
 });
 
-app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createConfigWindow();
-    }
-});
+// Function to start the npm and node servers
+function startServers() {
+    console.log('Starting npm and node servers...');
 
-// Handle title and logo updates
-ipcMain.on('update-config', (event, { title, logoPath }) => {
-    try {
-        console.log('Title:', title, 'Logo Path:', logoPath);
+    // Start npm server
+    const npmStart = spawn('npm', ['start'], { shell: true, stdio: 'inherit' });
 
-        // Here you can add logic to update files or configurations
-        event.reply('update-config-response', { success: true });
-    } catch (error) {
-        event.reply('update-config-response', { success: false, error: error.message });
-    }
-});
+    npmStart.on('error', (err) => {
+        console.error('Failed to start npm server:', err.message);
+    });
+
+    npmStart.on('close', (code) => {
+        console.log(`npm server exited with code ${code}`);
+    });
+
+    // Start node server (adjust the file path as needed)
+    const nodeServer = spawn('node', ['server.js'], { shell: true, stdio: 'inherit' });
+
+    nodeServer.on('error', (err) => {
+        console.error('Failed to start node server:', err.message);
+    });
+
+    nodeServer.on('close', (code) => {
+        console.log(`Node server exited with code ${code}`);
+    });
+}
