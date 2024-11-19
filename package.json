@@ -45,6 +45,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "node-server": "node server.js",
     "build": {
       "files": [
         "build/**/*",

@@ -16,11 +16,11 @@ app.on('ready', () => {
     });
 
     // Load the configuration HTML
-    mainWindow.loadFile(path.join(__dirname, '../config.html'));
+    mainWindow.loadFile(path.join(__dirname, 'public/index.html'));
 
     // Listen for configuration updates
     ipcMain.on('update-config', (event, data) => {
-        const configPath = path.join(__dirname, '../config.json');
+        const configPath = path.join(__dirname, 'config.json');
         const configData = {
             title: data.title,
             logoPath: data.logoPath,
@@ -44,12 +44,12 @@ app.on('window-all-closed', () => {
     }
 });
 
-// Function to start the npm and node servers
+// Function to start npm and node servers in separate terminals
 function startServers() {
     console.log('Starting npm and node servers...');
 
-    // Start npm server
-    const npmStart = spawn('npm', ['start'], { shell: true, stdio: 'inherit' });
+    // Start npm server in a new Command Prompt window
+    const npmStart = spawn('cmd', ['/c', 'start', 'npm start'], { stdio: 'inherit' });
 
     npmStart.on('error', (err) => {
         console.error('Failed to start npm server:', err.message);
@@ -59,8 +59,8 @@ function startServers() {
         console.log(`npm server exited with code ${code}`);
     });
 
-    // Start node server (adjust the file path as needed)
-    const nodeServer = spawn('node', ['server.js'], { shell: true, stdio: 'inherit' });
+    // Start node server in a new Command Prompt window (adjust the file path as needed)
+    const nodeServer = spawn('cmd', ['/c', 'start', 'node', 'server.js'], { stdio: 'inherit' });
 
     nodeServer.on('error', (err) => {
         console.error('Failed to start node server:', err.message);
@@ -70,3 +70,4 @@ function startServers() {
         console.log(`Node server exited with code ${code}`);
     });
 }
+ 
