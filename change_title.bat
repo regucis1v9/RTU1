@@ -1,23 +1,23 @@
 @echo off
-echo Running title changer...
+echo Palaiž nosaukuma mainītāju...
 
-:: Run the title changer and wait for it to complete
+:: Palaist nosaukuma mainītāju un sagaidīt, līdz tas pabeidz darbu
 call node title_changer.js
 if errorlevel 1 (
-    echo Failed to change title
+    echo Neizdevās mainīt nosaukumu
     pause
     exit /b 1
 )
 
-:: Only start servers after title_changer.js has completed successfully
+:: Startēt serverus tikai tad, ja title_changer.js pabeidzas veiksmīgi
 echo.
-echo Title change completed. Starting servers...
+echo Nosaukuma maiņa pabeigta. Startē serverus...
 echo.
 
-echo Starting the node server...
+echo Startē Node serveri...
 start cmd /k node server.js
 
-echo Starting the application...
+echo Startē lietotni...
 start cmd /k npm start
 
 pause
