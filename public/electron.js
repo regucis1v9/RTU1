@@ -16,7 +16,7 @@ app.on('ready', () => {
     });
 
     // Load the configuration HTML
-    mainWindow.loadFile(path.join(__dirname, '../config.html'));
+    mainWindow.loadFile(path.join(__dirname, './config.html'));
 
     // Listen for configuration updates
     ipcMain.on('update-config', (event, data) => {
@@ -48,8 +48,14 @@ app.on('window-all-closed', () => {
 function startServers() {
     console.log('Starting npm and node servers...');
 
+    // Get the current directory where this Electron app is located
+    const currentDirectory = path.join(__dirname, '..');
+
     // Start npm server in a new Command Prompt window
-    const npmStart = spawn('cmd', ['/c', 'start', 'npm start'], { stdio: 'inherit' });
+    const npmStart = spawn('cmd', ['/c', 'start', 'npm', 'start'], {
+        cwd: currentDirectory, // Set the working directory
+        stdio: 'inherit', // Inherit stdio so that logs are shown in the terminal
+    });
 
     npmStart.on('error', (err) => {
         console.error('Failed to start npm server:', err.message);
@@ -60,7 +66,10 @@ function startServers() {
     });
 
     // Start node server in a new Command Prompt window (adjust the file path as needed)
-    const nodeServer = spawn('cmd', ['/c', 'start', 'node', 'server.js'], { stdio: 'inherit' });
+    const nodeServer = spawn('cmd', ['/c', 'start', 'node', 'server.js'], {
+        cwd: currentDirectory, // Set the working directory for node server
+        stdio: 'inherit',
+    });
 
     nodeServer.on('error', (err) => {
         console.error('Failed to start node server:', err.message);
@@ -70,4 +79,3 @@ function startServers() {
         console.log(`Node server exited with code ${code}`);
     });
 }
- 
