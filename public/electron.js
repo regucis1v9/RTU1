@@ -10,9 +10,8 @@ app.on('ready', () => {
         width: 800,
         height: 600,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'), // Load the preload script
-            contextIsolation: true, // Enable context isolation
-            nodeIntegration: false, // Disable nodeIntegration for security
+            nodeIntegration: true,
+            contextIsolation: false,
         },
     });
 
@@ -27,17 +26,6 @@ app.on('ready', () => {
             mainWindow.webContents.send('config-data', configData);  // Send config to renderer
         });
     }
-
-    ipcMain.on('request-config', (event) => {
-        const configPath = path.join(__dirname, '../config.json');
-        if (fs.existsSync(configPath)) {
-            const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-            event.sender.send('config-data', configData);
-            console.log('Sent config data:', configData); // Debug log
-        } else {
-            console.error('Config file not found at:', configPath);
-        }
-    });
 
     // Listen for configuration updates (e.g., title and logo)
     ipcMain.on('update-config', (event, data) => {
