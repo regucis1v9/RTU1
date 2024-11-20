@@ -56,8 +56,11 @@ app.on('ready', () => {
         // Update the config JSON with the new logo path
         const configData = {
             title: title,
-            logoPath: `/images/${logo.name}`, // Path relative to React's public folder
+            logoPath: path.join('src/images', logo.name), // Path relative to project
         };
+
+        console.log(`Saving logo to ${filePath}`);
+        console.log('Base64 data:', base64Data.substring(0, 100)); 
     
         fs.writeFileSync(configPath, JSON.stringify(configData, null, 2), 'utf-8');
         console.log(`Configuration saved:\nTitle: ${title}\nLogo Path: ${filePath}`);

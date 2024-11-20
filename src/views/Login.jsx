@@ -37,7 +37,7 @@ const Login = () => {
       {/* Logo section */}
       <div className={`logoContainer ${showLogin ? 'logoExit' : 'logoEnter'}`}>
         {config.logoPath ? (
-          <img className="logo" src={config.logoPath} alt="Logo" />
+          <img className="logo" src={`../${config.logoPath}`} alt="Logo" />
         ) : (
           <div className="placeholderLogo">Logo not available</div>
         )}
