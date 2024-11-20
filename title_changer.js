@@ -24,13 +24,15 @@ async function updateTitle(newTitle) {
         // Create backup
         fs.writeFileSync(`${loginPath}.backup`, content);
 
-        // Replace the title while preserving the className
-        const newContent = content.replace(
-            /<div[^>]*className="text"[^>]*>[^<]*<\/div>/,
-            `<div className="text">${newTitle}</div>`
-        );
+        // Create a more flexible regex pattern to match the title in <div className="text">
+        const regex = /(<div[^>]*className="text"[^>]*>)([^<]*)(<\/div>)/;
+        
+        // Replace the title while preserving the surrounding HTML tags
+        const newContent = content.replace(regex, (match, startTag, oldTitle, endTag) => {
+            return `${startTag}${newTitle}${endTag}`; // Replace only the title text
+        });
 
-        // Write the new content
+        // Write the new content back to the file
         fs.writeFileSync(loginPath, newContent);
         
         console.log('\x1b[32m%s\x1b[0m', '\n✓ Title updated successfully!'); // Green color
@@ -46,9 +48,16 @@ async function main() {
         // Get current title
         const loginPath = path.join(__dirname, 'src', 'views', 'Login.jsx');
         const content = fs.readFileSync(loginPath, 'utf8');
-        const currentTitle = content.match(/<div[^>]*className="text"[^>]*>([^<]*)<\/div>/)[1];
+
+        // Match the current title from the HTML
+        const match = content.match(/<div[^>]*className="text"[^>]*>([^<]*)<\/div>/);
         
-        console.log('\x1b[33m%s\x1b[0m', `Current title: "${currentTitle}"`); // Yellow color
+        if (match && match[1]) {
+            const currentTitle = match[1];
+            console.log('\x1b[33m%s\x1b[0m', `Current title: "${currentTitle}"`); // Yellow color
+        } else {
+            console.log('\x1b[31m%s\x1b[0m', '\n❌ Could not find the title in Login.jsx'); // Red color
+        }
         
         rl.question('\nEnter new title: ', async (answer) => {
             if (answer.trim()) {
