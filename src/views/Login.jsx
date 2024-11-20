@@ -1,99 +1,78 @@
-import React, { useEffect, useState } from 'react';
-import "../styles/overviewStyles.scss";
-import { Link } from 'react-router-dom';
-import { Input, Button } from '@mantine/core';
+const { app, BrowserWindow, ipcMain } = require('electron');
+const path = require('path');
+const fs = require('fs');
+const { spawn } = require('child_process');
 
-// Create a safe electron import
-const electron = window?.require ? window.require('electron') : null;
-const ipcRenderer = electron?.ipcRenderer;
+let mainWindow;
 
-const Login = () => {
-  const [showLogin, setShowLogin] = useState(false);
-  const [config, setConfig] = useState({
-    title: 'Default Title', // Fallback title
-    logoPath: '/default-logo.png' // Fallback logo path
-  });
+function createWindow() {
+    mainWindow = new BrowserWindow({
+        width: 800,
+        height: 600,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+        },
+    });
 
-  useEffect(() => {
-    if (ipcRenderer) {
-      // Listen for config updates
-      ipcRenderer.on('config-data', (event, data) => {
-        console.log('Received config:', data); // Debugging: Log the data received
-        if (data && (data.title || data.logoPath)) {
-          setConfig(prevConfig => ({
-            ...prevConfig,
-            ...data
-          }));
-        }
-      });
+    // Load config.html from the root folder
+    mainWindow.loadFile(path.join(__dirname, '../config.html'));
 
-      // Request initial config
-      console.log('Requesting config...');
-      ipcRenderer.send('request-config');
+    // Handle window close
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
+}
+
+// Handle configuration update
+ipcMain.on('update-config', (event, data) => {
+    const configPath = path.join(__dirname, '../config.json');
+    try {
+        fs.writeFileSync(configPath, JSON.stringify(data, null, 2), 'utf-8');
+        console.log('Configuration saved:', data);
+
+        // Start servers
+        startServers();
+    } catch (error) {
+        console.error('Error saving configuration:', error);
+        event.reply('update-failed', 'Failed to save configuration.');
     }
+});
 
-    // Handle logo animation timing
-    const logoAnimationTimeout = setTimeout(() => {
-      setShowLogin(true);
-    }, 1000);
+// Function to start npm and node servers
+function startServers() {
+    console.log('Starting servers...');
+    const projectPath = path.join(__dirname, '..');
 
-    // Cleanup
-    return () => {
-      clearTimeout(logoAnimationTimeout);
-      if (ipcRenderer) {
-        ipcRenderer.removeAllListeners('config-data');
-      }
-    };
-  }, []);
+    const npmPath = 'npm';
+    const nodePath = 'node';
 
-  const handleLogin = (event) => {
-    event.preventDefault();
-    console.log('Login attempted');
-  };
+    const npmProcess = spawn(npmPath, ['start'], { cwd: projectPath });
+    npmProcess.stdout.on('data', (data) => console.log(`NPM: ${data}`));
+    npmProcess.stderr.on('data', (data) => console.error(`NPM Error: ${data}`));
 
-  return (
-    <div className='landingContainer'>
-      <div className={`logoContainer ${showLogin ? 'logoExit' : 'logoEnter'}`}>
-        <img 
-          className='logo' 
-          src={config.logoPath} 
-          alt="Logo"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = '/default-logo.png'; // Fallback if logo fails to load
-          }}
-        />
-        <div className="text">{config.title}</div>
-      </div>
+    const nodeProcess = spawn(nodePath, ['server.js'], { cwd: projectPath });
+    nodeProcess.stdout.on('data', (data) => console.log(`Node: ${data}`));
+    nodeProcess.stderr.on('data', (data) => console.error(`Node Error: ${data}`));
 
-      <div className={`loginContainer ${showLogin ? 'showLogin' : ''}`}>
-        <form onSubmit={handleLogin}>
-          <Input.Wrapper>
-            <Input
-              variant='filled'
-              placeholder="Lietotājvārds"
-              size='xl'
-              mb={20}
-              required
-            />
-          </Input.Wrapper>
-          <Input.Wrapper>
-            <Input
-              variant='filled'
-              placeholder="Parole"
-              type="password"
-              size='xl'
-              mb={20}
-              required
-            />
-          </Input.Wrapper>
-          <Link to="/landing">
-            <Button size='md' type="submit">PIESLĒGTIES</Button>
-          </Link>
-        </form>
-      </div>
-    </div>
-  );
-};
+    npmProcess.on('close', (code) => console.log(`NPM exited with code ${code}`));
+    nodeProcess.on('close', (code) => console.log(`Node exited with code ${code}`));
+}
 
-export default Login;
+// App lifecycle events
+app.whenReady().then(createWindow);
+
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
+});
+
+app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+    }
+});
+
+process.on('SIGTERM', () => app.quit());
+process.on('SIGINT', () => app.quit());
