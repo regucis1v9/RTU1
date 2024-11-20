@@ -15,10 +15,11 @@ const Login = () => {
 
   return (
     <div className='landingContainer'>
-      <div className={`logoContainer ${showLogin ? 'logoExit' : 'logoEnter'}`}>
-        <img className='logo' src={logo} alt="Logo" />
-        <div className="text">LIOFILIZĀCIJAS ZINĀTNISKĀ LABORATORIJA</div>
-      </div>
+  <div className={`logoContainer ${showLogin ? 'logoExit' : 'logoEnter'}`}>
+    <img className="logo" src={logo} alt="Logo" />
+    <div className="text">New Project Title</div>
+  </div>
+</div>
 
       {/* Login form that appears after 4 seconds */}
       <div className={`loginContainer ${showLogin ? 'showLogin' : ''}`}>
