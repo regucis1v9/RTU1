@@ -1,4 +1,4 @@
-'const fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
@@ -65,4 +65,4 @@ async function main() {
 }
 
 // Run the program
-main();'
+main();
