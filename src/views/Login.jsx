@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import "../styles/overviewStyles.scss"; 
-import logo from '../images/logo2.png'; // Correct relative path from src/views to src/images
+import logo from "../images/logo2.png"; // Ensure the logo is correctly imported from the images folder
 import { Link } from 'react-router-dom';
 import { Input, Button, PasswordInput } from '@mantine/core';
 
@@ -19,7 +19,7 @@ const Login = () => {
     <div className='landingContainer'>
       <div className={`logoContainer ${showLogin ? 'logoExit' : 'logoEnter'}`}>
         <img className="logo" src={logo} alt="Logo" />
-        <div className="text">MAMA123</div>
+        <div className="text">martins123</div>
       </div>
 
       <div className={`loginContainer ${showLogin ? 'showLogin' : ''}`}>
