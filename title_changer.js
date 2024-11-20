@@ -30,10 +30,13 @@ async function updateTitleAndImage(newTitle, newImage) {
             `<div className="text">${newTitle}</div>`
         );
 
-        // Replace the image source in the JSX file
+        // Replace the image import and source
         const updatedContent = newContent.replace(
+            /import logo from ['"][^'"]+['"];/,
+            `import logo from "${newImage}";`
+        ).replace(
             /<img[^>]*className=['"][^'"]*logo[^'"]*['"][^>]*src={[^}]*}[^>]*alt="Logo"[^>]*>/,
-            `<img className="logo" src="${newImage}" alt="Logo" />`
+            `<img className="logo" src={logo} alt="Logo" />`
         );
 
         // Write the updated content back to the file
@@ -53,7 +56,7 @@ async function main() {
         const loginPath = path.join(__dirname, 'src', 'views', 'Login.jsx');
         const content = fs.readFileSync(loginPath, 'utf8');
         const currentTitle = content.match(/<div[^>]*className="text"[^>]*>([^<]*)<\/div>/)[1];
-        const currentImage = content.match(/<img[^>]*className=['"][^'"]*logo[^'"]*['"][^>]*src={([^}]*)}[^>]*alt="Logo"[^>]*>/);
+        const currentImage = content.match(/import logo from ['"]([^'"]+)['"];/);
         const imageSrc = currentImage ? currentImage[1] : '';
 
         console.log('\x1b[33m%s\x1b[0m', `Current title: "${currentTitle}"`); // Yellow color
