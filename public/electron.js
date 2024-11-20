@@ -18,25 +18,43 @@ app.on('ready', () => {
     // Load the configuration HTML initially
     mainWindow.loadFile(path.join(__dirname, '../config.html'));
 
-    // Read config.json on app load and send to renderer (React)
+    // Define paths
     const configPath = path.join(__dirname, '../config.json');
+    const imagesDirectory = path.join(__dirname, '../src/images');
+
     if (fs.existsSync(configPath)) {
         const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
         mainWindow.webContents.once('dom-ready', () => {
-            mainWindow.webContents.send('config-data', configData);  // Send config to renderer
+            mainWindow.webContents.send('config-data', configData); // Send config to renderer
         });
     }
 
-    // Listen for configuration updates (e.g., title and logo)
+    // Listen for configuration updates
     ipcMain.on('update-config', (event, data) => {
-        const configData = {
-            title: data.title,
-            logoPath: data.logoPath,
+        const { title, logoPath } = data;
+
+        // Ensure the images directory exists
+        if (!fs.existsSync(imagesDirectory)) {
+            fs.mkdirSync(imagesDirectory, { recursive: true });
+        }
+
+        // Generate a unique file name for the logo
+        const fileName = `logo_${Date.now()}${path.extname(logoPath)}`;
+        const destination = path.join(imagesDirectory, fileName);
+
+        // Copy the logo file to the images directory
+        fs.copyFileSync(logoPath, destination);
+
+        // Update the config with the relative path to the new logo
+        const updatedConfig = {
+            title,
+            logoPath: `./images/${fileName}`, // Relative to `src`
         };
 
-        // Save the updated config to config.json
-        fs.writeFileSync(configPath, JSON.stringify(configData, null, 2), 'utf-8');
-        console.log(`Konfigurācija saglabāta...\nTitle: ${data.title}\nLogo Path: ${data.logoPath}`);
+        // Save the updated config to `config.json`
+        fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2), 'utf-8');
+
+        console.log(`Configuration saved:\nTitle: ${title}\nLogo Path: ${destination}`);
 
         // Close the configuration window
         mainWindow.close();
@@ -56,13 +74,12 @@ app.on('window-all-closed', () => {
 function startServers() {
     console.log('Starting npm and node servers...');
 
-    // Get the current directory where this Electron app is located
     const currentDirectory = path.join(__dirname, '..');
 
-    // Start npm server in a new Command Prompt window
+    // Start npm server
     const npmStart = spawn('cmd', ['/c', 'start', 'npm', 'start'], {
-        cwd: currentDirectory, // Set the working directory
-        stdio: 'inherit', // Inherit stdio so that logs are shown in the terminal
+        cwd: currentDirectory,
+        stdio: 'inherit',
     });
 
     npmStart.on('error', (err) => {
@@ -73,9 +90,9 @@ function startServers() {
         console.log(`npm server exited with code ${code}`);
     });
 
-    // Start node server in a new Command Prompt window (adjust the file path as needed)
+    // Start node server
     const nodeServer = spawn('cmd', ['/c', 'start', 'node', 'server.js'], {
-        cwd: currentDirectory, // Set the working directory for node server
+        cwd: currentDirectory,
         stdio: 'inherit',
     });
 

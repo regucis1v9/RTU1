@@ -200,44 +200,43 @@
 
     <script>
         const { ipcRenderer } = require('electron');
-
-        document.getElementById('logoInput').addEventListener('change', function(e) {
+    
+        document.getElementById('logoInput').addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     const preview = document.getElementById('previewImage');
                     const placeholder = document.getElementById('previewPlaceholder');
                     preview.src = e.target.result;
                     preview.style.display = 'block';
                     placeholder.style.display = 'none';
-                }
+                };
                 reader.readAsDataURL(file);
             }
         });
-
-
+    
         function apply() {
             const title = document.getElementById('titleInput').value;
             const logoInput = document.getElementById('logoInput');
-            const logoPath = logoInput.files[0] ? logoInput.files[0].path : null;
-
+            const logoPath = logoInput.files[0]?.path;
+    
             if (!title) {
-                alert('Lūdzu ievadiet projekta nosaukumu!');
+                alert('Please enter the project title!');
                 return;
             }
-
+    
             if (!logoPath) {
-                alert('Lūdzu pievienojiet logotipu!');
+                alert('Please add a logo!');
                 return;
             }
-
+    
             ipcRenderer.send('update-config', { title, logoPath });
         }
-
+    
         function cancel() {
             window.close();
         }
-    </script>
+    </script>   
 </body>
 </html>

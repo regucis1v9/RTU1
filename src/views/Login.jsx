@@ -31,7 +31,7 @@ const Login = () => {
       {/* Logo container that animates from the bottom to the top */}
       <div className={`logoContainer ${showLogin ? 'logoExit' : 'logoEnter'}`}>
         {/* Dynamically set the src and text from config */}
-        <img className='logo' src={config.logoPath} alt="Logo" />
+        <img className="logo" src={require(`../images/${config.logoPath.split('/').pop()}`)} alt="Logo" />
         <div className="text">{config.title || 'LEOFILIZĀCIJAS ZINĀTNISKĀ LABORATORIJA'}</div>
       </div>
 
