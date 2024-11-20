@@ -26,7 +26,7 @@ let content = fs.readFileSync(loginPath, 'utf8');
 // Replace the old logo path with the new one
 const updatedContent = content.replace(
   /import logo from '.*';/,
-  \`import logo from './images/$image_filename';\`
+  \`import logo from '../images/$image_filename';\`
 );
 
 // Write the updated content back to Login.jsx
