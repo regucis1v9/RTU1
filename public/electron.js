@@ -4,62 +4,67 @@ const fs = require('fs');
 const { spawn } = require('child_process');
 
 let mainWindow;
-const isDev = process.env.NODE_ENV === 'development';
 
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
-            nodeIntegration: false,
-            contextIsolation: true,
-            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: true, // Enable node integration
+            contextIsolation: false, // Disable context isolation
         },
     });
 
-    // Load the app
-    if (isDev) {
-        mainWindow.loadURL('http://localhost:3000');
-        mainWindow.webContents.openDevTools();
-    } else {
-        mainWindow.loadFile(path.join(__dirname, '../config.html'));
-    }
+    // Load the HTML file
+    mainWindow.loadFile(path.join(__dirname, 'config.html'));
 
-    // Handle "request-config" to read from config.json
-    ipcMain.on('request-config', (event) => {
-        const configPath = path.join(__dirname, '../config.json');
-        try {
-            if (fs.existsSync(configPath)) {
-                const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-                event.reply('config-data', configData);
-            } else {
-                event.reply('config-data', { title: 'Default Title', logoPath: '/default-logo.png' });
-            }
-        } catch (error) {
-            console.error('Error reading config:', error);
-            event.reply('config-data', { title: 'Default Title', logoPath: '/default-logo.png' });
-        }
-    });
-
-    // Handle "update-config" to save to config.json and start servers
-    ipcMain.on('update-config', (event, data) => {
-        const configPath = path.join(__dirname, '../config.json');
-        try {
-            fs.writeFileSync(configPath, JSON.stringify(data, null, 2), 'utf-8');
-            console.log('Configuration saved:', data);
-
-            // Start servers
-            startServers();
-        } catch (error) {
-            console.error('Error saving config:', error);
-        }
+    // Handle window close
+    mainWindow.on('closed', () => {
+        mainWindow = null;
     });
 }
 
-// Create the main window
+// Handle configuration update
+ipcMain.on('update-config', (event, data) => {
+    const configPath = path.join(__dirname, 'config.json');
+    try {
+        fs.writeFileSync(configPath, JSON.stringify(data, null, 2), 'utf-8');
+        console.log('Configuration saved:', data);
+
+        // Start servers
+        startServers();
+    } catch (error) {
+        console.error('Error saving configuration:', error);
+        event.reply('update-failed', 'Failed to save configuration.');
+    }
+});
+
+// Function to start npm and node servers
+function startServers() {
+    console.log('Starting servers...');
+    const projectPath = path.join(__dirname); // Adjust this if your server files are elsewhere
+
+    // Define paths to executables (adjust as needed)
+    const npmPath = 'npm'; // Use system npm, or provide full path if necessary
+    const nodePath = 'node'; // Use system node, or provide full path if necessary
+
+    // Start npm server
+    const npmProcess = spawn(npmPath, ['start'], { cwd: projectPath });
+    npmProcess.stdout.on('data', (data) => console.log(`NPM: ${data}`));
+    npmProcess.stderr.on('data', (data) => console.error(`NPM Error: ${data}`));
+
+    // Start node server
+    const nodeProcess = spawn(nodePath, ['server.js'], { cwd: projectPath });
+    nodeProcess.stdout.on('data', (data) => console.log(`Node: ${data}`));
+    nodeProcess.stderr.on('data', (data) => console.error(`Node Error: ${data}`));
+
+    npmProcess.on('close', (code) => console.log(`NPM exited with code ${code}`));
+    nodeProcess.on('close', (code) => console.log(`Node exited with code ${code}`));
+}
+
+// App lifecycle events
 app.whenReady().then(createWindow);
 
-// Quit when all windows are closed
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
@@ -72,52 +77,5 @@ app.on('activate', () => {
     }
 });
 
-// Function to start npm and node servers in new terminals
-function startServers() {
-    console.log('Starting npm and node servers in new terminals...');
-    const projectDir = path.join(__dirname, '..');
-
-    // Update paths to npm and node binaries if required
-    const npmPath = '/usr/local/bin/npm'; // Adjust to your system
-    const nodePath = '/usr/local/bin/node'; // Adjust to your system
-
-    function runInTerminal(command) {
-        const script = `
-            tell application "Terminal"
-                do script "cd ${projectDir} && ${command}"
-                activate
-            end tell
-        `;
-
-        const osascript = spawn('osascript', ['-e', script]);
-        osascript.stderr.on('data', (data) => {
-            console.error(`Error running command: ${data}`);
-        });
-    }
-
-    // Run npm start and node server.js
-    runInTerminal(`${npmPath} start`);
-    runInTerminal(`${nodePath} server.js`);
-}
-
-// Graceful shutdown
-let isShuttingDown = false;
-
-function gracefulShutdown() {
-    if (isShuttingDown) return;
-    isShuttingDown = true;
-
-    console.log('Shutting down gracefully...');
-
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.close();
-    }
-
-    const killCommand = spawn('pkill', ['-f', 'node']);
-    killCommand.on('close', () => {
-        app.quit();
-    });
-}
-
-process.on('SIGTERM', gracefulShutdown);
-process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', () => app.quit());
+process.on('SIGINT', () => app.quit());
