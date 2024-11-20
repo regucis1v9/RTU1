@@ -13,7 +13,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'preload.js'),
         },
     });
 
@@ -47,7 +47,7 @@ function createWindow() {
         try {
             fs.writeFileSync(configPath, JSON.stringify(data, null, 2), 'utf-8');
             console.log('Configuration saved:', data);
-            startServers();
+            startServers(); // Start the servers after saving config
         } catch (error) {
             console.error('Error saving config:', error);
         }
@@ -70,47 +70,37 @@ app.on('activate', () => {
     }
 });
 
-// Function to start servers (keeping your existing implementation)
+// Function to start servers programmatically
 function startServers() {
-    console.log('Starting npm and node servers...');
-    
-    const currentDirectory = path.join(__dirname, '..');
+    console.log('Starting npm and node servers programmatically...');
+    const currentDirectory = path.join(__dirname, '..'); // Adjust if needed
 
-    function runInNewTerminal(command) {
-        const script = `
-            tell application "Terminal"
-                do script "cd ${currentDirectory} && ${command}"
-                activate
-            end tell
-        `;
-        
-        const osascript = spawn('osascript', ['-e', script]);
-        
-        osascript.stderr.on('data', (data) => {
-            console.error(`Error running command: ${data}`);
-        });
-        
-        return osascript;
-    }
+    // Define the paths to npm and node binaries if needed
+    const npmPath = '/usr/local/bin/npm'; // Adjust to your npm binary path
+    const nodePath = '/usr/local/bin/node'; // Adjust to your node binary path
 
-    // Start servers
-    const npmProcess = runInNewTerminal('npm start');
-    const nodeProcess = runInNewTerminal('node server.js');
-    
-    // Monitor processes
-    [npmProcess, nodeProcess].forEach((process, index) => {
-        const name = index === 0 ? 'NPM Server' : 'Node Server';
-        
+    const npmProcess = spawn(npmPath, ['start'], { cwd: currentDirectory });
+    const nodeProcess = spawn(nodePath, ['server.js'], { cwd: currentDirectory });
+
+    const processes = [
+        { process: npmProcess, name: 'NPM Server' },
+        { process: nodeProcess, name: 'Node Server' },
+    ];
+
+    processes.forEach(({ process, name }) => {
         process.stdout?.on('data', (data) => {
-            console.log(`${name} output: ${data}`);
+            console.log(`${name} output: ${data.toString()}`);
         });
-        
+
         process.stderr?.on('data', (data) => {
-            console.error(`${name} error: ${data}`);
+            console.error(`${name} error: ${data.toString()}`);
         });
-        
+
         process.on('close', (code) => {
             console.log(`${name} exited with code ${code}`);
+            if (code !== 0) {
+                console.error(`${name} encountered an issue.`);
+            }
         });
 
         process.on('error', (err) => {
@@ -127,7 +117,7 @@ function gracefulShutdown() {
     isShuttingDown = true;
 
     console.log('Shutting down gracefully...');
-    
+
     if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.close();
     }
