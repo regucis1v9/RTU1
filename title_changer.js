@@ -1,4 +1,3 @@
-// title_changer.js
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
@@ -13,6 +12,7 @@ console.log('\x1b[36m%s\x1b[0m', '=== Project Title and Logo Changer ===\n');
 async function copyLogo(logoPath) {
     try {
         const cleanPath = logoPath.replace(/\\/g, '');
+        // Update path to match src/images structure
         const imagesDir = path.join(__dirname, 'src', 'images');
         const newLogoPath = path.join(imagesDir, path.basename(cleanPath));
         
@@ -21,62 +21,66 @@ async function copyLogo(logoPath) {
         }
         
         fs.copyFileSync(cleanPath, newLogoPath);
-        return `/images/${path.basename(cleanPath)}`; // Return web-friendly path
+        // Update to use the correct import path for React
+        return `../images/${path.basename(cleanPath)}`;
     } catch (error) {
         throw new Error(`Failed to copy logo: ${error.message}`);
     }
 }
 
-async function updateConfig(newTitle, newLogoPath) {
+async function updateLoginComponent(newTitle, newLogoPath) {
+    const loginPath = path.join(__dirname, 'src', 'views', 'Login.jsx');
+
+    if (!fs.existsSync(loginPath)) {
+        throw new Error('Login.jsx not found! Make sure script is run from project root.');
+    }
+
+    let content = fs.readFileSync(loginPath, 'utf8');
+    
+    // Create backup
+    fs.writeFileSync(`${loginPath}.backup`, content);
+
     try {
-        const configPath = path.join(__dirname, 'config.json');
-        let config = {};
-
-        // Read existing config if it exists
-        if (fs.existsSync(configPath)) {
-            config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        }
-
-        // Update config
-        if (newTitle) {
-            config.title = newTitle;
-        }
-
+        // Update logo import if new logo provided
         if (newLogoPath) {
-            const logoWebPath = await copyLogo(newLogoPath);
-            config.logoPath = logoWebPath;
+            const logoName = await copyLogo(newLogoPath);
+            content = content.replace(
+                /import\s+logo\s+from\s+(['"])\.\.\/images\/[^'"]*\1;/,
+                `import logo from "${logoName}";`
+            );
         }
 
-        // Save config
-        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-        
-        console.log('\x1b[32m%s\x1b[0m', '\n✓ Configuration updated successfully!');
-        
-        // Start the Electron application
-        console.log('\nStarting the Electron application...');
-        require('child_process').exec('npx electron .', (error, stdout, stderr) => {
-            if (error) {
-                console.error(`Failed to start application: ${error}`);
-                return;
-            }
-            console.log('Application started successfully');
-        });
+        // Update title if provided
+        if (newTitle) {
+            content = content.replace(
+                /<div\s+className="text">.*?<\/div>/,
+                `<div className="text">${newTitle}</div>`
+            );
+        }
+
+        // Save updated content
+        fs.writeFileSync(loginPath, content);
+        console.log('\x1b[32m%s\x1b[0m', '\n✓ Updates completed successfully!');
+        console.log('\x1b[33m%s\x1b[0m', '→ Backup created as Login.jsx.backup');
+
     } catch (error) {
-        throw new Error(`Failed to update config: ${error.message}`);
+        // Restore from backup if something goes wrong
+        fs.copyFileSync(`${loginPath}.backup`, loginPath);
+        throw new Error(`Failed to update Login.jsx: ${error.message}`);
     }
 }
 
 async function main() {
     try {
-        const configPath = path.join(__dirname, 'config.json');
-        let currentTitle = '';
-        let currentLogo = '';
-
-        if (fs.existsSync(configPath)) {
-            const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-            currentTitle = config.title || '';
-            currentLogo = config.logoPath || '';
-        }
+        const loginPath = path.join(__dirname, 'src', 'views', 'Login.jsx');
+        let content = fs.readFileSync(loginPath, 'utf8');
+        
+        // Extract current title and logo
+        const titleMatch = content.match(/<div\s+className="text">(.*?)<\/div>/);
+        const currentTitle = titleMatch ? titleMatch[1].replace(/['"]/g, '') : '';
+        
+        const logoMatch = content.match(/import\s+logo\s+from\s+(['"])(.+?)\1/);
+        const currentLogo = logoMatch ? logoMatch[2] : '';
 
         console.log('\x1b[33m%s\x1b[0m', `Current title: "${currentTitle}"`);
         console.log('\x1b[33m%s\x1b[0m', `Current logo: ${currentLogo}\n`);
@@ -91,7 +95,7 @@ async function main() {
                 case '1':
                     rl.question('\nEnter new title: ', async (title) => {
                         if (title.trim()) {
-                            await updateConfig(title.trim(), null);
+                            await updateLoginComponent(title.trim(), null);
                         } else {
                             console.log('\x1b[31m%s\x1b[0m', '\n❌ Title cannot be empty!');
                         }
@@ -103,7 +107,7 @@ async function main() {
                     rl.question('\nEnter path to new logo: ', async (logoPath) => {
                         const cleanPath = logoPath.trim().replace(/\\/g, '');
                         if (cleanPath && fs.existsSync(cleanPath)) {
-                            await updateConfig(null, cleanPath);
+                            await updateLoginComponent(null, cleanPath);
                         } else {
                             console.log('\x1b[31m%s\x1b[0m', '\n❌ Invalid logo path!');
                             console.log('Please ensure the file exists and the path is correct.');
@@ -122,7 +126,7 @@ async function main() {
                         rl.question('\nEnter path to new logo: ', async (logoPath) => {
                             const cleanPath = logoPath.trim().replace(/\\/g, '');
                             if (cleanPath && fs.existsSync(cleanPath)) {
-                                await updateConfig(title.trim(), cleanPath);
+                                await updateLoginComponent(title.trim(), cleanPath);
                             } else {
                                 console.log('\x1b[31m%s\x1b[0m', '\n❌ Invalid logo path!');
                                 console.log('Please ensure the file exists and the path is correct.');
@@ -143,4 +147,5 @@ async function main() {
     }
 }
 
+// Start the main function
 main();
