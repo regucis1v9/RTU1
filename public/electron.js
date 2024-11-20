@@ -25,7 +25,7 @@ function createWindow() {
         mainWindow.loadFile(path.join(__dirname, '../config.html'));
     }
 
-    // Read and send config when requested
+    // Handle "request-config" to read from config.json
     ipcMain.on('request-config', (event) => {
         const configPath = path.join(__dirname, '../config.json');
         try {
@@ -41,20 +41,22 @@ function createWindow() {
         }
     });
 
-    // Handle config updates
+    // Handle "update-config" to save to config.json and start servers
     ipcMain.on('update-config', (event, data) => {
         const configPath = path.join(__dirname, '../config.json');
         try {
             fs.writeFileSync(configPath, JSON.stringify(data, null, 2), 'utf-8');
             console.log('Configuration saved:', data);
-            startServers(); // Start the servers after saving config
+
+            // Start servers
+            startServers();
         } catch (error) {
             console.error('Error saving config:', error);
         }
     });
 }
 
-// Create window when app is ready
+// Create the main window
 app.whenReady().then(createWindow);
 
 // Quit when all windows are closed
@@ -70,46 +72,35 @@ app.on('activate', () => {
     }
 });
 
-// Function to start servers programmatically
+// Function to start npm and node servers in new terminals
 function startServers() {
-    console.log('Starting npm and node servers programmatically...');
-    const currentDirectory = path.join(__dirname, '..'); // Adjust if needed
+    console.log('Starting npm and node servers in new terminals...');
+    const projectDir = path.join(__dirname, '..');
 
-    // Define the paths to npm and node binaries if needed
-    const npmPath = '/usr/local/bin/npm'; // Adjust to your npm binary path
-    const nodePath = '/usr/local/bin/node'; // Adjust to your node binary path
+    // Update paths to npm and node binaries if required
+    const npmPath = '/usr/local/bin/npm'; // Adjust to your system
+    const nodePath = '/usr/local/bin/node'; // Adjust to your system
 
-    const npmProcess = spawn(npmPath, ['start'], { cwd: currentDirectory });
-    const nodeProcess = spawn(nodePath, ['server.js'], { cwd: currentDirectory });
+    function runInTerminal(command) {
+        const script = `
+            tell application "Terminal"
+                do script "cd ${projectDir} && ${command}"
+                activate
+            end tell
+        `;
 
-    const processes = [
-        { process: npmProcess, name: 'NPM Server' },
-        { process: nodeProcess, name: 'Node Server' },
-    ];
-
-    processes.forEach(({ process, name }) => {
-        process.stdout?.on('data', (data) => {
-            console.log(`${name} output: ${data.toString()}`);
+        const osascript = spawn('osascript', ['-e', script]);
+        osascript.stderr.on('data', (data) => {
+            console.error(`Error running command: ${data}`);
         });
+    }
 
-        process.stderr?.on('data', (data) => {
-            console.error(`${name} error: ${data.toString()}`);
-        });
-
-        process.on('close', (code) => {
-            console.log(`${name} exited with code ${code}`);
-            if (code !== 0) {
-                console.error(`${name} encountered an issue.`);
-            }
-        });
-
-        process.on('error', (err) => {
-            console.error(`Failed to start ${name}:`, err.message);
-        });
-    });
+    // Run npm start and node server.js
+    runInTerminal(`${npmPath} start`);
+    runInTerminal(`${nodePath} server.js`);
 }
 
-// Graceful shutdown handling
+// Graceful shutdown
 let isShuttingDown = false;
 
 function gracefulShutdown() {
