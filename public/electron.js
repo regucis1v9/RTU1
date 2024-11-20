@@ -1,7 +1,5 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const fs = require('fs');
-const { spawn } = require('child_process');
 
 let mainWindow;
 
@@ -10,16 +8,16 @@ app.on('ready', () => {
         width: 800,
         height: 600,
         webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
+            nodeIntegration: false,  // Security: turn off nodeIntegration
+            contextIsolation: true,  // Enable context isolation for security
+            preload: path.join(__dirname, 'preload.js')  // Ensure this path is correct
         },
     });
 
-    // Load the configuration HTML initially
     mainWindow.loadFile(path.join(__dirname, '../config.html'));
 
     // Define paths
-    const configPath = path.join(__dirname, '../config.json');
+    const configPath = path.join(__dirname, '../src/config.json');
     const imagesDirectory = path.join(__dirname, '../src/images');
 
     if (fs.existsSync(configPath)) {
@@ -29,37 +27,26 @@ app.on('ready', () => {
         });
     }
 
-    // Listen for configuration updates
     ipcMain.on('update-config', (event, data) => {
         const { title, logoPath } = data;
 
-        // Ensure the images directory exists
         if (!fs.existsSync(imagesDirectory)) {
             fs.mkdirSync(imagesDirectory, { recursive: true });
         }
 
-        // Generate a unique file name for the logo
         const fileName = `logo_${Date.now()}${path.extname(logoPath)}`;
         const destination = path.join(imagesDirectory, fileName);
-
-        // Copy the logo file to the images directory
         fs.copyFileSync(logoPath, destination);
 
-        // Update the config with the relative path to the new logo
         const updatedConfig = {
             title,
-            logoPath: `./images/${fileName}`, // Relative to `src`
+            logoPath: `${fileName}`,
         };
 
-        // Save the updated config to `config.json`
         fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2), 'utf-8');
-
         console.log(`Configuration saved:\nTitle: ${title}\nLogo Path: ${destination}`);
 
-        // Close the configuration window
         mainWindow.close();
-
-        // Start npm and node servers
         startServers();
     });
 });
@@ -70,13 +57,11 @@ app.on('window-all-closed', () => {
     }
 });
 
-// Function to start npm and node servers in separate terminals
 function startServers() {
     console.log('Starting npm and node servers...');
 
     const currentDirectory = path.join(__dirname, '..');
 
-    // Start npm server
     const npmStart = spawn('cmd', ['/c', 'start', 'npm', 'start'], {
         cwd: currentDirectory,
         stdio: 'inherit',
@@ -90,7 +75,6 @@ function startServers() {
         console.log(`npm server exited with code ${code}`);
     });
 
-    // Start node server
     const nodeServer = spawn('cmd', ['/c', 'start', 'node', 'server.js'], {
         cwd: currentDirectory,
         stdio: 'inherit',

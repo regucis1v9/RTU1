@@ -2,40 +2,46 @@ import React, { useEffect, useState } from 'react';
 import "../styles/overviewStyles.scss"; // Custom styles
 import { Link } from 'react-router-dom';
 import { Input, Button } from '@mantine/core';
-const { ipcRenderer } = window.require('electron');  // Ensure to access ipcRenderer from Electron
+
+// Import the JSON config directly
+import configData from '../config.json'; // Now inside src folder
 
 const Login = () => {
-  const [showLogin, setShowLogin] = useState(false); // To control login form visibility
-  const [config, setConfig] = useState({ title: '', logoPath: '' }); // To store title and logo
+  const [showLogin, setShowLogin] = useState(false);
+  const [config, setConfig] = useState({ title: '', logoPath: '' });
 
-  // Load config data from Electron
   useEffect(() => {
-    // Listen for the config update from Electron's main process
-    ipcRenderer.on('config-data', (event, data) => {
-      setConfig(data); // Update the config state
-    });
+    // Set the config state directly from the imported JSON
+    setConfig(configData);
 
-    // Set timeout to trigger login form after logo animation completes
     const logoAnimationTimeout = setTimeout(() => {
       setShowLogin(true);
-    }, 1000); // 4 seconds for logo animation
+    }, 1000);
 
     return () => {
       clearTimeout(logoAnimationTimeout);
-      ipcRenderer.removeAllListeners('config-data'); // Cleanup listener
     };
   }, []);
 
+  // Dynamically load the logo image from src/images
+  let logoSrc = null;
+  if (config.logoPath) {
+    // Using `require()` to dynamically load images from `src/images/`
+    logoSrc = require(`../images/${config.logoPath}`);
+  }
+
   return (
     <div className='landingContainer'>
-      {/* Logo container that animates from the bottom to the top */}
       <div className={`logoContainer ${showLogin ? 'logoExit' : 'logoEnter'}`}>
-        {/* Dynamically set the src and text from config */}
-        <img className="logo" src={require(`../images/${config.logoPath.split('/').pop()}`)} alt="Logo" />
+        {/* Dynamically display the title */}
         <div className="text">{config.title || 'LEOFILIZĀCIJAS ZINĀTNISKĀ LABORATORIJA'}</div>
+
+        {/* Dynamically load the logo */}
+        {logoSrc && (
+          <img className="logo" src={logoSrc} alt="Logo" />
+        )}
       </div>
 
-      {/* Login form that appears after 4 seconds */}
       <div className={`loginContainer ${showLogin ? 'showLogin' : ''}`}>
         <Input.Wrapper>
           <Input
