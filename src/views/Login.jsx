@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import "../styles/overviewStyles.scss"; 
-import logo from './images/logo2.png'; // Correctly points to the images folder
+import logo from '../images/logo2.png'; // Correct relative path from src/views to src/images
 import { Link } from 'react-router-dom';
 import { Input, Button, PasswordInput } from '@mantine/core';
 
@@ -21,7 +21,7 @@ const Login = () => {
         <img className="logo" src={logo} alt="Logo" />
         <div className="text">MAMA123</div>
       </div>
-      
+
       <div className={`loginContainer ${showLogin ? 'showLogin' : ''}`}>
         <Input.Wrapper>
           <Input
