@@ -1,16 +1,21 @@
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+const { exec } = require('child_process');
+const util = require('util');
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
+// Promisify exec to make it easier to work with async/await
+const execPromise = util.promisify(exec);
+
 console.log('\x1b[36m%s\x1b[0m', '=== Project Title and Image Changer ===\n'); // Cyan color
 
 // Function to update the title and image source
-async function updateTitleAndImage(newTitle, newImage) {
+async function updateTitleAndImage(newTitle, imagePath) {
     try {
         const loginPath = path.join(__dirname, 'src', 'views', 'Login.jsx');
         
@@ -30,10 +35,22 @@ async function updateTitleAndImage(newTitle, newImage) {
             `<div className="text">${newTitle}</div>`
         );
 
-        // Replace the image import and source
+        // Check if the provided image path is valid
+        const imageFileName = path.basename(imagePath);
+        const destinationImagePath = path.join(__dirname, 'src', 'images', imageFileName);
+
+        if (!fs.existsSync(imagePath)) {
+            throw new Error(`Image path "${imagePath}" does not exist!`);
+        }
+
+        // Copy the image to the 'images' directory
+        fs.copyFileSync(imagePath, destinationImagePath);
+        console.log('\x1b[32m%s\x1b[0m', `✓ Image copied successfully to "src/images/${imageFileName}"`);
+
+        // Update the import path and image src in the JSX file
         const updatedContent = newContent.replace(
             /import logo from ['"][^'"]+['"];/,
-            `import logo from "${newImage}";`
+            `import logo from "./images/${imageFileName}";`
         ).replace(
             /<img[^>]*className=['"][^'"]*logo[^'"]*['"][^>]*src={[^}]*}[^>]*alt="Logo"[^>]*>/,
             `<img className="logo" src={logo} alt="Logo" />`
@@ -63,7 +80,7 @@ async function main() {
         console.log('\x1b[33m%s\x1b[0m', `Current image source: "${imageSrc}"`); // Yellow color
         
         rl.question('\nEnter new title: ', (titleAnswer) => {
-            rl.question('\nEnter new image source (e.g., "logo.png" or "path/to/image.png"): ', async (imageAnswer) => {
+            rl.question('\nEnter new image source (full path, e.g., "/Users/.../image.png"): ', async (imageAnswer) => {
                 if (titleAnswer.trim() && imageAnswer.trim()) {
                     await updateTitleAndImage(titleAnswer.trim(), imageAnswer.trim());
                 } else {
