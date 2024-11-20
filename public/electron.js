@@ -25,19 +25,21 @@ function createWindow() {
 }
 
 // Handle configuration update
-ipcMain.on('update-config', (event, data) => {
+ipcMain.on('request-config', (event) => {
     const configPath = path.join(__dirname, '../config.json');
     try {
-        fs.writeFileSync(configPath, JSON.stringify(data, null, 2), 'utf-8');
-        console.log('Configuration saved:', data);
-
-        // Start servers
-        startServers();
+        if (fs.existsSync(configPath)) {
+            const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+            event.reply('config-data', configData);
+        } else {
+            event.reply('config-data', { title: 'Default Title', logoPath: '/default-logo.png' });
+        }
     } catch (error) {
-        console.error('Error saving configuration:', error);
-        event.reply('update-failed', 'Failed to save configuration.');
+        console.error('Error reading config:', error);
+        event.reply('config-data', { title: 'Default Title', logoPath: '/default-logo.png' });
     }
 });
+
 
 // Function to start npm and node servers
 function startServers() {
