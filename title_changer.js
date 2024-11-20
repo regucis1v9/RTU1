@@ -12,11 +12,18 @@ console.log('\x1b[36m%s\x1b[0m', '=== Project Title and Logo Changer ===\n');
 
 async function copyLogo(logoPath) {
     try {
+        // Remove any escape characters from the path
+        const cleanPath = logoPath.replace(/\\/g, '');
         const imagesDir = path.join(__dirname, 'src', 'images');
-        const newLogoPath = path.join(imagesDir, path.basename(logoPath));
+        const newLogoPath = path.join(imagesDir, path.basename(cleanPath));
         
-        fs.copyFileSync(logoPath, newLogoPath);
-        return path.basename(logoPath);
+        // Ensure the images directory exists
+        if (!fs.existsSync(imagesDir)) {
+            fs.mkdirSync(imagesDir, { recursive: true });
+        }
+        
+        fs.copyFileSync(cleanPath, newLogoPath);
+        return path.basename(cleanPath);
     } catch (error) {
         throw new Error(`Failed to copy logo: ${error.message}`);
     }
@@ -41,33 +48,34 @@ async function updateTitleAndLogo(newTitle, newLogoPath) {
     }
 
     if (newTitle) {
+        // Updated regex to handle the config.title format
         content = content.replace(
-            /className="text"[^>]*>([^<]*)/,
-            `className="text">${newTitle}`
+            /{config\.title \|\| '[^']*'}/,
+            `'${newTitle}'`
         );
     }
 
     fs.writeFileSync(loginPath, content);
     
-    // Start the servers
-    console.log('\nStarting npm and node servers...');
-    exec('npm start', (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Failed to start npm server: ${error}`);
-            return;
-        }
-        console.log('npm server started successfully');
-    });
-
     console.log('\x1b[32m%s\x1b[0m', '\n✓ Updates completed successfully!');
     console.log('\x1b[33m%s\x1b[0m', '→ Backup created as Login.jsx.backup');
+
+    // Start the application
+    console.log('\nStarting the application...');
+    exec('npm start', (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Failed to start application: ${error}`);
+            return;
+        }
+        console.log('Application started successfully');
+    });
 }
 
 async function main() {
     try {
         const loginPath = path.join(__dirname, 'src', 'views', 'Login.jsx');
         const content = fs.readFileSync(loginPath, 'utf8');
-        const titleMatch = content.match(/className="text"[^>]*>([^<]*)/);
+        const titleMatch = content.match(/{config\.title \|\| '([^']*)'}/);
         const currentTitle = titleMatch ? titleMatch[1] : '';
         const logoMatch = content.match(/import logo from "\.\.\/images\/(.*?)";/);
         const currentLogo = logoMatch ? logoMatch[1] : '';
@@ -95,10 +103,12 @@ async function main() {
 
                 case '2':
                     rl.question('\nEnter path to new logo: ', async (logoPath) => {
-                        if (logoPath.trim() && fs.existsSync(logoPath.trim())) {
-                            await updateTitleAndLogo(null, logoPath.trim());
+                        const cleanPath = logoPath.trim().replace(/\\/g, '');
+                        if (cleanPath && fs.existsSync(cleanPath)) {
+                            await updateTitleAndLogo(null, cleanPath);
                         } else {
                             console.log('\x1b[31m%s\x1b[0m', '\n❌ Invalid logo path!');
+                            console.log('Please ensure the file exists and the path is correct.');
                         }
                         rl.close();
                     });
@@ -112,10 +122,12 @@ async function main() {
                             return;
                         }
                         rl.question('\nEnter path to new logo: ', async (logoPath) => {
-                            if (logoPath.trim() && fs.existsSync(logoPath.trim())) {
-                                await updateTitleAndLogo(title.trim(), logoPath.trim());
+                            const cleanPath = logoPath.trim().replace(/\\/g, '');
+                            if (cleanPath && fs.existsSync(cleanPath)) {
+                                await updateTitleAndLogo(title.trim(), cleanPath);
                             } else {
                                 console.log('\x1b[31m%s\x1b[0m', '\n❌ Invalid logo path!');
+                                console.log('Please ensure the file exists and the path is correct.');
                             }
                             rl.close();
                         });
