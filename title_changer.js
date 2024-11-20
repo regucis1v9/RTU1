@@ -9,7 +9,7 @@ const rl = readline.createInterface({
 
 console.log('\x1b[36m%s\x1b[0m', '=== Project Title and Image Changer ===\n'); // Cyan color
 
-// Function to update the title
+// Function to update the title and image source
 async function updateTitleAndImage(newTitle, newImage) {
     try {
         const loginPath = path.join(__dirname, 'src', 'views', 'Login.jsx');
@@ -24,19 +24,19 @@ async function updateTitleAndImage(newTitle, newImage) {
         // Create backup
         fs.writeFileSync(`${loginPath}.backup`, content);
 
-        // Replace the title
+        // Replace the title in the JSX file
         const newContent = content.replace(
             /<div[^>]*className="text"[^>]*>[^<]*<\/div>/,
             `<div className="text">${newTitle}</div>`
         );
 
-        // Replace the image source
+        // Replace the image source in the JSX file
         const updatedContent = newContent.replace(
-            /<img[^>]*className=['"][^'"]*logo[^'"]*['"][^>]*src={logo}[^>]*alt="Logo"[^>]*>/,
-            `<img className="logo" src={${newImage}} alt="Logo" />`
+            /<img[^>]*className=['"][^'"]*logo[^'"]*['"][^>]*src={[^}]*}[^>]*alt="Logo"[^>]*>/,
+            `<img className="logo" src="${newImage}" alt="Logo" />`
         );
 
-        // Write the new content back to the file
+        // Write the updated content back to the file
         fs.writeFileSync(loginPath, updatedContent);
         
         console.log('\x1b[32m%s\x1b[0m', '\n✓ Title and image updated successfully!'); // Green color
@@ -60,7 +60,7 @@ async function main() {
         console.log('\x1b[33m%s\x1b[0m', `Current image source: "${imageSrc}"`); // Yellow color
         
         rl.question('\nEnter new title: ', (titleAnswer) => {
-            rl.question('\nEnter new image source (e.g., "logo.png"): ', async (imageAnswer) => {
+            rl.question('\nEnter new image source (e.g., "logo.png" or "path/to/image.png"): ', async (imageAnswer) => {
                 if (titleAnswer.trim() && imageAnswer.trim()) {
                     await updateTitleAndImage(titleAnswer.trim(), imageAnswer.trim());
                 } else {
