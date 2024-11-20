@@ -15,10 +15,10 @@ const Login = () => {
   });
 
   useEffect(() => {
-    // Only set up electron listeners if we're in electron environment
     if (ipcRenderer) {
-      // Listen for config updates from main process
+      // Listen for config updates
       ipcRenderer.on('config-data', (event, data) => {
+        console.log('Received config:', data); // Debugging: Log the data received
         if (data && (data.title || data.logoPath)) {
           setConfig(prevConfig => ({
             ...prevConfig,
@@ -28,6 +28,7 @@ const Login = () => {
       });
 
       // Request initial config
+      console.log('Requesting config...');
       ipcRenderer.send('request-config');
     }
 
@@ -36,7 +37,7 @@ const Login = () => {
       setShowLogin(true);
     }, 1000);
 
-    // Cleanup function
+    // Cleanup
     return () => {
       clearTimeout(logoAnimationTimeout);
       if (ipcRenderer) {
@@ -45,10 +46,8 @@ const Login = () => {
     };
   }, []);
 
-  // Handle login submission
   const handleLogin = (event) => {
     event.preventDefault();
-    // Add your login logic here
     console.log('Login attempted');
   };
 
