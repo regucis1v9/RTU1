@@ -3,7 +3,7 @@ import "../styles/overviewStyles.scss"; // Custom styles
 import { Link } from 'react-router-dom';
 import { Input, Button } from '@mantine/core';
 
-// Use the exposed API
+// Use the exposed Electron API
 const ipcRenderer = window.electron?.ipcRenderer;
 
 const Login = () => {
@@ -11,33 +11,42 @@ const Login = () => {
   const [config, setConfig] = useState({ title: '', logoPath: '' }); // To store title and logo
 
   useEffect(() => {
-    // Request the config data
+    // Request configuration data from Electron
     ipcRenderer?.send('request-config');
-  
-    // Listen for the config-data event
+
+    // Listen for configuration data
     ipcRenderer?.on('config-data', (event, data) => {
       console.log('Received config data:', data); // Debug log
-      setConfig(data); // Update the config state
+      setConfig(data); // Update state with received data
     });
-  
+
+    // Logo animation: delay the login form appearance
     const logoAnimationTimeout = setTimeout(() => {
       setShowLogin(true);
     }, 1000);
-  
+
+    // Cleanup on component unmount
     return () => {
       clearTimeout(logoAnimationTimeout);
-      ipcRenderer?.removeAllListeners('config-data'); // Cleanup listener
+      ipcRenderer?.removeAllListeners('config-data'); // Remove listener
     };
   }, []);
-  
+
   return (
     <div className="landingContainer">
+      {/* Logo section */}
       <div className={`logoContainer ${showLogin ? 'logoExit' : 'logoEnter'}`}>
-        <img className="logo" src={config.logoPath} alt="Logo" />
+        {config.logoPath ? (
+          <img className="logo" src={config.logoPath} alt="Logo" />
+        ) : (
+          <div className="placeholderLogo">Logo not available</div>
+        )}
         <div className="text">
           {config.title || 'LEOFILIZĀCIJAS ZINĀTNISKĀ LABORATORIJA'}
         </div>
       </div>
+
+      {/* Login section */}
       <div className={`loginContainer ${showLogin ? 'showLogin' : ''}`}>
         <Input.Wrapper>
           <Input variant="filled" placeholder="Lietotājvārds" size="xl" mb={20} />

@@ -18,9 +18,9 @@ app.on('ready', () => {
 
     // Load the configuration HTML initially
     mainWindow.loadFile(path.join(__dirname, '../config.html'));
-
-    // Read config.json on app load and send to renderer (React)
     const configPath = path.join(__dirname, '../config.json');
+    const imagesDirectory = path.join(__dirname, '../src/images');
+
     if (fs.existsSync(configPath)) {
         const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
         mainWindow.webContents.once('dom-ready', () => {
@@ -41,19 +41,31 @@ app.on('ready', () => {
 
     // Listen for configuration updates (e.g., title and logo)
     ipcMain.on('update-config', (event, data) => {
+        const { title, logo } = data;
+    
+        if (!fs.existsSync(imagesDirectory)) {
+            fs.mkdirSync(imagesDirectory, { recursive: true }); // Ensure the images folder exists
+        }
+    
+        const base64Data = logo.data.replace(/^data:image\/\w+;base64,/, '');
+        const filePath = path.join(imagesDirectory, logo.name);
+    
+        // Save the image file
+        fs.writeFileSync(filePath, base64Data, { encoding: 'base64' });
+    
+        // Update the config JSON with the new logo path
         const configData = {
-            title: data.title,
-            logoPath: data.logoPath,
+            title: title,
+            logoPath: `/images/${logo.name}`, // Path relative to React's public folder
         };
-
-        // Save the updated config to config.json
+    
         fs.writeFileSync(configPath, JSON.stringify(configData, null, 2), 'utf-8');
-        console.log(`Konfigurācija saglabāta...\nTitle: ${data.title}\nLogo Path: ${data.logoPath}`);
-
+        console.log(`Configuration saved:\nTitle: ${title}\nLogo Path: ${filePath}`);
+    
         // Close the configuration window
         mainWindow.close();
-
-        // Start npm and node servers
+    
+        // Optionally start servers
         startServers();
     });
 });
