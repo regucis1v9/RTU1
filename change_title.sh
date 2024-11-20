@@ -1,7 +1,4 @@
 #!/bin/bash
 
-Run the Electron application
-npx electron .
-
-Wait for user input before closing
+node title_changer.js
 read -p "Press [Enter] to continue..."
