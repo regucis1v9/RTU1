@@ -24,12 +24,12 @@ async function updateTitle(newTitle) {
         // Create backup
         fs.writeFileSync(`${loginPath}.backup`, content);
 
-        // Create a more flexible regex pattern to match the title in <div className="text">
+        // Updated regex to specifically target the text between the <div> tags
         const regex = /(<div[^>]*className="text"[^>]*>)([^<]*)(<\/div>)/;
         
         // Replace the title while preserving the surrounding HTML tags
         const newContent = content.replace(regex, (match, startTag, oldTitle, endTag) => {
-            return `${startTag}${newTitle}${endTag}`; // Replace only the title text
+            return `${startTag}${newTitle}${endTag}`; // Only replace the title text
         });
 
         // Write the new content back to the file
