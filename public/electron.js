@@ -21,7 +21,7 @@ function createWindow() {
         mainWindow.loadURL('http://localhost:3000');
         mainWindow.webContents.openDevTools();
     } else {
-        mainWindow.loadFile(path.join(__dirname, 'config.html'));
+        mainWindow.loadFile(path.join(__dirname, '../config.html'));
     }
 
     ipcMain.on('request-config', (event) => {
