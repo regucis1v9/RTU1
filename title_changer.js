@@ -1,13 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+const { exec } = require('child_process');
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-console.log('\x1b[36m%s\x1b[0m', '=== Projekta Nosaukuma un Logotipa Mainītājs ===\n');
+console.log('\x1b[36m%s\x1b[0m', '=== Project Title and Logo Changer ===\n');
 
 async function copyLogo(logoPath) {
     try {
@@ -17,7 +18,7 @@ async function copyLogo(logoPath) {
         fs.copyFileSync(logoPath, newLogoPath);
         return path.basename(logoPath);
     } catch (error) {
-        throw new Error(`Neizdevās kopēt logotipu: ${error.message}`);
+        throw new Error(`Failed to copy logo: ${error.message}`);
     }
 }
 
@@ -25,7 +26,7 @@ async function updateTitleAndLogo(newTitle, newLogoPath) {
     const loginPath = path.join(__dirname, 'src', 'views', 'Login.jsx');
 
     if (!fs.existsSync(loginPath)) {
-        throw new Error('Login.jsx nav atrasts! Pārliecinieties, ka skripts tiek izpildīts projekta saknes direktorijā.');
+        throw new Error('Login.jsx not found! Make sure script is run from project root.');
     }
 
     let content = fs.readFileSync(loginPath, 'utf8');
@@ -48,8 +49,18 @@ async function updateTitleAndLogo(newTitle, newLogoPath) {
 
     fs.writeFileSync(loginPath, content);
     
-    console.log('\x1b[32m%s\x1b[0m', '\n✓ Atjauninājumi veiksmīgi pabeigti!');
-    console.log('\x1b[33m%s\x1b[0m', '→ Ir izveidota rezerves kopija kā Login.jsx.backup');
+    // Start the servers
+    console.log('\nStarting npm and node servers...');
+    exec('npm start', (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Failed to start npm server: ${error}`);
+            return;
+        }
+        console.log('npm server started successfully');
+    });
+
+    console.log('\x1b[32m%s\x1b[0m', '\n✓ Updates completed successfully!');
+    console.log('\x1b[33m%s\x1b[0m', '→ Backup created as Login.jsx.backup');
 }
 
 async function main() {
@@ -61,50 +72,50 @@ async function main() {
         const logoMatch = content.match(/import logo from "\.\.\/images\/(.*?)";/);
         const currentLogo = logoMatch ? logoMatch[1] : '';
 
-        console.log('\x1b[33m%s\x1b[0m', `Pašreizējais nosaukums: "${currentTitle}"`);
-        console.log('\x1b[33m%s\x1b[0m', `Pašreizējais logotips: ${currentLogo}\n`);
+        console.log('\x1b[33m%s\x1b[0m', `Current title: "${currentTitle}"`);
+        console.log('\x1b[33m%s\x1b[0m', `Current logo: ${currentLogo}\n`);
 
-        console.log('Ko vēlaties atjaunināt?');
-        console.log('1. Tikai nosaukumu');
-        console.log('2. Tikai logotipu');
-        console.log('3. Nosaukumu un logotipu');
+        console.log('What would you like to update?');
+        console.log('1. Title only');
+        console.log('2. Logo only');
+        console.log('3. Both title and logo');
 
-        rl.question('\nIevadiet izvēli (1-3): ', (choice) => {
+        rl.question('\nEnter choice (1-3): ', (choice) => {
             switch (choice.trim()) {
                 case '1':
-                    rl.question('\nIevadiet jauno nosaukumu: ', async (title) => {
+                    rl.question('\nEnter new title: ', async (title) => {
                         if (title.trim()) {
                             await updateTitleAndLogo(title.trim(), null);
                         } else {
-                            console.log('\x1b[31m%s\x1b[0m', '\n❌ Nosaukums nevar būt tukšs!');
+                            console.log('\x1b[31m%s\x1b[0m', '\n❌ Title cannot be empty!');
                         }
                         rl.close();
                     });
                     break;
 
                 case '2':
-                    rl.question('\nIevadiet ceļu uz jauno logotipu: ', async (logoPath) => {
+                    rl.question('\nEnter path to new logo: ', async (logoPath) => {
                         if (logoPath.trim() && fs.existsSync(logoPath.trim())) {
                             await updateTitleAndLogo(null, logoPath.trim());
                         } else {
-                            console.log('\x1b[31m%s\x1b[0m', '\n❌ Nederīgs logotipa ceļš!');
+                            console.log('\x1b[31m%s\x1b[0m', '\n❌ Invalid logo path!');
                         }
                         rl.close();
                     });
                     break;
 
                 case '3':
-                    rl.question('\nIevadiet jauno nosaukumu: ', (title) => {
+                    rl.question('\nEnter new title: ', (title) => {
                         if (!title.trim()) {
-                            console.log('\x1b[31m%s\x1b[0m', '\n❌ Nosaukums nevar būt tukšs!');
+                            console.log('\x1b[31m%s\x1b[0m', '\n❌ Title cannot be empty!');
                             rl.close();
                             return;
                         }
-                        rl.question('\nIevadiet ceļu uz jauno logotipu: ', async (logoPath) => {
+                        rl.question('\nEnter path to new logo: ', async (logoPath) => {
                             if (logoPath.trim() && fs.existsSync(logoPath.trim())) {
                                 await updateTitleAndLogo(title.trim(), logoPath.trim());
                             } else {
-                                console.log('\x1b[31m%s\x1b[0m', '\n❌ Nederīgs logotipa ceļš!');
+                                console.log('\x1b[31m%s\x1b[0m', '\n❌ Invalid logo path!');
                             }
                             rl.close();
                         });
@@ -112,12 +123,12 @@ async function main() {
                     break;
 
                 default:
-                    console.log('\x1b[31m%s\x1b[0m', '\n❌ Nederīga izvēle!');
+                    console.log('\x1b[31m%s\x1b[0m', '\n❌ Invalid choice!');
                     rl.close();
             }
         });
     } catch (error) {
-        console.error('\x1b[31m%s\x1b[0m', `\n❌ Kļūda: ${error.message}`);
+        console.error('\x1b[31m%s\x1b[0m', `\n❌ Error: ${error.message}`);
         rl.close();
     }
 }
