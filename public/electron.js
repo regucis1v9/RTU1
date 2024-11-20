@@ -22,7 +22,7 @@ function createWindow() {
         mainWindow.loadURL('http://localhost:3000');
         mainWindow.webContents.openDevTools();
     } else {
-        mainWindow.loadFile(path.join(__dirname, '../config/config.html'));
+        mainWindow.loadFile(path.join(__dirname, '../config.html'));
     }
 
     // Read and send config when requested
