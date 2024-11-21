@@ -29,26 +29,40 @@ app.on('ready', () => {
     }
 
     ipcMain.on('update-config', (event, data) => {
-        const { title, logoPath } = data;
-
-        if (!fs.existsSync(imagesDirectory)) {
-            fs.mkdirSync(imagesDirectory, { recursive: true });
+        try {
+            const { title, logoPath } = data;
+    
+            // Check if the logoPath file exists
+            if (!fs.existsSync(logoPath)) {
+                event.sender.send('error', 'Logo file does not exist. Please select a valid file.');
+                return;
+            }
+    
+            // Ensure the images directory exists
+            if (!fs.existsSync(imagesDirectory)) {
+                fs.mkdirSync(imagesDirectory, { recursive: true });
+            }
+    
+            // Save the logo file to the destination
+            const fileName = `logo_${Date.now()}${path.extname(logoPath)}`;
+            const destination = path.join(imagesDirectory, fileName);
+            fs.copyFileSync(logoPath, destination);
+    
+            // Update the config file
+            const updatedConfig = {
+                title,
+                logoPath: `${fileName}`,
+            };
+    
+            fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2), 'utf-8');
+            console.log(`Configuration saved:\nTitle: ${title}\nLogo Path: ${destination}`);
+    
+            mainWindow.close();
+            startServers();
+        } catch (error) {
+            console.error('Error updating configuration:', error);
+            event.sender.send('error', 'Failed to save configuration. Check the console for details.');
         }
-
-        const fileName = `logo_${Date.now()}${path.extname(logoPath)}`;
-        const destination = path.join(imagesDirectory, fileName);
-        fs.copyFileSync(logoPath, destination);
-
-        const updatedConfig = {
-            title,
-            logoPath: `${fileName}`,
-        };
-
-        fs.writeFileSync(configPath, JSON.stringify(updatedConfig, null, 2), 'utf-8');
-        console.log(`Configuration saved:\nTitle: ${title}\nLogo Path: ${destination}`);
-
-        mainWindow.close();
-        startServers();
     });
 });
 

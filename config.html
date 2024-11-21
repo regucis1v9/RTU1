@@ -200,13 +200,13 @@
 
     <script>
         const { ipcRenderer } = require('electron');
-
+    
         // Add event listener for logo input change
         document.getElementById('logoInput').addEventListener('change', function (e) {
             const file = e.target.files[0];
             const preview = document.getElementById('previewImage');
             const placeholder = document.getElementById('previewPlaceholder');
-
+    
             if (file) {
                 // Validate file type
                 if (!file.type.startsWith('image/')) {
@@ -216,7 +216,7 @@
                     placeholder.style.display = 'flex';
                     return;
                 }
-
+    
                 // Show preview
                 const reader = new FileReader();
                 reader.onload = function (e) {
@@ -231,29 +231,37 @@
                 placeholder.style.display = 'flex';
             }
         });
-
+    
         // Apply changes and validate inputs
         function apply() {
             const title = document.getElementById('titleInput').value.trim();
             const logoInput = document.getElementById('logoInput');
-            const logoPath = logoInput.files[0]?.path;
-
+            const file = logoInput.files[0];
+    
             // Validate title
             if (!title) {
                 alert('Please enter the project title!');
                 return;
             }
-
+    
             // Validate logo file
-            if (!logoPath) {
+            if (!file) {
                 alert('Please add a valid logo!');
                 return;
             }
-
+    
+            // Debugging: Log the file path to ensure it's valid
+            console.log('Selected file path:', file.path);
+    
             // Send data to the main process
-            ipcRenderer.send('update-config', { title, logoPath });
+            try {
+                ipcRenderer.send('update-config', { title, logoPath: file.path });
+            } catch (error) {
+                console.error('Error sending data to main process:', error);
+                alert('An error occurred while applying changes. Check the console for details.');
+            }
         }
-
+    
         // Cancel button to close the window
         function cancel() {
             window.close();
