@@ -9,9 +9,8 @@ app.on('ready', () => {
         width: 800,
         height: 600,
         webPreferences: {
-            nodeIntegration: false,  // Security: turn off nodeIntegration
-            contextIsolation: true,  // Enable context isolation for security
-            preload: path.join(__dirname, 'preload.js')  // Ensure this path is correct
+            nodeIntegration: true,  // Enable Node.js APIs in the renderer process
+            contextIsolation: false, // Disable context isolation
         },
     });
 

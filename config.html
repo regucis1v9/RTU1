@@ -225,6 +225,9 @@
                     placeholder.style.display = 'none';
                 };
                 reader.readAsDataURL(file);
+    
+                // Debugging: Log the file path
+                console.log('Selected file path:', file.path);
             } else {
                 // Reset preview if no file selected
                 preview.style.display = 'none';
@@ -250,12 +253,10 @@
                 return;
             }
     
-            // Debugging: Log the file path to ensure it's valid
-            console.log('Selected file path:', file.path);
-    
             // Send data to the main process
             try {
-                ipcRenderer.send('update-config', { title, logoPath: file.path });
+                const logoPath = file.path; // Get file path directly
+                ipcRenderer.send('update-config', { title, logoPath });
             } catch (error) {
                 console.error('Error sending data to main process:', error);
                 alert('An error occurred while applying changes. Check the console for details.');
