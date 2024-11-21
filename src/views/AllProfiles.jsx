@@ -15,6 +15,7 @@ const RESULTS_PER_PAGE = 5;
 
 const AllProfiles = () => {
   const navigate = useNavigate();
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const iconStyle = { width: rem(12), height: rem(12) };
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
@@ -179,14 +180,9 @@ const AllProfiles = () => {
   const handleLanguageChange = (value) => {
     setLanguage(value);
     localStorage.setItem('lang', value);
-  };
-
-  const [tutorialOpen, setTutorialOpen] = useState(false);
-
-  const tutorialContent = (
+  };  
+  const tutorialContent1 = (
     <div style={{ padding: 20 }}>
-      <h2 style={{ color: theme.colors.gray[0], fontSize: '24px' }}>{t.tutorialTitle}</h2>
-      
       <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
         {t.tutorialDescription}
       </Text>
@@ -196,14 +192,14 @@ const AllProfiles = () => {
       <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
         {t.tutorialStep1Description}
       </Text>
-
+  
       <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
         2. {t.tutorialStep2}
       </Text>
       <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
         {t.tutorialStep2Description}
       </Text>
-
+  
       <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
         3. {t.tutorialStep3}
       </Text>
@@ -212,6 +208,72 @@ const AllProfiles = () => {
       </Text>
     </div>
   );
+  
+  const tutorialContent2 = (
+    <div style={{ padding: 20 }}>
+      <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
+        {t.tutorialContent2.description}
+      </Text>
+  
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+        1. {t.tutorialContent2.step1}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+        {t.tutorialContent2.step1Description}
+      </Text>
+  
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+        2. {t.tutorialContent2.step2}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+        {t.tutorialContent2.step2Description}
+      </Text>
+  
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+        {t.tutorialContent2.step2AdditionalInfo}
+      </Text>
+  
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+        3. {t.tutorialContent2.step3}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+        {t.tutorialContent2.step3Description}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+        {t.tutorialContent2.step3AdditionalInfo}
+      </Text>
+    </div>
+  );
+  
+  const tutorialContent3 = (
+    <div style={{ padding: 20 }}>
+      <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
+        {t.tutorialContent3.description}
+      </Text>
+  
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+        1. {t.tutorialContent3.step1}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+        {t.tutorialContent3.step1Description}
+      </Text>
+  
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+        2. {t.tutorialContent3.step2}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+        {t.tutorialContent3.step2Description}
+      </Text>
+  
+      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+        3. {t.tutorialContent3.step3}
+      </Text>
+      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+        {t.tutorialContent3.step3Description}
+      </Text>
+    </div>
+  );
+  
   return (
     <AppShell withBorder={false} header={{ height: 60 }}>
       <AppShell.Header p={12}>
@@ -375,15 +437,15 @@ const AllProfiles = () => {
         </Tabs.Tab>
       </Tabs.List>
       <Tabs.Panel value="gallery">
-        {tutorialContent}
+        {tutorialContent1}
       </Tabs.Panel>
 
       <Tabs.Panel value="messages">
-      {tutorialContent}
+      {tutorialContent2}
       </Tabs.Panel>
 
       <Tabs.Panel value="settings">
-      {tutorialContent}
+      {tutorialContent3}
       </Tabs.Panel>
     </Tabs>
       </Modal>
