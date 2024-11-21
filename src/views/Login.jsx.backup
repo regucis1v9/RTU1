@@ -19,7 +19,7 @@ const Login = () => {
     <div className='landingContainer'>
       <div className={`logoContainer ${showLogin ? 'logoExit' : 'logoEnter'}`}>
         <img className="logo" src={logo} alt="Logo" />
-        <div className="text">asd</div>
+        <div className="text">martins123</div>
       </div>
 
       <div className={`loginContainer ${showLogin ? 'showLogin' : ''}`}>

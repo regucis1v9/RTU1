@@ -26,8 +26,8 @@ let content = fs.readFileSync(loginPath, 'utf8');
 
 // Replace the old title with the new title
 const updatedContent = content.replace(
-  /<div className=\"text\">.*<\/div>/,
-  \`<div className="text">${new_title}</div>\`
+  /(<div[^>]*className=\"text\"[^>]*>)([^<]*)(<\/div>)/,
+  (match, startTag, oldTitle, endTag) => \`\${startTag}${new_title}\${endTag}\`
 );
 
 // Replace the old logo path with the new one
