@@ -1,7 +1,7 @@
-import { AppShell, useMantineTheme, rem, Tabs, Modal, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select, ActionIcon, useMantineColorScheme, useComputedColorScheme } from '@mantine/core';
+import { AppShell, Burger, Transition, Paper, Stack, useMantineTheme, rem, Tabs, Modal, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select, ActionIcon, useMantineColorScheme, useComputedColorScheme } from '@mantine/core';
 import { useState, useEffect } from 'react';
 import { IconGraph, IconList, IconPencilPlus, IconHelp, IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage, IconSun, IconMoon } from '@tabler/icons-react';
-import { useElementSize } from '@mantine/hooks';
+import { useElementSize, useDisclosure, useViewportSize } from '@mantine/hooks';
 import translations from '../locales/translations';
 import classes from "../styles/Table.module.css";
 import dropdown from "../styles/Dropdown.module.css";
@@ -14,6 +14,8 @@ const fromFahrenheitToCelsius = (fahrenheit) => (fahrenheit - 32) * 5/9;
 const fromKelvinToCelsius = (kelvin) => kelvin - 273.15;
 
 export default function SingleProfile() {
+    const { screenHeight, screenWidth } = useViewportSize();
+    const [opened, { toggle }] = useDisclosure();
     const [originalData, setOriginalData] = useState([]); 
     const { fileName } = useParams();
     const [projectName, setProjectName] = useState('');
@@ -259,7 +261,7 @@ export default function SingleProfile() {
                 </Group>
             </Table.Td>
             <Table.Td>
-                <Group align='center' justify='center'>
+                <Group align='center' justify='center' miw={235}>
                     <Button color="blue" size="xs" variant='transparent' onClick={() => addRow(index, 'above')}> 
                         <IconRowInsertTop stroke={2} size={40}/> 
                     </Button>
@@ -283,15 +285,15 @@ export default function SingleProfile() {
                     <IconArrowLeft stroke={3}></IconArrowLeft>
                 </Button>
             </Link>
-          <Group>
+          <Group visibleFrom='sm'>
             <Link to="/landing">
-                <Button color={buttonColor} variant="transparent" leftSection={<IconHomeFilled />}>{t.home}</Button>
+                <Button color={buttonColor} variant="transparent" leftSection={<IconHomeFilled />}> {t.home} </Button>
             </Link>
             <Link to={`/overview/${fileName}`}>
-                <Button color={buttonColor} variant="transparent" leftSection={<IconChartSankey />}>{t.graphs}</Button>
+                <Button color={buttonColor} variant="transparent" leftSection={<IconChartSankey />}> {t.graphs}</Button>
             </Link>
           </Group>
-          <Group>
+          <Group visibleFrom='sm'>
             <ActionIcon
                 onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
                 variant="default"
@@ -323,7 +325,72 @@ export default function SingleProfile() {
                 comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 } }
             />
           </Group>
+          <Burger hiddenFrom='sm' opened={opened} onClick={toggle} aria-label="Toggle navigation" style={{ zIndex: 11 }}></Burger>
         </Flex>
+        <Transition
+          mounted={opened}
+          transition="slide-left"
+          duration={400}
+          timingFunction="ease"
+          hiddenFrom="sm"
+        >
+          {(transitionStyle) => (
+            <Paper
+              hiddenFrom="sm"
+              shadow="md"
+              p="xl"
+              pos="absolute"
+              top={0}
+              left={0}
+              right={0}
+              h={screenHeight}
+              w={screenWidth}
+              style={{ ...transitionStyle, zIndex: 10, height: '100vh' }}
+            >
+              <Stack
+                gap={20}
+                align='center'
+              >
+                <Link to="/landing">
+                    <Button color={buttonColor} variant="transparent" leftSection={<IconHomeFilled />}> {t.home} </Button>
+                </Link>
+                <Link to={`/overview/${fileName}`}>
+                    <Button color={buttonColor} variant="transparent" leftSection={<IconChartSankey />}> {t.graphs}</Button>
+                </Link>
+                <Select
+                    leftSection={<IconLanguage size={26} />}
+                    variant='unstyled'
+                    allowDeselect={false}
+                    value={language}
+                    onChange={handleLanguageChange}
+                    data={['Latviešu', 'English']}
+                    classNames={dropdown}
+                    comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 } }
+                />
+                <ActionIcon
+                      onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
+                      variant="default"
+                      size="xl"
+                      aria-label="Toggle color scheme"
+                      >
+                      {computedColorScheme === 'light' ? (
+                          <IconMoon  stroke={1.5} />
+                      ) : (
+                          <IconSun stroke={1.5} />
+                      )}
+                </ActionIcon>
+                <ActionIcon
+                  onClick={() => setTutorialOpen(true)}
+                  variant="default"
+                  size="xl"
+                  aria-label="Show Tutorial"
+                >
+                  <IconHelp stroke={1.5} />
+                </ActionIcon>
+              </Stack>
+            </Paper>
+          )}
+        </Transition>
       </AppShell.Header>
       <AppShell.Main ref={ref}>
         <Flex w={width} h={height} gap="md" justify="center" align="center" direction="column">
