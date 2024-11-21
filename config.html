@@ -200,43 +200,64 @@
 
     <script>
         const { ipcRenderer } = require('electron');
-    
+
+        // Add event listener for logo input change
         document.getElementById('logoInput').addEventListener('change', function (e) {
             const file = e.target.files[0];
+            const preview = document.getElementById('previewImage');
+            const placeholder = document.getElementById('previewPlaceholder');
+
             if (file) {
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please upload a valid image file!');
+                    e.target.value = ''; // Reset file input
+                    preview.style.display = 'none';
+                    placeholder.style.display = 'flex';
+                    return;
+                }
+
+                // Show preview
                 const reader = new FileReader();
                 reader.onload = function (e) {
-                    const preview = document.getElementById('previewImage');
-                    const placeholder = document.getElementById('previewPlaceholder');
                     preview.src = e.target.result;
                     preview.style.display = 'block';
                     placeholder.style.display = 'none';
                 };
                 reader.readAsDataURL(file);
+            } else {
+                // Reset preview if no file selected
+                preview.style.display = 'none';
+                placeholder.style.display = 'flex';
             }
         });
-    
+
+        // Apply changes and validate inputs
         function apply() {
-            const title = document.getElementById('titleInput').value;
+            const title = document.getElementById('titleInput').value.trim();
             const logoInput = document.getElementById('logoInput');
             const logoPath = logoInput.files[0]?.path;
-    
+
+            // Validate title
             if (!title) {
                 alert('Please enter the project title!');
                 return;
             }
-    
+
+            // Validate logo file
             if (!logoPath) {
-                alert('Please add a logo!');
+                alert('Please add a valid logo!');
                 return;
             }
-    
+
+            // Send data to the main process
             ipcRenderer.send('update-config', { title, logoPath });
         }
-    
+
+        // Cancel button to close the window
         function cancel() {
             window.close();
         }
-    </script>   
+    </script>
 </body>
 </html>
