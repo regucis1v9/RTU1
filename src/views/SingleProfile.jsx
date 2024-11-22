@@ -1,11 +1,11 @@
-import { AppShell, Burger, Transition, Paper, Stack, useMantineTheme, rem, Tabs, Modal, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select, ActionIcon, useMantineColorScheme, useComputedColorScheme } from '@mantine/core';
-import { useState, useEffect } from 'react';
-import { IconGraph, IconList, IconPencilPlus, IconHelp, IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage, IconSun, IconMoon } from '@tabler/icons-react';
+import { AppShell, useMantineTheme, rem, Tabs, Modal, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select, ActionIcon, useMantineColorScheme, useComputedColorScheme, Burger, Transition, Paper, Stack, } from '@mantine/core'; 
+import { useState, useEffect } from 'react'; 
+import { IconGraph, IconList, IconPencilPlus, IconHelp, IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage, IconSun, IconMoon } from '@tabler/icons-react'; 
 import { useElementSize, useDisclosure, useViewportSize } from '@mantine/hooks';
-import translations from '../locales/translations';
-import classes from "../styles/Table.module.css";
-import dropdown from "../styles/Dropdown.module.css";
-import cx from 'clsx';
+import translations from '../locales/translations'; 
+import classes from "../styles/Table.module.css"; 
+import dropdown from "../styles/Dropdown.module.css"; 
+import cx from 'clsx'; 
 import { Link, useParams } from 'react-router-dom';
 
 const toFahrenheit = (celsius) => (celsius * 9/5) + 32;
@@ -29,49 +29,71 @@ export default function SingleProfile() {
     const [temperatureUnit, setTemperatureUnit] = useState('C');
     const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
     const t = translations[language] || translations['Latviešu'];
+    const [collapsedRows, setCollapsedRows] = useState({});
     const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
     const [tutorialOpen, setTutorialOpen] = useState(false);
-    const [totalTime, setTotalTime] = useState(data.reduce((total, row) => total + row.time, 0)); // Initialize total time
+    const [totalTime, setTotalTime] = useState(data.reduce((total, row) => total + row.time, 0)); 
     
     const handleLanguageChange = (value) => {
         setLanguage(value);
         localStorage.setItem('lang', value);
     };
     const saveChanges = async () => {
-        const updatedData = data.map((row) => ({
+      const updatedData = data.map((row) => ({
           step: row.step,
-          tMin: row.tMin,
-          tMax: row.tMax,
+          t1Min: row.t1Min,
+          t1Max: row.t1Max,
+          t2Min: row.t2Min,
+          t2Max: row.t2Max,
+          t3Min: row.t3Min,
+          t3Max: row.t3Max,
           time: row.time,
           tMinUnit: row.tMinUnit,
           tMaxUnit: row.tMaxUnit
-        }));
-        console.log(updatedData)
-        try {
+      }));
+      console.log(updatedData);
+      try {
           const response = await fetch(`http://localhost:5001/updateFile`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              fileName: fileName,
-              data: updatedData
-            }),
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  fileName: fileName,
+                  data: updatedData
+              }),
           });
-    
+  
           if (!response.ok) {
-            console.error('Error saving changes');
-            return;
+              console.error('Error saving changes');  
+              return;
           }
-    
+  
           const result = await response.json();
           console.log('Save success:', result);
-        } catch (error) {
+      } catch (error) {
           console.error('Failed to save changes:', error);
-        }
-      };
+      }
+  };
+
+  const toggleRowExpansion = (index) => {
+    setCollapsedRows((prev) => {
+        const newCollapsedState = { ...prev };
+
+        // Close all rows except the one that was clicked
+        Object.keys(newCollapsedState).forEach((key) => {
+            if (key !== String(index)) {
+                newCollapsedState[key] = false; // Collapse other rows
+            }
+        });
+
+        // Toggle the clicked row
+        newCollapsedState[index] = !newCollapsedState[index];
+
+        return newCollapsedState;
+    });
+};
     
-      // Button click handler for saving changes
       const handleSaveChanges = () => {
         saveChanges();
       };
@@ -85,90 +107,99 @@ export default function SingleProfile() {
                 }
                 const csvData = await response.text();
                 console.log('CSV Data:', csvData);
-
+    
                 const rows = csvData.split('\n').map(row => row.split(','));
-
-                // Skip the first row (header) and process the rest
+    
+                // Start from index 1 to skip the header row
                 const dataRows = rows.slice(1).map(row => ({
                     step: parseInt(row[0]),
-                    tMin: parseFloat(row[1]),
-                    tMax: parseFloat(row[2]),
-                    time: parseInt(row[3]),
-                    tMinUnit: row[4],
-                    tMaxUnit: row[5]
+                    t1Min: parseFloat(row[1]),
+                    t1Max: parseFloat(row[2]),
+                    t2Min: parseFloat(row[3]),
+                    t2Max: parseFloat(row[4]),
+                    t3Min: parseFloat(row[5]),
+                    t3Max: parseFloat(row[6]),
+                    time: parseInt(row[7]),
+                    tMinUnit: row[8],
+                    tMaxUnit: row[9]
                 }));
-
+    
                 setData(dataRows);
-                setOriginalData(dataRows); // Store the initial fetched data
+                setOriginalData(dataRows); 
             } catch (error) {
                 console.error('Failed to fetch CSV data:', error);
             }
         };
-
+    
         if (fileName) {
             fetchCsvData();
         }
     }, [fileName]);
 
     const addRow = (index, position) => {
-        // Create a new row
-        const newRow = {
-            step: data.length + 1, 
-            tMin: position === 'below' && index < data.length ? data[index].tMax : 0, // Set TMin to TMax of the previous row if it's 'below'
-            tMax: 0, 
-            time: 1, 
-            tMinUnit: temperatureUnit, 
-            tMaxUnit: temperatureUnit 
-        };
-    
-        const newData = [...data];
-        
-        if (position === 'above') {
-            newData.splice(index, 0, newRow);
-        } else if (position === 'below') {
-            newData.splice(index + 1, 0, newRow);  // Insert the new row below the current row
-        }
-    
-        // Recalculate step numbers
-        newData.forEach((row, i) => row.step = i + 1);
-    
-        // Update the state with the new data
-        setData(newData);
-    
-        // Update the total time
-        setTotalTime(totalTime + newRow.time); 
-    };
-    
+      const newRow = {
+          step: data.length + 1,
+          t1Min: 0,
+          t1Max: 0,
+          t2Min: 0,
+          t2Max: 0,
+          t3Min: 0,
+          t3Max: 0,
+          time: 1,
+          tMinUnit: temperatureUnit,
+          tMaxUnit: temperatureUnit,
+      };
+  
+      const newData = [...data];
+      if (position === 'above') {
+          newData.splice(index, 0, newRow);
+      } else if (position === 'below') {
+          newData.splice(index + 1, 0, newRow);
+      }
+  
+      // Recalculate step numbers
+      newData.forEach((row, i) => {
+          row.step = i + 1;
+          if (position === 'below' && i === index + 1) {
+              row.tMin = data[index].tMax;
+          }
+      });
+  
+      setData(newData);
+      setTotalTime(totalTime + newRow.time);
+  
+      // Initialize the new row as collapsed
+      setCollapsedRows(prev => ({
+          ...prev,
+          [newData.length - 1]: false, // Ensure new rows are collapsed by default
+      }));
+  };
 
-    const removeRow = (index) => {
-        if (data.length > 1) {
-            const rowTime = data[index].time; // Capture time of row being removed
-            const newData = data.filter((_, i) => i !== index);
-            newData.forEach((row, i) => (row.step = i + 1));
-            setData(newData);
-            setTotalTime(totalTime - rowTime); // Update totalTime
-        }
-    };
+const removeRow = (index) => {
+    if (data.length > 1) {
+        const rowTime = data[index]; 
+        const newData = data.filter((_, i) => i !== index);
+        newData.forEach((row, i) => (row.step = i + 1));
+        
+        // Remove the removed row from collapsedRows
+        const newCollapsedState = { ...collapsedRows };
+        delete newCollapsedState[index]; // Remove the row's expansion state
+
+        setCollapsedRows(newCollapsedState);
+        setData(newData);
+        setTotalTime(totalTime - rowTime.time);
+    }
+};
 
     const updateRow = (index, field, value) => {
         const updatedData = [...data];
-    
         if (field === 'time') {
             const previousTime = updatedData[index][field];
-            setTotalTime(totalTime - previousTime + value); // Update totalTime
+            setTotalTime(totalTime - previousTime + value); 
         }
-    
-        // Update the current row's field with the new value
         updatedData[index][field] = value;
-    
-        // If updating tMax, set the next row's tMin to this tMax
-        if (field === 'tMax' && index < updatedData.length - 1) {
-            updatedData[index + 1].tMin = value;
-        }
-    
         setData(updatedData);
     };
-    
     
     const convertTemperature = (value, fromUnit, toUnit) => {
         if (fromUnit === toUnit) return value;
@@ -204,8 +235,8 @@ export default function SingleProfile() {
       const formattedProgramTime = formatTimeDuration(totalProgramTime);
 
       const cancelChanges = () => {
-        setData([...originalData]); // Reset data to the original state
-        setTotalTime(originalData.reduce((total, row) => total + row.time, 0)); // Reset totalTime to the original value
+        setData([...originalData]); 
+        setTotalTime(originalData.reduce((total, row) => total + row.time, 0));
     };
     
       const tutorialContent = (
@@ -239,42 +270,64 @@ export default function SingleProfile() {
         </div>
       );
     
-    const rows = data.map((row, index) => (
-        <Table.Tr key={row.step}>
+      const rows = data.map((row, index) => (
+        <>
+          <Table.Tr key={row.step}>
             <Table.Td ta='center'>{row.step}</Table.Td>
-            <Table.Td ta='center'>
-                <Group align='center' justify='center'>
-                    <NumberInput w={90} variant="filled" value={row.tMin} onChange={(val) => updateRow(index, 'tMin', val)} />
-                    <Text>{row.tMinUnit}</Text>
-                </Group>
+            
+            <Table.Td ta='center' colSpan={2}>
+              <Group align='center' justify='center'>
+                <Button
+                  variant="outline"
+                  color="blue"
+                  size="xs"
+                  onClick={() => toggleRowExpansion(index)}
+                >
+                  {collapsedRows[index] ? "Hide Temps" : "Set Temps"}
+                </Button>
+              </Group>
             </Table.Td>
+            
             <Table.Td ta='center'>
-                <Group align='center' justify='center'>
-                    <NumberInput w={90} variant="filled" value={row.tMax} onChange={(val) => updateRow(index, 'tMax', val)} />
-                    <Text>{row.tMaxUnit}</Text>
-                </Group>
+              <Group align='center' justify='center'>
+                <NumberInput min={1} w={70} variant="filled" value={row.time} onChange={(val) => updateRow(index, 'time', val)} />
+                min
+              </Group>
             </Table.Td>
-            <Table.Td ta='center'>
-                <Group align='center' justify='center'>
-                    <NumberInput min={1} w={70} variant="filled" value={row.time} onChange={(val) => updateRow(index, 'time', val)} />
-                    min
-                </Group>
-            </Table.Td>
+            
             <Table.Td>
-                <Group align='center' justify='center' miw={235}>
-                    <Button color="blue" size="xs" variant='transparent' onClick={() => addRow(index, 'above')}> 
-                        <IconRowInsertTop stroke={2} size={40}/> 
-                    </Button>
-                    <Button color="blue" size="xs" variant='transparent' onClick={() => addRow(index, 'below')}> 
-                        <IconRowInsertBottom stroke={2} size={40}/> 
-                    </Button>
-                    <Button color="red" size="xs" variant='transparent' onClick={() => removeRow(index)}> 
-                        <IconTrashXFilled stroke={2} size={30}/> 
-                    </Button>
-                </Group>
+              <Group align='center' justify='center'>
+                <Button color="blue" size="xs" variant='transparent' onClick={() => addRow(index, 'above')}>
+                  <IconRowInsertTop stroke={2} size={40}/>
+                </Button>
+                <Button color="blue" size="xs" variant='transparent' onClick={() => addRow(index, 'below')}>
+                  <IconRowInsertBottom stroke={2} size={40}/>
+                </Button>
+                <Button color="red" size="xs" variant='transparent' onClick={() => removeRow(index)}>
+                  <IconTrashXFilled stroke={2} size={30}/>
+                </Button>
+              </Group>
             </Table.Td>
-        </Table.Tr>
-    ));
+          </Table.Tr>
+      
+          <Transition mounted={collapsedRows[index]} transition="scale-y" duration={300} timingFunction="ease">
+            {(styles) => (
+              <Table.Tr style={styles}>
+                <Table.Td colSpan={5}>
+                  <Group align="center" justify="center">
+                    <NumberInput w={90} label="T1 Min" variant="filled" value={row.t1Min} onChange={(val) => updateRow(index, 't1Min', val)} />
+                    <NumberInput w={90} label="T1 Max" variant="filled" value={row.t1Max} onChange={(val) => updateRow(index, 't1Max', val)} />
+                    <NumberInput w={90} label="T2 Min" variant="filled" value={row.t2Min} onChange={(val) => updateRow(index, 't2Min', val)} />
+                    <NumberInput w={90} label="T2 Max" variant="filled" value={row.t2Max} onChange={(val) => updateRow(index, 't2Max', val)} />
+                    <NumberInput w={90} label="T3 Min" variant="filled" value={row.t3Min} onChange={(val) => updateRow(index, 't3Min', val)} />
+                    <NumberInput w={90} label="T3 Max" variant="filled" value={row.t3Max} onChange={(val) => updateRow(index, 't3Max', val)} />
+                  </Group>
+                </Table.Td>
+              </Table.Tr>
+            )}
+          </Transition>
+        </>
+      ));
 
   return (
     <AppShell withBorder={false} header={{ height: 60 }}>
