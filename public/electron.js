@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const fs = require('fs'); // Import the File System module
+const fs = require('fs');
+const { spawn } = require('child_process'); // Add this import
 
 let mainWindow;
 
@@ -9,21 +10,20 @@ app.on('ready', () => {
         width: 800,
         height: 600,
         webPreferences: {
-            nodeIntegration: true,  // Enable Node.js APIs in the renderer process
-            contextIsolation: false, // Disable context isolation
+            nodeIntegration: true,
+            contextIsolation: false,
         },
     });
 
     mainWindow.loadFile(path.join(__dirname, '../config.html'));
 
-    // Define paths
     const configPath = path.join(__dirname, '../src/config.json');
     const imagesDirectory = path.join(__dirname, '../src/images');
 
     if (fs.existsSync(configPath)) {
         const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
         mainWindow.webContents.once('dom-ready', () => {
-            mainWindow.webContents.send('config-data', configData); // Send config to renderer
+            mainWindow.webContents.send('config-data', configData);
         });
     }
 
@@ -31,23 +31,19 @@ app.on('ready', () => {
         try {
             const { title, logoPath } = data;
     
-            // Check if the logoPath file exists
             if (!fs.existsSync(logoPath)) {
                 event.sender.send('error', 'Logo file does not exist. Please select a valid file.');
                 return;
             }
     
-            // Ensure the images directory exists
             if (!fs.existsSync(imagesDirectory)) {
                 fs.mkdirSync(imagesDirectory, { recursive: true });
             }
     
-            // Save the logo file to the destination
             const fileName = `logo_${Date.now()}${path.extname(logoPath)}`;
             const destination = path.join(imagesDirectory, fileName);
             fs.copyFileSync(logoPath, destination);
     
-            // Update the config file
             const updatedConfig = {
                 title,
                 logoPath: `${fileName}`,
@@ -75,9 +71,18 @@ function startServers() {
     console.log('Starting npm and node servers...');
 
     const currentDirectory = path.join(__dirname, '..');
+    
+    // Determine the correct command based on platform
+    const isWindows = process.platform === 'win32';
+    const npmCommand = isWindows ? 'cmd' : 'npm';
+    const npmArgs = isWindows ? ['/c', 'start', 'npm', 'start'] : ['start'];
+    
+    const nodeCommand = isWindows ? 'cmd' : 'node';
+    const nodeArgs = isWindows ? ['/c', 'start', 'node', 'server.js'] : ['server.js'];
 
-    const npmStart = spawn('cmd', ['/c', 'start', 'npm', 'start'], {
+    const npmStart = spawn(npmCommand, npmArgs, {
         cwd: currentDirectory,
+        shell: !isWindows, // Use shell for non-Windows platforms
         stdio: 'inherit',
     });
 
@@ -89,8 +94,9 @@ function startServers() {
         console.log(`npm server exited with code ${code}`);
     });
 
-    const nodeServer = spawn('cmd', ['/c', 'start', 'node', 'server.js'], {
+    const nodeServer = spawn(nodeCommand, nodeArgs, {
         cwd: currentDirectory,
+        shell: !isWindows, // Use shell for non-Windows platforms
         stdio: 'inherit',
     });
 
