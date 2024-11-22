@@ -3,221 +3,245 @@
 <head>
     <title>Project Configuration</title>
     <style>
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
             background: linear-gradient(145deg, #f6f8fd 0%, #f1f5f9 100%);
             color: #1e293b;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
-        .container {
-            max-width: 700px;
-            height: 550px;
-            margin: 0 auto;
+
+        .config-container {
+            width: 800px;
+            height: 600px;
             display: flex;
             flex-direction: column;
         }
-        .header {
+
+        .config-header {
             background: linear-gradient(to right, #0f172a, #1e293b);
-            color: white;
-            padding: 20px 32px;
-            font-size: 20px;
-            font-weight: 600;
+            padding: 16px 24px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .content {
-            flex: 1;
-            padding: 32px;
-            display: flex;
-            gap: 32px;
+
+        .config-header__title {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
         }
-        .form-section {
+
+        .config-content {
             flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .config-form {
             background: white;
-            border-radius: 16px;
-            padding: 32px;
-            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1),
-                        0 2px 4px -2px rgba(15, 23, 42, 0.05);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
-        .form-group {
-            margin-bottom: 24px;
+
+        .config-form__group {
+            margin-bottom: 20px;
         }
-        .form-group:last-child {
-            margin-bottom: 0;
-        }
-        label {
+
+        .config-form__label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
             color: #334155;
             font-size: 14px;
         }
-        input[type="text"] {
+
+        .config-form__input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 15px;
+            border-radius: 8px;
+            font-size: 14px;
             transition: all 0.2s;
             background: #f8fafc;
         }
-        input[type="text"]:focus {
+
+        .config-form__input:focus {
             outline: none;
             border-color: #3b82f6;
             background: white;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
-        .file-input-wrapper {
-            margin-top: 12px;
+
+        .config-form__file-wrapper {
+            margin-top: 8px;
         }
-        .custom-file-input {
+
+        .config-form__file-button {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 12px 20px;
+            padding: 10px 16px;
             background: #f1f5f9;
             border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             color: #475569;
             transition: all 0.2s;
         }
-        .custom-file-input:hover {
+
+        .config-form__file-button:hover {
             background: #e2e8f0;
         }
-        .custom-file-input::before {
-            content: "📁";
-            font-size: 16px;
-        }
-        input[type="file"] {
+
+        .config-form__file-input {
             display: none;
         }
-        .preview-container {
-            margin-top: 24px;
-            text-align: center;
+
+        .config-form__preview {
+            margin-top: 16px;
             background: #f8fafc;
             border: 2px dashed #e2e8f0;
-            border-radius: 16px;
-            padding: 32px;
-            transition: all 0.2s;
+            border-radius: 12px;
+            padding: 24px;
+            height: 200px;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
         }
-        .preview-container:hover {
+
+        .config-form__preview:hover {
             border-color: #94a3b8;
         }
-        .preview-image {
-            max-width: 240px;
-            margin: auto;
-            max-height: 240px;
+
+        .config-form__preview-image {
+            max-width: 100%;
+            max-height: 180px;
             object-fit: contain;
             display: none;
-            border-radius: 8px;
+            border-radius: 6px;
         }
-        .preview-placeholder {
+
+        .config-form__preview-placeholder {
             color: #94a3b8;
-            font-size: 14px;
+            font-size: 13px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
+            text-align: center;
         }
-        .preview-placeholder::before {
-            content: "🖼️";
-            font-size: 32px;
+
+        .config-form__preview-icon {
+            font-size: 24px;
         }
-        .buttons {
+
+        .config-form__buttons {
+            margin-top: auto;
             display: flex;
             justify-content: flex-end;
             gap: 12px;
-            margin-top: 32px;
-            padding-top: 24px;
+            padding-top: 20px;
             border-top: 1px solid #f1f5f9;
         }
-        button {
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-size: 14px;
+
+        .config-button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
         }
-        button.apply {
+
+        .config-button--primary {
             background: linear-gradient(to right, #3b82f6, #2563eb);
             color: white;
             border: none;
         }
-        button.apply:hover {
+
+        .config-button--primary:hover {
             background: linear-gradient(to right, #2563eb, #1d4ed8);
             transform: translateY(-1px);
             box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
         }
-        button.cancel {
+
+        .config-button--secondary {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             color: #475569;
         }
-        button.cancel:hover {
+
+        .config-button--secondary:hover {
             background: #f1f5f9;
             transform: translateY(-1px);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">Project Configuration</div>
-        <div class="content">
-            <div class="form-section">
-                <div class="form-group">
-                    <label for="titleInput">Project Title</label>
-                    <input type="text" id="titleInput" placeholder="Enter your project title">
+    <div class="config-container">
+        <header class="config-header">
+            <h1 class="config-header__title">Project Configuration</h1>
+        </header>
+        <main class="config-content">
+            <div class="config-form">
+                <div class="config-form__group">
+                    <label class="config-form__label" for="titleInput">Project Title</label>
+                    <input type="text" id="titleInput" class="config-form__input" placeholder="Enter your project title">
                 </div>
-                <div class="form-group">
-                    <label for="logoInput">Project Logo</label>
-                    <div class="file-input-wrapper">
-                        <label class="custom-file-input" for="logoInput">
+                <div class="config-form__group">
+                    <label class="config-form__label" for="logoInput">Project Logo</label>
+                    <div class="config-form__file-wrapper">
+                        <label class="config-form__file-button" for="logoInput">
+                            <span class="config-form__file-icon">📁</span>
                             Choose Logo File
                         </label>
-                        <input type="file" id="logoInput" accept="image/*">
+                        <input type="file" id="logoInput" class="config-form__file-input" accept="image/*">
                     </div>
-                    <div class="preview-container">
-                        <img id="previewImage" class="preview-image" alt="Logo preview">
-                        <div id="previewPlaceholder" class="preview-placeholder">
+                    <div class="config-form__preview">
+                        <img id="previewImage" class="config-form__preview-image" alt="Logo preview">
+                        <div id="previewPlaceholder" class="config-form__preview-placeholder">
+                            <span class="config-form__preview-icon">🖼️</span>
                             Drop your logo here or click to select
                         </div>
                     </div>
                 </div>
-                <div class="buttons">
-                    <button class="cancel" onclick="cancel()">Cancel</button>
-                    <button class="apply" onclick="apply()">Save Changes</button>
+                <div class="config-form__buttons">
+                    <button class="config-button config-button--secondary" onclick="cancel()">Cancel</button>
+                    <button class="config-button config-button--primary" onclick="apply()">Save Changes</button>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 
     <script>
         const { ipcRenderer } = require('electron');
-    
-        // Add event listener for logo input change
+
         document.getElementById('logoInput').addEventListener('change', function (e) {
             const file = e.target.files[0];
             const preview = document.getElementById('previewImage');
             const placeholder = document.getElementById('previewPlaceholder');
-    
+
             if (file) {
-                // Validate file type
                 if (!file.type.startsWith('image/')) {
                     alert('Please upload a valid image file!');
-                    e.target.value = ''; // Reset file input
+                    e.target.value = '';
                     preview.style.display = 'none';
                     placeholder.style.display = 'flex';
                     return;
                 }
-    
-                // Show preview
+
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     preview.src = e.target.result;
@@ -225,45 +249,36 @@
                     placeholder.style.display = 'none';
                 };
                 reader.readAsDataURL(file);
-    
-                // Debugging: Log the file path
-                console.log('Selected file path:', file.path);
             } else {
-                // Reset preview if no file selected
                 preview.style.display = 'none';
                 placeholder.style.display = 'flex';
             }
         });
-    
-        // Apply changes and validate inputs
+
         function apply() {
             const title = document.getElementById('titleInput').value.trim();
             const logoInput = document.getElementById('logoInput');
             const file = logoInput.files[0];
-    
-            // Validate title
+
             if (!title) {
                 alert('Please enter the project title!');
                 return;
             }
-    
-            // Validate logo file
+
             if (!file) {
                 alert('Please add a valid logo!');
                 return;
             }
-    
-            // Send data to the main process
+
             try {
-                const logoPath = file.path; // Get file path directly
+                const logoPath = file.path;
                 ipcRenderer.send('update-config', { title, logoPath });
             } catch (error) {
                 console.error('Error sending data to main process:', error);
                 alert('An error occurred while applying changes. Check the console for details.');
             }
         }
-    
-        // Cancel button to close the window
+
         function cancel() {
             window.close();
         }
