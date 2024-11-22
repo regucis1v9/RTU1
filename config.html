@@ -9,37 +9,44 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            width: 800px;
+            height: 600px;
+            overflow: hidden;
+            position: fixed;
+        }
+
         body {
             font-family: system-ui, -apple-system, sans-serif;
             background: linear-gradient(145deg, #f6f8fd 0%, #f1f5f9 100%);
             color: #1e293b;
-            height: 100vh;
-            overflow: hidden;
         }
 
         .config-container {
-            width: 800px;
-            height: 600px;
-            display: flex;
-            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-rows: auto 1fr;
         }
 
         .config-header {
             background: linear-gradient(to right, #0f172a, #1e293b);
             padding: 16px 24px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            -webkit-app-region: drag; /* Makes header draggable on macOS */
         }
 
         .config-header__title {
             color: white;
             font-size: 18px;
             font-weight: 600;
+            -webkit-user-select: none; /* Prevents text selection in header */
         }
 
         .config-content {
-            flex: 1;
             padding: 24px;
-            overflow-y: auto;
+            overflow: hidden;
+            display: flex;
         }
 
         .config-form {
@@ -47,9 +54,34 @@
             border-radius: 12px;
             padding: 24px;
             box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1);
-            height: 100%;
+            width: 100%;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+        }
+
+        .config-form__scrollable {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px; /* Space for scrollbar */
+        }
+
+        .config-form__scrollable::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .config-form__scrollable::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        .config-form__scrollable::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .config-form__scrollable::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         .config-form__group {
@@ -148,12 +180,12 @@
         }
 
         .config-form__buttons {
-            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
             display: flex;
             justify-content: flex-end;
             gap: 12px;
-            padding-top: 20px;
-            border-top: 1px solid #f1f5f9;
+            margin-top: 20px;
         }
 
         .config-button {
@@ -196,24 +228,26 @@
         </header>
         <main class="config-content">
             <div class="config-form">
-                <div class="config-form__group">
-                    <label class="config-form__label" for="titleInput">Project Title</label>
-                    <input type="text" id="titleInput" class="config-form__input" placeholder="Enter your project title">
-                </div>
-                <div class="config-form__group">
-                    <label class="config-form__label" for="logoInput">Project Logo</label>
-                    <div class="config-form__file-wrapper">
-                        <label class="config-form__file-button" for="logoInput">
-                            <span class="config-form__file-icon">📁</span>
-                            Choose Logo File
-                        </label>
-                        <input type="file" id="logoInput" class="config-form__file-input" accept="image/*">
+                <div class="config-form__scrollable">
+                    <div class="config-form__group">
+                        <label class="config-form__label" for="titleInput">Project Title</label>
+                        <input type="text" id="titleInput" class="config-form__input" placeholder="Enter your project title">
                     </div>
-                    <div class="config-form__preview">
-                        <img id="previewImage" class="config-form__preview-image" alt="Logo preview">
-                        <div id="previewPlaceholder" class="config-form__preview-placeholder">
-                            <span class="config-form__preview-icon">🖼️</span>
-                            Drop your logo here or click to select
+                    <div class="config-form__group">
+                        <label class="config-form__label" for="logoInput">Project Logo</label>
+                        <div class="config-form__file-wrapper">
+                            <label class="config-form__file-button" for="logoInput">
+                                <span class="config-form__file-icon">📁</span>
+                                Choose Logo File
+                            </label>
+                            <input type="file" id="logoInput" class="config-form__file-input" accept="image/*">
+                        </div>
+                        <div class="config-form__preview">
+                            <img id="previewImage" class="config-form__preview-image" alt="Logo preview">
+                            <div id="previewPlaceholder" class="config-form__preview-placeholder">
+                                <span class="config-form__preview-icon">🖼️</span>
+                                Drop your logo here or click to select
+                            </div>
                         </div>
                     </div>
                 </div>

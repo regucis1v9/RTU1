@@ -7,8 +7,10 @@ let mainWindow;
 
 app.on('ready', () => {
     mainWindow = new BrowserWindow({
-        width: 850,
-        height: 650,
+        width: 800,
+        height: 600,
+        resizable: false, // Prevent window resizing
+        maximizable: false, // Prevent maximizing
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
