@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import "../styles/overviewStyles.scss"; 
-import logo from "../images/logo2.png"; // Ensure the logo is correctly imported from the images folder
+import logo from "../images/logo2.png"; 
 import { Link } from 'react-router-dom';
 import { Input, Button, PasswordInput } from '@mantine/core';
 
