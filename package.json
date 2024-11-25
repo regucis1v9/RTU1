@@ -2,6 +2,7 @@
   "name": "rtu1",
   "version": "0.1.0",
   "private": true,
+  "main": "public/electron.js",
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
@@ -39,12 +40,28 @@
     "tippy.js": "^6.3.7",
     "web-vitals": "^2.1.4"
   },
+  "devDependencies": {
+    "electron": "^24.3.0"
+  },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "node-server": "node server.js",
+    "build": {
+      "files": [
+        "build/**/*",
+        "public/electron.js"
+      ],
+      "directories": {
+        "output": "release"
+      },
+      "extraMetadata": {
+        "main": "public/electron.js"
+      }
+    },
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "config": "electron .",
+    "electron-start": "npx electron .",
     "build-config": "electron-builder"
   },
   "eslintConfig": {
@@ -66,7 +83,6 @@
     ]
   },
   "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
-  "main": "index.js",
   "keywords": [],
   "author": "",
   "license": "ISC"

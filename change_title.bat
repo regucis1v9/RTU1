@@ -1,3 +1,4 @@
 @echo off
-npx electron ./electron.js
+npx electron .
 pause
+
