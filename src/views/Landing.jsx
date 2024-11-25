@@ -13,20 +13,20 @@ import {
   useComputedColorScheme,
   useMantineTheme,
 } from '@mantine/core';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
-  IconTestPipe,
-  IconPlayerPlayFilled,
-  IconList,
-  IconArrowLeft,
-  IconChartSankey,
-  IconHomeFilled,
-  IconLanguage,
-  IconSun,
-  IconMoon,
-  IconHelp,
-  IconPencilPlus,
-  IconGraph,
+    IconTestPipe,
+    IconPlayerPlayFilled,
+    IconList,
+    IconArrowLeft,
+    IconChartSankey,
+    IconHomeFilled,
+    IconLanguage,
+    IconSun,
+    IconMoon,
+    IconHelp,
+    IconPencilPlus,
+    IconGraph, IconAlertOctagonFilled,
 } from '@tabler/icons-react';
 import { useElementSize } from '@mantine/hooks';
 import translations from '../locales/translations';
@@ -40,6 +40,7 @@ export default function Landing() {
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const t = translations[language] || translations['Latviešu'];
   const theme = useMantineTheme();
+    const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
 
   const handleLanguageChange = (value) => {
     setLanguage(value);
@@ -83,7 +84,15 @@ export default function Landing() {
   return (
     <AppShell withBorder={false} header={{ height: 60 }}>
       <AppShell.Header p={12}>
-        <Flex align="center" justify="end" w="100%">
+        <Flex align="center" justify="space-between" w="100%">
+          <Link to="/">
+              <Button variant="transparent" color={buttonColor}>
+                  <IconArrowLeft stroke={3}></IconArrowLeft>
+              </Button>
+          </Link>
+            <Button color="red" leftSection={<IconAlertOctagonFilled/>} rightSection={<IconAlertOctagonFilled/>}>
+                STOP
+            </Button>    
           <Group>
             <ActionIcon
               onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}

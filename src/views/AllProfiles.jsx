@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { IconPencilPlus, IconGraph, IconList,IconSearch, IconExternalLink, IconTrashXFilled, IconLanguage, IconSun, IconMoon, IconUpload, IconPhoto, IconX, IconHelp } from '@tabler/icons-react';
+import {
+    IconPencilPlus,
+    IconGraph,
+    IconList,
+    IconSearch,
+    IconExternalLink,
+    IconTrashXFilled,
+    IconLanguage,
+    IconSun,
+    IconMoon,
+    IconUpload,
+    IconPhoto,
+    IconX,
+    IconHelp,
+    IconArrowLeft, IconAlertOctagonFilled
+} from '@tabler/icons-react';
 import "../styles/AllProfiles.css";
 import { Tabs, AppShell, Pagination, Flex, Select, Group, ActionIcon, useMantineColorScheme, useComputedColorScheme, Text, Input, Button, rem, Modal, useMantineTheme} from '@mantine/core';
 import { Dropzone } from '@mantine/dropzone';
@@ -12,14 +27,15 @@ import '@mantine/dropzone/styles.css';
 import '@mantine/notifications/styles.css';
 import { useNavigate } from 'react-router-dom';
 const RESULTS_PER_PAGE = 5;
-
 const AllProfiles = () => {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const iconStyle = { width: rem(12), height: rem(12) };
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
-  const [searchQuery, setSearchQuery] = useState("");
+    const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
+
+    const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [projects, setProjects] = useState([]);
   const theme = useMantineTheme();
@@ -277,8 +293,16 @@ const AllProfiles = () => {
   return (
     <AppShell withBorder={false} header={{ height: 60 }}>
       <AppShell.Header p={12}>
-        <Flex align="center" justify="flex-end" w="100%">
-          <Group>
+        <Flex align="center" justify="space-between" w="100%">
+            <Link to="/landing">
+                <Button variant="transparent" color={buttonColor}>
+                    <IconArrowLeft stroke={3}></IconArrowLeft>
+                </Button>
+            </Link>
+            <Button color="red" leftSection={<IconAlertOctagonFilled/>} rightSection={<IconAlertOctagonFilled/>}>
+                STOP
+            </Button>
+            <Group>
             <ActionIcon
               onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
               variant="default"
