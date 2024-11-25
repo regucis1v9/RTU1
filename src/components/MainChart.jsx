@@ -194,7 +194,7 @@ const MainChart = ({ timeRange, onTimeRangeChange, chartType = 'temperature', is
           }
           return newCount;
         });
-      }, 10000);
+      }, 10001);
 
       return () => {
         if (dataIntervalRef.current) {
