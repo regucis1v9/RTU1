@@ -1,17 +1,21 @@
+// ChartSettings.jsx
 import React, { useState } from 'react';
 import '../styles/overviewStyles.scss';
 
-const ChartSettings = () => {
+const ChartSettings = ({ onChartTypeChange }) => {
   const [activeButton, setActiveButton] = useState('PLAUKTU TEMPERATŪRAS');
 
   const buttons = [
-    { id: 'PLAUKTU TEMPERATŪRAS', label: 'PLAUKTU TEMPERATŪRAS' },
-    { id: 'KAMERAS SPIEDIENS', label: 'KAMERAS SPIEDIENS' },
-    { id: 'KAMERAS TEMPERATŪRA', label: 'KAMERAS TEMPERATŪRA' },
-    { id: 'CITI GRAFIKI', label: 'CITI GRAFIKI' },
+    { id: 'PLAUKTU TEMPERATŪRAS', label: 'PLAUKTU TEMPERATŪRAS', type: 'temperature' },
+    { id: 'KAMERAS SPIEDIENS', label: 'KAMERAS SPIEDIENS', type: 'pressure' },
+    { id: 'KAMERAS TEMPERATŪRA', label: 'KAMERAS TEMPERATŪRA', type: 'temperature' },
+    { id: 'CITI GRAFIKI', label: 'CITI GRAFIKI', type: 'temperature' },
   ];
 
-
+  const handleButtonClick = (buttonId, chartType) => {
+    setActiveButton(buttonId);
+    onChartTypeChange(chartType);
+  };
 
   return (
     <div className="chart-settings-box">
@@ -19,7 +23,7 @@ const ChartSettings = () => {
         {buttons.map((button) => (
           <button
             key={button.id}
-            onClick={() => setActiveButton(button.id)}
+            onClick={() => handleButtonClick(button.id, button.type)}
             className={`chart-button ${activeButton === button.id ? 'active' : ''}`}
           >
             {button.label}

@@ -6,7 +6,7 @@ import MainChart from '../components/MainChart';
 import SettingsBox from '../components/SettingsBox';
 import ChartSettings from '../components/ChartSettings';
 import ShelfContainer from '../components/ShelfContainer';
-import "../styles/overviewStyles.scss"; // Assuming this contains your styles
+import "../styles/overviewStyles.scss";
 import { Link } from 'react-router-dom';
 import PressureDisplay from '../components/PressureDisplay';
 
@@ -58,13 +58,15 @@ export default function Overview() {
   const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
   const isDark = colorScheme === 'dark';
   
-  // Set the default time range to '1m'
   const [timeRange, setTimeRange] = useState('1m');
-  
-  // State to manage the pause state
   const [isPaused, setIsPaused] = useState(false);
+  const [chartType, setChartType] = useState('temperature');
 
-  // Function to toggle pause state
+  const handleChartTypeChange = (type) => { // Add the parameter here
+    console.log('Changing chart type to:', type);
+    setChartType(type);
+  }
+
   const handlePause = () => {
     console.log("Pausing...");
     setIsPaused(true);
@@ -75,16 +77,15 @@ export default function Overview() {
     setIsPaused(false);
   };
 
-  // Handle time range change with debug logging
   const handleTimeRangeChange = (range) => {
     console.log('Time range changing to:', range);
     setTimeRange(range);
   };
 
-  // Debug effect to monitor timeRange changes
   useEffect(() => {
     console.log('Current timeRange:', timeRange);
-  }, [timeRange]);
+    console.log('Current chartType:', chartType);
+  }, [timeRange, chartType]);
 
   return (
     <div className={`mainCont ${isDark ? 'dark' : 'light'}`}>
@@ -116,10 +117,11 @@ export default function Overview() {
       )}
       
       <div className="chartContainer">
-        {/* Debug prop passing */}
         <MainChart 
           timeRange={timeRange} 
           onTimeRangeChange={handleTimeRangeChange}
+          chartType={chartType}
+          isPaused={isPaused}
         />
         
         <div className="button-container">
@@ -127,7 +129,7 @@ export default function Overview() {
             <button
               key={range}
               onClick={() => handleTimeRangeChange(range)}
-              className={`px-4 py-2 rounded width13 ${timeRange === range ? 'active' : ''}`} // Use active class for the selected button
+              className={`px-4 py-2 rounded width13 ${timeRange === range ? 'active' : ''}`}
             >
               {range.toUpperCase()}
             </button>
@@ -139,7 +141,7 @@ export default function Overview() {
         <SettingsBox />
       </div>
       <div className="settingsContainer">
-        <ChartSettings />
+      <ChartSettings onChartTypeChange={handleChartTypeChange} />
       </div>
 
       <div className="shelfContainer">
@@ -147,7 +149,7 @@ export default function Overview() {
       </div>
       
       <div className="shelfContainer2">
-      <PressureDisplay isPaused={isPaused} />
+        <PressureDisplay isPaused={isPaused} />
       </div>
     </div>
   );

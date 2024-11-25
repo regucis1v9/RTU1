@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as d3 from 'd3';
 import Notiflix from 'notiflix';
+import LineVisibilityControls from './LineVisibilityControls';
 
 
 
-const MainChart = ({ timeRange, onTimeRangeChange }) => {
+const MainChart = ({ timeRange, onTimeRangeChange, chartType = 'temperature', isPaused }) => {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -13,8 +14,15 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
   const [collectedData, setCollectedData] = useState([]);
   const [dataPointCount, setDataPointCount] = useState(0);
   const [isProgramEnded, setIsProgramEnded] = useState(false);
+  const [lineVisibility, setLineVisibility] = useState({
+    temp1: true,
+    temp2: true,
+    temp3: true
+  });
   const startTimeRef = useRef(null);
   const dataIntervalRef = useRef(null);
+
+  
 
   const TIME_RANGES = {
     '1m': 60,
@@ -24,14 +32,34 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
     '1h': 3600,
     '4h': 14400
   };
-
+  
   const COLORS = {
     temp1: '#ff9f1c',
     temp2: '#0AF7DD',
     temp3: '#00ff09',
     vacuum: '#4a90e2',
     freeze: '#e25c5c',
-    vent: '#50c878'
+    vent: '#50c878',
+    pressure: '#4a90e2'
+  };
+
+
+  const toggleLine = (line) => {
+    if (chartType === 'pressure') return;
+    setLineVisibility(prev => ({
+      ...prev,
+      [line]: !prev[line]
+    }));
+  };
+
+  const showAllLines = () => {
+    if (chartType === 'pressure') return;
+    setLineVisibility({
+      temp1: true,
+      temp2: true,
+      temp3: true,
+      pressure: true
+    });
   };
 
   const generateSystemState = (prevState, currentTime) => {
@@ -53,6 +81,8 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
     };
   };
 
+  
+
   const generateDataPoint = (secondsElapsed, prevData, isFirstPoint = false) => {
     const prevPoint = prevData.length > 0 ? prevData[prevData.length - 1] : null;
     
@@ -65,27 +95,50 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
       freeze: [generateSystemState(prevPoint?.systemStates.freeze, secondsElapsed)],
       vent: [generateSystemState(prevPoint?.systemStates.vent, secondsElapsed)]
     };
-    
+
+    // Generate both temperature and pressure data regardless of chart type
     return {
       time: secondsElapsed,
+      systemStates,
+      // Temperature data
       temp1: Math.sin(secondsElapsed / 500) * 10 + 25 + Math.random() * 2,
       temp2: Math.sin(secondsElapsed / 500) * 8 + 22 + Math.random() * 2,
       temp3: Math.sin(secondsElapsed / 500) * 6 + 20 + Math.random() * 2,
-      systemStates
+      // Pressure data
+      pressure: Math.sin(secondsElapsed / 300) * 0.5 + 1 + Math.random() * 0.2,
     };
-  };
+};
+
+  // useEffect(() => {
+  //   // Reset data collection when chart type changes
+  //   setIsInitialLoad(true);
+  //   setCollectedData([]);
+  //   setDataPointCount(0);
+  //   setIsProgramEnded(false);
+  //   if (dataIntervalRef.current) {
+  //     clearInterval(dataIntervalRef.current);
+  //   }
+  // }, [chartType]);
+
+  
 
 
   
 
   const showProgramEndDialog = () => {
-    Notiflix.Notify.failure('Visi soļi tika izpildīti, ko jūs vēlaties darīt?', {
-      position: 'center-center',
-      timeout: 0, // Prevent auto-hide
-      backOverlay: true, // Optional, show overlay
-      width: '500px',
-      clickToClose: true,
-    });
+    Notiflix.Confirm.show(
+      'Programmas Beigas', 
+      'Visi soļi tika izpildīti, ko jūs vēlaties darīt?',
+      'Skatīt Grafiku',
+      'Uz Mājām',
+      function () {
+        console.log('View Graphs clicked');
+      },
+      function () {
+        window.location.href = '/';
+      }
+    );
+
   
     // Showing a custom dialog using Notiflix's Confirm dialog
     Notiflix.Confirm.show(
@@ -114,12 +167,14 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
     if (!isInitialLoad || isProgramEnded) return;
 
     const initialDelay = setTimeout(() => {
-      startTimeRef.current = Date.now();
-      setIsInitialLoad(false);
+      if (!startTimeRef.current) {
+        startTimeRef.current = Date.now();
+        const firstPoint = generateDataPoint(0, [], true);
+        setCollectedData([firstPoint]);
+        setDataPointCount(1);
+      }
       
-      const firstPoint = generateDataPoint(0, [], true);
-      setCollectedData([firstPoint]);
-      setDataPointCount(1);
+      setIsInitialLoad(false);
 
       dataIntervalRef.current = setInterval(() => {
         setDataPointCount(prev => {
@@ -169,7 +224,8 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
   }, []);
 
   useEffect(() => {
-    if (dimensions.width === 0 || dimensions.height === 0) return;
+    // Chart rendering logic
+    if (dimensions.width === 0 || dimensions.height === 0 || collectedData.length === 0) return;
 
     d3.select(svgRef.current).selectAll("*").remove();
 
@@ -194,8 +250,8 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
         .text('Ievāc Datus...');
       return;
     }
-
-    if (collectedData.length === 0) return;
+  
+      if (collectedData.length === 0) return;
 
     // Update xScale domain to always show the most recent time window
     const latestTime = collectedData[collectedData.length - 1].time;
@@ -206,12 +262,30 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
       .domain([startTime, startTime + timeWindow])
       .range([0, width]);
 
+    // Different y-scale domains for temperature and pressure
     const yScale = d3.scaleLinear()
-      .domain([
-        d3.min(collectedData, d => Math.min(d.temp1, d.temp2, d.temp3)) - 2,
-        d3.max(collectedData, d => Math.max(d.temp1, d.temp2, d.temp3)) + 2
-      ])
+      .domain(chartType === 'temperature' 
+        ? [
+            d3.min(collectedData, d => Math.min(d.temp1 || Infinity, d.temp2 || Infinity, d.temp3 || Infinity)) - 2,
+            d3.max(collectedData, d => Math.max(d.temp1 || -Infinity, d.temp2 || -Infinity, d.temp3 || -Infinity)) + 2
+          ]
+        : [0, d3.max(collectedData, d => d.pressure || 0) + 0.5]
+      )
       .range([height, 0]);
+
+      svg.select('.y-axis-label')
+      .text(chartType === 'temperature' ? 'Temperatūra (°C)' : 'Spiediens (bar)');
+
+
+      svg.append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('x', -height / 2)
+      .attr('y', -45)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#666')
+      .style('font-size', '14px')
+      .style('font-weight', '500')
+      .text(chartType === 'temperature' ? 'Temperatūra (°C)' : 'Spiediens (bar)');
 
     // Create clip path
     svg.append('defs')
@@ -271,11 +345,15 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
       .attr("class", "legend")
       .attr("transform", `translate(0, -${margin.top - 60})`);
 
-    const legendData = [
-      { label: "T1", color: COLORS.temp1 },
-      { label: "T2", color: COLORS.temp2 },
-      { label: "T3", color: COLORS.temp3 }
-    ];
+      const legendData = chartType === 'temperature'
+      ? [
+          { label: "T1", color: COLORS.temp1 },
+          { label: "T2", color: COLORS.temp2 },
+          { label: "T3", color: COLORS.temp3 }
+        ]
+      : [
+          { label: "Spiediens", color: COLORS.pressure }
+        ];
 
     legendData.forEach((item, index) => {
       const legendRow = legend.append("g")
@@ -351,48 +429,68 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
       .style('font-weight', '500')
       .text('Temperatūra (°C)');
 
-    const createLine = (accessor) => 
-      d3.line()
-        .x(d => xScale(d.time))
-        .y(d => yScale(accessor(d)))
-        .curve(d3.curveCatmullRom.alpha(0.5));
+      const createLine = (accessor) => 
+        d3.line()
+          .x(d => xScale(d.time))
+          .y(d => yScale(accessor(d)))
+          .curve(d3.curveCatmullRom.alpha(0.5));
+      
+      const addLineWithDots = (data, accessor, color, lineId) => {
+        chartArea.selectAll(`.line-${lineId}`).remove();
+        chartArea.selectAll(`.temp-dot-${lineId}`).remove();
+  
+        // Create and store the line path
+        const linePath = chartArea.append('path')
+          .datum(data)
+          .attr('class', `line-${lineId}`)
+          .attr('fill', 'none')
+          .attr('stroke', color)
+          .attr('stroke-width', 2)
+          .attr('d', createLine(accessor));
+  
+        // Add animation to the line
+        const pathLength = linePath.node().getTotalLength();
+        linePath
+          .attr('stroke-dasharray', pathLength)
+          .attr('stroke-dashoffset', pathLength)
+          .transition()
+          .duration(300)
+          .attr('stroke-dashoffset', 0);
+  
+        // Add dots
+        chartArea.selectAll(null)
+          .data(data)
+          .enter()
+          .append('circle')
+          .attr('class', `temp-dot temp-dot-${lineId}`)
+          .attr('cx', d => xScale(d.time))
+          .attr('cy', d => yScale(accessor(d)))
+          .attr('r', 0)
+          .attr('fill', color)
+          .transition()
+          .delay((d, i) => i * 100)
+          .duration(100)
+          .attr('r', 4);
+      };
+  
+      // Draw the lines based on chart type
+      if (chartType === 'temperature') {
+        if (lineVisibility.temp1) {
+          addLineWithDots(collectedData, d => d.temp1, COLORS.temp1, 'temp1');
+        }
+        if (lineVisibility.temp2) {
+          addLineWithDots(collectedData, d => d.temp2, COLORS.temp2, 'temp2');
+        }
+        if (lineVisibility.temp3) {
+          addLineWithDots(collectedData, d => d.temp3, COLORS.temp3, 'temp3');
+        }
+      } else {
+        addLineWithDots(collectedData, d => d.pressure, COLORS.pressure, 'pressure');
+      }
 
-    const addLineWithDots = (data, accessor, color, index) => {
-      const path = chartArea.append('path')
-        .datum(data)
-        .attr('class', `line line-${index}`)
-        .attr('fill', 'none')
-        .attr('stroke', color)
-        .attr('stroke-width', 2)
-        .attr('d', createLine(accessor));
 
-      const pathLength = path.node().getTotalLength();
-
-      path.attr('stroke-dasharray', pathLength)
-        .attr('stroke-dashoffset', pathLength)
-        .transition()
-        .duration(300)
-        .attr('stroke-dashoffset', 0);
-
-      chartArea.selectAll(null)
-        .data(data)
-        .enter()
-        .append('circle')
-        .attr('class', `temp-dot temp-dot-${index}`)
-        .attr('cx', d => xScale(d.time))
-        .attr('cy', d => yScale(accessor(d)))
-        .attr('r', 0)
-        .attr('fill', color)
-        .transition()
-        .delay((d, i) => i * 100)
-        .duration(100)
-        .attr('r', 4);
-    };
-
-    // Add temperature lines with animations
-    addLineWithDots(collectedData, d => d.temp1, COLORS.temp1, 1);
-    addLineWithDots(collectedData, d => d.temp2, COLORS.temp2, 2);
-    addLineWithDots(collectedData, d => d.temp3, COLORS.temp3, 3);
+      svg.select('.y-axis-label')
+      .text(chartType === 'temperature' ? 'Temperatūra (°C)' : 'Spiediens (bar)');  
 
     // Draw system status timelines
     const timelineHeight = 10;
@@ -408,6 +506,8 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
 
     systems.forEach((system, index) => {
       const yPos = timelineStartY + index * (timelineHeight + timelineGap);
+
+    
       
       // Add system label
       svg.append('text')
@@ -444,15 +544,43 @@ const MainChart = ({ timeRange, onTimeRangeChange }) => {
       });
     });
 
-  }, [dimensions, timeRange, isInitialLoad, collectedData, dataPointCount]);
+}, [dimensions, timeRange, isInitialLoad, collectedData, dataPointCount, lineVisibility, chartType]);
 
-  return (
-    <div ref={containerRef} className="chart">
-      <div className="svg-container" style={{ height: '500px' }}>
-        <svg ref={svgRef} style={{ width: '100%', height: '100%' }} />
+return (
+  <div ref={containerRef} className="chart">
+    {chartType === 'temperature' && (
+      <div className="line-controls">
+        <button
+          className={`line-button ${lineVisibility.temp1 ? 'active' : ''} temp1-button`}
+          onClick={() => toggleLine('temp1')}
+        >
+          T1
+        </button>
+        <button
+          className={`line-button ${lineVisibility.temp2 ? 'active' : ''} temp2-button`}
+          onClick={() => toggleLine('temp2')}
+        >
+          T2
+        </button>
+        <button
+          className={`line-button ${lineVisibility.temp3 ? 'active' : ''} temp3-button`}
+          onClick={() => toggleLine('temp3')}
+        >
+          T3
+        </button>
+        <button
+          className="line-button all-button"
+          onClick={showAllLines}
+        >
+          All
+        </button>
       </div>
+    )}
+    <div className="svg-container" style={{ height: '500px' }}>
+      <svg ref={svgRef} style={{ width: '100%', height: '100%' }} />
     </div>
-  );
+  </div>
+);
 };
 
 export default MainChart;
