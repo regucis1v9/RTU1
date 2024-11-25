@@ -72,8 +72,8 @@ app.post('/save-csv', (req, res) => {
     const { fileName, csvData } = req.body;
   
     // Define the default row and its values
-    const defaultHeader = 'step,tMin,tMax,time,tMinUnit,tMaxUnit';
-    const defaultRow = '1,0,0,3,C,C';  // The values you want for the default row
+    const defaultHeader = 'step,tMin,tMax,time,pressure,tMinUnit,tMaxUnit';
+    const defaultRow = '1,0,0,3,1,C,C'; // Include 'pressure' in default row
   
     // Check if csvData exists and is not empty; otherwise, use default values
     let finalCsvData = defaultRow;
@@ -157,10 +157,10 @@ app.post('/updateFile', (req, res) => {
     let dataRows = rows.slice(1); // The rest are data rows
 
     // Step 5: Process the incoming data
-    const newRows = data.map((newRow) => {
-        const { step, tMin, tMax, time, tMinUnit, tMaxUnit } = newRow;
-        return `${step},${tMin},${tMax},${time},${tMinUnit},${tMaxUnit}`;
-    });
+  const newRows = data.map((newRow) => {
+    const { step, tMin = 0, tMax = 0, time = 0, pressure = 0, tMinUnit = "C", tMaxUnit = "C" } = newRow;
+    return `${step},${tMin},${tMax},${time},${pressure},${tMinUnit},${tMaxUnit}`;
+  });
 
     // Step 6: Identify and update/keep rows
     const rowsToKeep = dataRows.map((row) => {
