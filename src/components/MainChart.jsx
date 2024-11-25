@@ -201,7 +201,7 @@ const MainChart = ({ timeRange, onTimeRangeChange, chartType = 'temperature', is
           clearInterval(dataIntervalRef.current);
         }
       };
-    }, 5000);
+    }, 0);
 
     return () => clearTimeout(initialDelay);
   }, [isInitialLoad, isProgramEnded]);
@@ -342,35 +342,39 @@ const MainChart = ({ timeRange, onTimeRangeChange, chartType = 'temperature', is
 
     // Add temperature lines legend
     const legend = svg.append("g")
-      .attr("class", "legend")
-      .attr("transform", `translate(0, -${margin.top - 60})`);
+    .attr("class", "legend")
+    .attr("transform", `translate(0, -${margin.top - 60})`);
+  
 
       const legendData = chartType === 'temperature'
-      ? [
-          { label: "T1", color: COLORS.temp1 },
-          { label: "T2", color: COLORS.temp2 },
-          { label: "T3", color: COLORS.temp3 }
-        ]
-      : [
-          { label: "Spiediens", color: COLORS.pressure }
-        ];
+  ? [
+      { label: "T1", color: COLORS.temp1, id: "temp1" },
+      { label: "T2", color: COLORS.temp2, id: "temp2" },
+      { label: "T3", color: COLORS.temp3, id: "temp3" }
+    ]
+  : [
+      { label: "Pressure", color: COLORS.pressure, id: "pressure" }
+    ];
 
     legendData.forEach((item, index) => {
       const legendRow = legend.append("g")
         .attr("transform", `translate(${index * 80}, 0)`);
-
+    
       legendRow.append("circle")
         .attr("cx", 10)
         .attr("cy", 10)
         .attr("r", 6)
         .attr("fill", item.color);
-
+    
       legendRow.append("text")
         .attr("x", 20)
         .attr("y", 14)
         .attr("fill", "#616060")
         .attr("font-size", "12px")
         .text(item.label);
+    
+      // Add toggle buttons using foreignObject
+      
     });
 
     // Add grid lines
@@ -435,58 +439,69 @@ const MainChart = ({ timeRange, onTimeRangeChange, chartType = 'temperature', is
           .y(d => yScale(accessor(d)))
           .curve(d3.curveCatmullRom.alpha(0.5));
       
-      const addLineWithDots = (data, accessor, color, lineId) => {
-        chartArea.selectAll(`.line-${lineId}`).remove();
-        chartArea.selectAll(`.temp-dot-${lineId}`).remove();
-  
-        // Create and store the line path
-        const linePath = chartArea.append('path')
-          .datum(data)
-          .attr('class', `line-${lineId}`)
-          .attr('fill', 'none')
-          .attr('stroke', color)
-          .attr('stroke-width', 2)
-          .attr('d', createLine(accessor));
-  
-        // Add animation to the line
-        const pathLength = linePath.node().getTotalLength();
-        linePath
-          .attr('stroke-dasharray', pathLength)
-          .attr('stroke-dashoffset', pathLength)
-          .transition()
-          .duration(300)
-          .attr('stroke-dashoffset', 0);
-  
-        // Add dots
-        chartArea.selectAll(null)
-          .data(data)
-          .enter()
-          .append('circle')
-          .attr('class', `temp-dot temp-dot-${lineId}`)
-          .attr('cx', d => xScale(d.time))
-          .attr('cy', d => yScale(accessor(d)))
-          .attr('r', 0)
-          .attr('fill', color)
-          .transition()
-          .delay((d, i) => i * 100)
-          .duration(100)
-          .attr('r', 4);
-      };
+          const addLineWithDots = (data, accessor, color, lineId, transparentSegments = []) => {
+            chartArea.selectAll(`.line-${lineId}`).remove();
+            chartArea.selectAll(`.temp-dot-${lineId}`).remove();
+          
+            // Create line segments
+            const lineGenerator = d3.line()
+              .x(d => xScale(d.time))
+              .y(d => yScale(accessor(d)));
+          
+            for (let i = 0; i < data.length - 1; i++) {
+              const segmentData = [data[i], data[i + 1]];
+              const isTransparentSegment = transparentSegments.some(
+                ([start, end]) => start === i && end === i + 1
+              );
+          
+              chartArea.append('path')
+                .datum(segmentData)
+                .attr('class', `line-${lineId}`)
+                .attr('fill', 'none')
+                .attr('stroke', isTransparentSegment ? `${color}80` : color) // Transparency for specific segments
+                .attr('stroke-width', 2)
+                .attr('stroke-dasharray', isTransparentSegment ? '5,5' : 'none') // Dashed for specific segments
+                .attr('d', lineGenerator);
+            }
+          
+            // Add dots
+            chartArea.selectAll(null)
+              .data(data)
+              .enter()
+              .append('circle')
+              .attr('class', `temp-dot temp-dot-${lineId}`)
+              .attr('cx', d => xScale(d.time))
+              .attr('cy', d => yScale(accessor(d)))
+              .attr('r', 0)
+              .attr('fill', color)
+              .transition()
+              .delay((d, i) => i * 100)
+              .duration(100)
+              .attr('r', 4);
+          };
+          
   
       // Draw the lines based on chart type
+      const sharedTransparentSegments = [
+        [2, 3], // Segment between dots 2 and 3
+        [4, 5]  // Segment between dots 4 and 5
+      ];
+      
       if (chartType === 'temperature') {
         if (lineVisibility.temp1) {
-          addLineWithDots(collectedData, d => d.temp1, COLORS.temp1, 'temp1');
+          addLineWithDots(collectedData, d => d.temp1, COLORS.temp1, 'T1', sharedTransparentSegments);
         }
         if (lineVisibility.temp2) {
-          addLineWithDots(collectedData, d => d.temp2, COLORS.temp2, 'temp2');
+          addLineWithDots(collectedData, d => d.temp2, COLORS.temp2, 'T2', sharedTransparentSegments);
         }
         if (lineVisibility.temp3) {
-          addLineWithDots(collectedData, d => d.temp3, COLORS.temp3, 'temp3');
+          addLineWithDots(collectedData, d => d.temp3, COLORS.temp3, 'T3', sharedTransparentSegments);
         }
       } else {
-        addLineWithDots(collectedData, d => d.pressure, COLORS.pressure, 'pressure');
+        addLineWithDots(collectedData, d => d.pressure, COLORS.pressure, 'pressure', sharedTransparentSegments);
       }
+      
+      
 
 
       svg.select('.y-axis-label')
@@ -547,38 +562,39 @@ const MainChart = ({ timeRange, onTimeRangeChange, chartType = 'temperature', is
 }, [dimensions, timeRange, isInitialLoad, collectedData, dataPointCount, lineVisibility, chartType]);
 
 return (
-  <div ref={containerRef} className="chart">
+  <div ref={containerRef} className="chart" style={{ position: 'relative' }}>
+    <div className="svg-container" style={{ height: '500px' }}>
+      <svg ref={svgRef} />
+    </div>
     {chartType === 'temperature' && (
-      <div className="line-controls">
-        <button
-          className={`line-button ${lineVisibility.temp1 ? 'active' : ''} temp1-button`}
-          onClick={() => toggleLine('temp1')}
-        >
-          T1
-        </button>
-        <button
-          className={`line-button ${lineVisibility.temp2 ? 'active' : ''} temp2-button`}
-          onClick={() => toggleLine('temp2')}
-        >
-          T2
-        </button>
-        <button
-          className={`line-button ${lineVisibility.temp3 ? 'active' : ''} temp3-button`}
-          onClick={() => toggleLine('temp3')}
-        >
-          T3
-        </button>
-        <button
-          className="line-button all-button"
-          onClick={showAllLines}
-        >
-          All
-        </button>
+      <div
+        style={{
+          position: 'absolute',
+          top: '10px',
+          left: '10px',
+          display: 'flex',
+          gap: '10px',
+        }}
+      >
+        {['temp1', 'temp2', 'temp3'].map((temp) => (
+  <button
+    key={temp}
+    onClick={() => toggleLine(temp)}
+    style={{
+      backgroundColor: lineVisibility[temp] ? COLORS[temp] : '#808080', // Use the line color when visible, grey when off
+      color: 'white',
+      border: 'none',
+      borderRadius: '5px',
+      padding: '3px 7px',
+      cursor: 'pointer',
+    }}
+  >
+    {temp.toUpperCase()}
+  </button>
+))}
+
       </div>
     )}
-    <div className="svg-container" style={{ height: '500px' }}>
-      <svg ref={svgRef} style={{ width: '100%', height: '100%' }} />
-    </div>
   </div>
 );
 };
