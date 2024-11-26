@@ -1,4 +1,4 @@
-import { AppShell, Burger, Transition, Paper, Stack, useMantineTheme, rem, Tabs, Modal, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select, ActionIcon, useMantineColorScheme, useComputedColorScheme } from '@mantine/core';
+import { AppShell, Burger, Transition, Box, Stack, useMantineTheme, rem, Tabs, Modal, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select, ActionIcon, useMantineColorScheme, useComputedColorScheme } from '@mantine/core';
 import React, { useState, useEffect } from 'react';
 import {
     IconGraph,
@@ -17,8 +17,9 @@ import {
     IconLanguage,
     IconSun,
     IconMoon,
-    IconAlertOctagonFilled
+    IconSettings, IconAlertOctagonFilled
 } from '@tabler/icons-react';
+import { showNotification } from '@mantine/notifications';
 import { useElementSize, useDisclosure, useViewportSize } from '@mantine/hooks';
 import translations from '../locales/translations';
 import classes from "../styles/Table.module.css";
@@ -81,10 +82,21 @@ export default function SingleProfile() {
             if (!response.ok) {
                 console.error('Error saving changes');
                 return;
+                showNotification({
+                    title: "Neveiksmīgi saglabāts profils",
+                    message: "Profils netika saglabāts",
+                    color: 'red',
+                });
             }
 
             const result = await response.json();
             console.log('Save success:', result);
+            showNotification({
+                title: "Veiksmīgi saglabāts profils",
+                message: "Profils tika saglabāts",
+                color: 'green',
+            });
+            
         } catch (error) {
             console.error('Failed to save changes:', error);
         }
@@ -158,6 +170,11 @@ export default function SingleProfile() {
 
         // Update the total time
         setTotalTime(totalTime + newRow.time);
+        showNotification({
+            title: "Veiksmīgi pievienots solis",
+            message: "Solis tika izveidots",
+            color: 'green',
+        });
     };
 
 
@@ -227,6 +244,11 @@ export default function SingleProfile() {
     const cancelChanges = () => {
         setData([...originalData]); // Reset data to the original state
         setTotalTime(originalData.reduce((total, row) => total + row.time, 0)); // Reset totalTime to the original value
+        showNotification({
+            title: "Izmaiņas atceltas",
+            message: "Izmaniņas atceltas veiksmīgi",
+            color: 'green',
+        });
     };
 
     const tutorialContent = (
@@ -312,70 +334,33 @@ export default function SingleProfile() {
                             <IconArrowLeft stroke={3}></IconArrowLeft>
                         </Button>
                     </Link>
-                    <Group visibleFrom='sm'>
-                        <Link to="/landing">
-                            <Button color={buttonColor} variant="transparent" leftSection={<IconHomeFilled />}> {t.home} </Button>
-                        </Link>
-                        <Button color="red" leftSection={<IconAlertOctagonFilled/>} rightSection={<IconAlertOctagonFilled/>}>
-                            STOP
-                        </Button>
-                        <Link to={`/overview/${fileName}`}>
-                            <Button color={buttonColor} variant="transparent" leftSection={<IconChartSankey />}> {t.graphs}</Button>
-                        </Link>
-                    </Group>
-                    <Group visibleFrom='sm'>
-                        <ActionIcon
-                            onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
-                            variant="default"
-                            size="xl"
-                            aria-label="Toggle color scheme"
-                        >
-                            {computedColorScheme === 'light' ? (
-                                <IconMoon  stroke={1.5} />
-                            ) : (
-                                <IconSun stroke={1.5} />
-                            )}
-                        </ActionIcon>
-                        <ActionIcon
-                            onClick={() => setTutorialOpen(true)}
-                            variant="default"
-                            size="xl"
-                            aria-label="Show Tutorial"
-                        >
-                            <IconHelp stroke={1.5} />
-                        </ActionIcon>
-                        <Select
-                            leftSection={<IconLanguage size={26} />}
-                            variant='unstyled'
-                            allowDeselect={false}
-                            value={language}
-                            onChange={handleLanguageChange}
-                            data={['Latviešu', 'English']}
-                            classNames={dropdown}
-                            comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 } }
-                        />
-                    </Group>
-                    <Burger hiddenFrom='sm' opened={opened} onClick={toggle} aria-label="Toggle navigation" style={{ zIndex: 11 }}></Burger>
+                    <Button color="red" leftSection={<IconAlertOctagonFilled/>} rightSection={<IconAlertOctagonFilled/>}>
+                        STOP
+                    </Button>
+                    <Burger opened={opened} variant="transparent" aria-label="Settings" onClick={toggle} aria-label="Toggle navigation" style={{ zIndex: 11 }}>
+                    </Burger>
                 </Flex>
                 <Transition
                     mounted={opened}
                     transition="slide-left"
                     duration={400}
                     timingFunction="ease"
-                    hiddenFrom="sm"
                 >
                     {(transitionStyle) => (
-                        <Paper
-                            hiddenFrom="sm"
+                        <Box
                             shadow="md"
                             p="xl"
                             pos="absolute"
                             top={0}
-                            left={0}
                             right={0}
+                            style={{
+                                ...transitionStyle,
+                                backgroundColor: computedColorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[1],
+                                zIndex: 10,
+                                height: '100vh',
+                            }}
+                            w={320}
                             h={screenHeight}
-                            w={screenWidth}
-                            style={{ ...transitionStyle, zIndex: 10, height: '100vh' }}
                         >
                             <Stack
                                 gap={20}
@@ -397,28 +382,30 @@ export default function SingleProfile() {
                                     classNames={dropdown}
                                     comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 } }
                                 />
-                                <ActionIcon
-                                    onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
-                                    variant="default"
-                                    size="xl"
-                                    aria-label="Toggle color scheme"
-                                >
-                                    {computedColorScheme === 'light' ? (
-                                        <IconMoon  stroke={1.5} />
-                                    ) : (
-                                        <IconSun stroke={1.5} />
-                                    )}
-                                </ActionIcon>
-                                <ActionIcon
-                                    onClick={() => setTutorialOpen(true)}
-                                    variant="default"
-                                    size="xl"
-                                    aria-label="Show Tutorial"
-                                >
-                                    <IconHelp stroke={1.5} />
-                                </ActionIcon>
+                                <Group>
+                                    <ActionIcon
+                                        onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
+                                        variant="default"
+                                        size="xl"
+                                        aria-label="Toggle color scheme"
+                                    >
+                                        {computedColorScheme === 'light' ? (
+                                            <IconMoon  stroke={1.5} />
+                                        ) : (
+                                            <IconSun stroke={1.5} />
+                                        )}
+                                    </ActionIcon>
+                                    <ActionIcon
+                                        onClick={() => setTutorialOpen(true)}
+                                        variant="default"
+                                        size="xl"
+                                        aria-label="Show Tutorial"
+                                    >
+                                        <IconHelp stroke={1.5} />
+                                    </ActionIcon>
+                                </Group>
                             </Stack>
-                        </Paper>
+                        </Box>
                     )}
                 </Transition>
             </AppShell.Header>

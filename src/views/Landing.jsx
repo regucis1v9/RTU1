@@ -1,17 +1,17 @@
 import {
-  AppShell,
-  Flex,
-  Stack,
-  Button,
-  ActionIcon,
-  Select,
-  Group,
-  Modal,
-  Tabs,
-  Text,
-  useMantineColorScheme,
-  useComputedColorScheme,
-  useMantineTheme,
+    AppShell,
+    Flex,
+    Stack,
+    Button,
+    ActionIcon,
+    Select,
+    Group,
+    Modal,
+    Tabs,
+    Text,
+    useMantineColorScheme,
+    useComputedColorScheme,
+    useMantineTheme, Box, Transition, Burger,
 } from '@mantine/core';
 import React, { useState } from 'react';
 import {
@@ -28,11 +28,14 @@ import {
     IconPencilPlus,
     IconGraph, IconAlertOctagonFilled,
 } from '@tabler/icons-react';
-import { useElementSize } from '@mantine/hooks';
+import {useDisclosure, useElementSize, useViewportSize} from '@mantine/hooks';
 import translations from '../locales/translations';
 import { Link } from 'react-router-dom';
+import dropdown from "../styles/Dropdown.module.css";
 
 export default function Landing() {
+    const { screenHeight, screenWidth } = useViewportSize();
+    const [opened, { toggle }] = useDisclosure();
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
   const { ref, width, height } = useElementSize();
@@ -92,40 +95,72 @@ export default function Landing() {
           </Link>
             <Button color="red" leftSection={<IconAlertOctagonFilled/>} rightSection={<IconAlertOctagonFilled/>}>
                 STOP
-            </Button>    
-          <Group>
-            <ActionIcon
-              onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
-              variant="default"
-              size="xl"
-              aria-label="Toggle color scheme"
+            </Button>
+            <Burger opened={opened} variant="transparent" aria-label="Settings" onClick={toggle} aria-label="Toggle navigation" style={{ zIndex: 11 }}>
+            </Burger>
+            <Transition
+                mounted={opened}
+                transition="slide-left"
+                duration={400}
+                timingFunction="ease"
             >
-              {computedColorScheme === 'light' ? <IconMoon stroke={1.5} /> : <IconSun stroke={1.5} />}
-            </ActionIcon>
-            <ActionIcon
-              onClick={() => setTutorialOpen(true)}
-              variant="default"
-              size="xl"
-              aria-label="Show Tutorial"
-            >
-              <IconHelp stroke={1.5} />
-            </ActionIcon>
-            <Select
-              w={125}
-              leftSection={<IconLanguage size={26} />}
-              variant="unstyled"
-              allowDeselect={false}
-              value={language}
-              onChange={handleLanguageChange}
-              data={['Latviešu', 'English']}
-              comboboxProps={{
-                transitionProps: { transition: 'pop', duration: 200 },
-                position: 'bottom',
-                middlewares: { flip: false, shift: false },
-                offset: 0,
-              }}
-            />
-          </Group>
+                {(transitionStyle) => (
+                    <Box
+                        shadow="md"
+                        p="xl"
+                        pos="absolute"
+                        top={0}
+                        right={0}
+                        style={{
+                            ...transitionStyle,
+                            backgroundColor: computedColorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[1],
+                            zIndex: 10,
+                            height: '100vh',
+                        }}
+                        w={320}
+                        h={screenHeight}
+                    >
+                        <Stack
+                            gap={20}
+                            align='center'
+                        >
+                            <Select
+                                leftSection={<IconLanguage size={26} />}
+                                variant='unstyled'
+                                allowDeselect={false}
+                                value={language}
+                                onChange={handleLanguageChange}
+                                data={['Latviešu', 'English']}
+                                classNames={dropdown}
+                                comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 } }
+                            />
+                            <Group>
+                                <ActionIcon
+                                    onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
+                                    variant="default"
+                                    size="xl"
+                                    aria-label="Toggle color scheme"
+                                >
+                                    {computedColorScheme === 'light' ? (
+                                        <IconMoon  stroke={1.5} />
+                                    ) : (
+                                        <IconSun stroke={1.5} />
+                                    )}
+                                </ActionIcon>
+                                <ActionIcon
+                                    onClick={() => setTutorialOpen(true)}
+                                    variant="default"
+                                    size="xl"
+                                    aria-label="Show Tutorial"
+                                >
+                                    <IconHelp stroke={1.5} />
+                                </ActionIcon>
+                            </Group>
+                        </Stack>
+                    </Box>
+                )}
+            </Transition>
+            
         </Flex>
       </AppShell.Header>
 
