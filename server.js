@@ -34,13 +34,16 @@ const storage = multer.diskStorage({
   }
 });
 
+// Define the findCsvFile function
 function findCsvFile(filename) {
   const filePath = path.join(PROJECTS_DIR, filename);
 
   if (fs.existsSync(filePath)) {
+    // File exists, read it and return the content
     const data = fs.readFileSync(filePath, 'utf8');
     return { data };
   } else {
+    // File does not exist
     return { error: 'File not found' };
   }
 }
@@ -66,41 +69,46 @@ app.get('/csvFiles', (req, res) => {
 });
 
 app.post('/save-csv', (req, res) => {
-    const { fileName, csvData } = req.body;
-    
-    // Define the default row and its values
-    const defaultHeader = 'step,tMin,tMax,time,pressure,tMinUnit,tMaxUnit';
-    const defaultRow = '1,0,0,3,1,C,C'; // Include 'pressure' in default row
-  
-    let finalCsvData = defaultRow;
-  
-    if (finalCsvData === defaultRow) {
-      finalCsvData = defaultHeader + '\n' + defaultRow;
-    } else {
-      if (!csvData.startsWith(defaultHeader)) {
-        finalCsvData = defaultHeader + '\n' + csvData;
-      }
+  const { fileName, csvData } = req.body;
+
+  // Define the default row and its values
+  const defaultHeader = 'step,tMin,tMax,time,pressure,tMinUnit,tMaxUnit';
+  const defaultRow = '1,0,0,3,1,C,C'; // Include 'pressure' in default row
+
+  // Check if csvData exists and is not empty; otherwise, use default values
+  let finalCsvData = defaultRow;
+
+  // If there's no csvData or if it's empty, prepend the default header and row
+  if (finalCsvData === defaultRow) {
+    finalCsvData = defaultHeader + '\n' + defaultRow;
+  } else {
+    // Otherwise, just prepend the header if the data is valid
+    if (!csvData.startsWith(defaultHeader)) {
+      finalCsvData = defaultHeader + '\n' + csvData;
     }
-  
-    const today = new Date().toISOString().split('T')[0];
-    const filePath = path.join(PROJECTS_DIR, `${fileName}-${today}.csv`);
-    let finalFilePath = filePath;
-    let counter = 1;
-  
-    while (fs.existsSync(finalFilePath)) {
-      finalFilePath = path.join(PROJECTS_DIR, `${fileName} (${counter})-${today}.csv`);
-      counter++;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const filePath = path.join(PROJECTS_DIR, `${fileName}-${today}.csv`);
+  let finalFilePath = filePath;
+  let counter = 1;
+
+  // Ensure that the file does not already exist
+  while (fs.existsSync(finalFilePath)) {
+    finalFilePath = path.join(PROJECTS_DIR, `${fileName} (${counter})-${today}.csv`);
+    counter++;
+  }
+
+  // Write the final CSV data to the file
+  fs.writeFile(finalFilePath, finalCsvData, 'utf8', (err) => {
+    if (err) {
+      console.error('Error saving the CSV file:', err);
+      return res.status(500).json({ message: 'Error saving the CSV file' });
     }
-  
-    fs.writeFile(finalFilePath, finalCsvData, 'utf8', (err) => {
-      if (err) {
-        console.error('Error saving the CSV file:', err);
-        return res.status(500).json({ message: 'Error saving the CSV file' });
-      }
-      res.json({ message: 'CSV file saved successfully', filePath: finalFilePath });
-    });
+    res.json({ message: 'CSV file saved successfully', filePath: finalFilePath });
   });
-  
+});
+
 
 
 const upload = multer({ storage: storage });
@@ -113,17 +121,17 @@ app.post('/upload-csv', upload.single('file'), (req, res) => {
 });
 
 app.get('/get-csv/:filename', (req, res) => {
-    const { filename } = req.params;
-    const result = findCsvFile(filename);
-  
-    if (result.error) {
-      return res.status(404).json({ message: result.error });
-    }
-  
-    res.header('Content-Type', 'text/csv');
-    res.send(result.data);
-  });
-  
+  const { filename } = req.params;
+  const result = findCsvFile(filename);
+
+  if (result.error) {
+    return res.status(404).json({ message: result.error });
+  }
+
+  res.header('Content-Type', 'text/csv');
+  res.send(result.data);
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
@@ -131,58 +139,68 @@ app.listen(PORT, () => {
 app.post('/updateFile', (req, res) => {
   const { fileName, data } = req.body;
 
+  // Step 1: Find the file path
   const filePath = path.join(PROJECTS_DIR, fileName);
 
   if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: 'File not found' });
+    return res.status(404).json({ message: 'File not found' });
   }
 
+  // Step 2: Read the existing CSV content
   const existingCsv = fs.readFileSync(filePath, 'utf8');
+
+  // Step 3: Split the CSV into rows
   const rows = existingCsv.split('\n');
 
-  const header = rows[0];
-  let dataRows = rows.slice(1); 
+  // Step 4: Separate header from the data rows
+  const header = rows[0]; // First row is the header
+  let dataRows = rows.slice(1); // The rest are data rows
 
-  // Update the new rows based on incoming data
-  const newRows = data.map((newRow) => {
-      const { step, t1Min, t1Max, t2Min, t2Max, t3Min, t3Max, time, tMinUnit, tMaxUnit } = newRow;
-      return `${step},${t1Min},${t1Max},${t2Min},${t2Max},${t3Min},${t3Max},${time},${tMinUnit},${tMaxUnit}`;
-  });
-  
-    // Step 5: Process the incoming data
+  // Step 5: Process the incoming data
   const newRows = data.map((newRow) => {
     const { step, tMin = 0, tMax = 0, time = 0, pressure = 0, tMinUnit = "C", tMaxUnit = "C" } = newRow;
     return `${step},${tMin},${tMax},${time},${pressure},${tMinUnit},${tMaxUnit}`;
   });
 
-  // Add new rows if they don't already exist in the file
+  // Step 6: Identify and update/keep rows
+  const rowsToKeep = dataRows.map((row) => {
+    const step = row.split(',')[0]; // Extract the step from the existing row
+    const matchingNewRow = newRows.find((newRow) => newRow.startsWith(`${step},`)); // Find matching new row
+    return matchingNewRow || row; // If found, update with new row; else, keep old row
+  });
+
+  // Step 7: Add rows that are in the new data but not in the existing rows
   newRows.forEach((newRow) => {
-      const step = newRow.split(',')[0]; 
-      const existsInDataRows = rowsToKeep.some((row) => row.startsWith(`${step},`));
-      if (!existsInDataRows) {
-          rowsToKeep.push(newRow);
-      }
+    const step = newRow.split(',')[0]; // Extract the step from the new row
+    const existsInDataRows = rowsToKeep.some((row) => row.startsWith(`${step},`));
+    if (!existsInDataRows) {
+      rowsToKeep.push(newRow); // Add new row if it doesn't already exist
+    }
   });
 
-  // Filter out rows that should be deleted (rows that don't have a matching entry in the new data)
+  // Step 8: Handle row deletions: Remove rows that no longer exist in new data
   const rowsToDelete = dataRows.filter((row) => {
-      const step = row.split(',')[0];
-      return !newRows.some((newRow) => newRow.startsWith(`${step},`));
+    const step = row.split(',')[0]; // Extract step from the row
+    return !newRows.some((newRow) => newRow.startsWith(`${step},`)); // Keep rows that are not in the new data
   });
 
+  // If there are deleted rows, filter them out
   const updatedRowsToKeep = rowsToKeep.filter((row) => {
-      const step = row.split(',')[0];
-      return !rowsToDelete.some((deletedRow) => deletedRow.startsWith(`${step},`)); 
+    const step = row.split(',')[0];
+    return !rowsToDelete.some((deletedRow) => deletedRow.startsWith(`${step},`)); // Remove deleted rows
   });
 
+  // Step 9: Combine the header with the updated rows
   const updatedCsvContent = [header, ...updatedRowsToKeep].join('\n');
 
+  // Step 10: Write the updated CSV content back to the file
   fs.writeFile(filePath, updatedCsvContent, 'utf8', (err) => {
-      if (err) {
-          console.error('Error saving the updated CSV file:', err);
-          return res.status(500).json({ message: 'Error saving the updated CSV file' });
-      }
+    if (err) {
+      console.error('Error saving the updated CSV file:', err);
+      return res.status(500).json({ message: 'Error saving the updated CSV file' });
+    }
 
-      res.json({ message: 'CSV file updated successfully', filePath });
+    // Respond with a success message
+    res.json({ message: 'CSV file updated successfully', filePath });
   });
 });
