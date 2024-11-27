@@ -585,6 +585,314 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 
+.mainCont {
+    .alertButton {
+      position: fixed;
+      top: 100px;
+      right: 5px;
+      z-index: 100;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+      .alertCount {
+        position: absolute;
+        top: 15px;
+        right: 32px;
+        background-color: red;
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        border-radius: 50%;
+        padding: 2px 5px;
+        line-height: 1;
+      }
+  
+      &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+  
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+  }
+  
+  .alert-popup {
+    .mantine-Modal-content {
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      padding: 20px; /* Add padding for a cleaner layout */
+    }
+  
+    &.light-mode {
+      .mantine-Modal-content {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      }
+  
+      .alert-popup-content {
+        color: #000;
+      }
+  
+      .current-emergency-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 0, 0, 0.1);
+        border: 1px solid rgba(255, 0, 0, 0.2);
+        padding: 15px;
+        border-radius: 8px;
+  
+        span {
+          color: #ff4d4d;
+        }
+      }
+  
+      .alert-history {
+        background: rgba(255, 255, 255, 0.8);
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 8px;
+  
+        h3 {
+          color: #333;
+          margin-bottom: 15px;
+        }
+  
+        .alert-item {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          padding: 10px 0;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  
+          .timestamp {
+            color: #666;
+          }
+  
+          .message {
+            color: #333;
+          }
+        }
+      }
+    }
+  
+    &.dark-mode {
+      .mantine-Modal-content {
+        background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
+      }
+  
+      .alert-popup-content {
+        color: #fff;
+      }
+  
+      .current-emergency-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 0, 0, 0.2);
+        border: 1px solid rgba(255, 0, 0, 0.4);
+        padding: 15px;
+        border-radius: 8px;
+  
+        span {
+          color: #ff6666;
+        }
+      }
+  
+      .alert-history {
+        background: rgba(0, 0, 0, 0.6);
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 8px;
+  
+        h3 {
+          color: #fff;
+          margin-bottom: 15px;
+        }
+  
+        .alert-item {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          padding: 10px 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  
+          .timestamp {
+            color: #aaa;
+          }
+  
+          .message {
+            color: #ddd;
+          }
+        }
+      }
+    }
+
+    .shelf-status-container {
+      position: relative;
+    }
+    
+    .shelf-diagram .shelf-line {
+      transition: stroke-width 0.3s ease, opacity 0.3s ease;
+    }
+    
+    .shelf-diagram .shelf-line:hover {
+      stroke-width: 4;
+      opacity: 0.8;
+    }
+    
+    .shelf-alert-modal {
+      .shelf-error-box, .shelf-no-error {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+    
+      &.light-mode {
+        .shelf-error-box {
+          background: rgba(255, 0, 0, 0.1);
+          border: 1px solid rgba(255, 0, 0, 0.2);
+          
+          span {
+            color: #ff4d4d;
+          }
+        }
+    
+        .shelf-no-error {
+          background: rgba(0, 255, 0, 0.1);
+          border: 1px solid rgba(0, 255, 0, 0.2);
+          
+          span {
+            color: green;
+          }
+        }
+      }
+    
+      &.dark-mode {
+        .shelf-error-box {
+          background: rgba(255, 0, 0, 0.2);
+          border: 1px solid rgba(255, 0, 0, 0.4);
+          
+          span {
+            color: #ff6666;
+          }
+        }
+    
+        .shelf-no-error {
+          background: rgba(0, 255, 0, 0.2);
+          border: 1px solid rgba(0, 255, 0, 0.4);
+          
+          span {
+            color: #66ff66;
+          }
+        }
+      }
+    }
+  
+
+    .current-emergency-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px;
+      background: rgba(255, 0, 0, 0.1);
+      border: 1px solid rgba(255, 0, 0, 0.2);
+      border-radius: 10px;
+      animation: pulse 1.5s infinite;
+  
+      svg {
+        color: #ff4d4d;
+      }
+  
+      span {
+        color: #333;
+        font-weight: 600;
+      }
+    }
+  
+    .alert-history {
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 10px;
+      padding: 15px;
+      max-height: 250px;
+      overflow-y: auto;
+  
+      h3 {
+        margin-bottom: 10px;
+        text-align: center;
+        color: #333;
+        font-weight: 600;
+      }
+  
+      ul {
+        list-style-type: none;
+        padding: 0;
+        
+        li {
+          display: flex;
+          justify-content: space-between;
+          padding: 10px;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          transition: background 0.3s ease;
+  
+          &:last-child {
+            border-bottom: none;
+          }
+  
+          &:hover {
+            background: rgba(0, 0, 0, 0.02);
+          }
+  
+          .timestamp {
+            color: #666;
+            margin-right: 15px;
+            font-size: 0.8em;
+            opacity: 0.7;
+          }
+  
+          .message {
+            flex-grow: 1;
+            color: #333;
+          }
+        }
+      }
+    }
+  }
+  
+  /* Animation for popup entrance */
+  @keyframes slideFromButton {
+    from {
+      transform: scale(0.5) translateY(50%);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .mantine-Modal-content {
+    animation: slideFromButton 0.4s ease-out;
+  }
+  
+  /* Pulse animation for emergency */
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.03);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
 // alerts
 
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap');

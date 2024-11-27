@@ -1,16 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, useMantineColorScheme, useComputedColorScheme } from "@mantine/core";
-import { IconSun, IconMoon, IconPlayerPause, IconPlayerPlay, IconArrowLeft, IconCheck, IconPlayerPlayFilled, IconX, IconRowInsertTop, IconRowInsertBottom, IconTrashXFilled, IconChartSankey, IconHomeFilled, IconLanguage } from '@tabler/icons-react';
-import * as d3 from 'd3';
+import { IconSun, IconMoon, IconPlayerPause, IconPlayerPlay, IconArrowLeft, IconBellRinging } from '@tabler/icons-react';
+import { Link } from 'react-router-dom';
 import MainChart from '../components/MainChart';
 import SettingsBox from '../components/SettingsBox';
 import ChartSettings from '../components/ChartSettings';
 import ShelfContainer from '../components/ShelfContainer';
+import AlertPopupWindow from './AlertPopupWindow';
 import "../styles/overviewStyles.scss";
-import { Link } from 'react-router-dom';
 import PressureDisplay from '../components/PressureDisplay';
 
-// Export TIME_RANGES so it can be imported by MainChart
 export const TIME_RANGES = {
   '1m': 60,
   '5m': 300,
@@ -35,57 +34,63 @@ const ThemeToggleButton = ({ isDark, toggleColorScheme }) => (
   </Button>
 );
 
-const PauseButton = ({ isPaused, handlePause, handleResume }) => {
-  return (
-    <Button
-      onClick={isPaused ? handleResume : handlePause}
-      variant="subtle"
-      size="sm"
-      className="pauseButton"
-    >
-      {isPaused ? (
-        <IconPlayerPlay size={20} stroke={1.5} />
-      ) : (
-        <IconPlayerPause size={20} stroke={1.5} />
-      )}
-    </Button>
-  );
-};
+const PauseButton = ({ isPaused, handlePause, handleResume }) => (
+  <Button
+    onClick={isPaused ? handleResume : handlePause}
+    variant="subtle"
+    size="sm"
+    className="pauseButton"
+  >
+    {isPaused ? (
+      <IconPlayerPlay size={20} stroke={1.5} />
+    ) : (
+      <IconPlayerPause size={20} stroke={1.5} />
+    )}
+  </Button>
+);
 
 export default function Overview() {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
   const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
   const isDark = colorScheme === 'dark';
-  
+
   const [timeRange, setTimeRange] = useState('1m');
   const [isPaused, setIsPaused] = useState(false);
   const [chartType, setChartType] = useState('temperature');
+  const [isAlertPopupOpen, setIsAlertPopupOpen] = useState(false);
+  const [activeAlertCount, setActiveAlertCount] = useState(0); // Track active alerts
 
-  const handleChartTypeChange = (type) => { // Add the parameter here
-    console.log('Changing chart type to:', type);
+  const toggleAlertPopup = () => {
+    setIsAlertPopupOpen(!isAlertPopupOpen);
+  };
+
+  const handleChartTypeChange = (type) => {
     setChartType(type);
-  }
+  };
 
   const handlePause = () => {
-    console.log("Pausing...");
     setIsPaused(true);
   };
 
   const handleResume = () => {
-    console.log("Resuming...");
     setIsPaused(false);
   };
 
   const handleTimeRangeChange = (range) => {
-    console.log('Time range changing to:', range);
     setTimeRange(range);
   };
 
+  // Mocked function to fetch active alert count; replace with real data fetching
+  const fetchActiveAlerts = () => {
+    return 5; // Replace with dynamic alert count logic
+  };
+
   useEffect(() => {
-    console.log('Current timeRange:', timeRange);
-    console.log('Current chartType:', chartType);
-  }, [timeRange, chartType]);
+    // Fetch active alert count when Overview mounts or relevant state changes
+    const count = fetchActiveAlerts();
+    setActiveAlertCount(count);
+  }, [isAlertPopupOpen]); // Update when alert popup opens/closes
 
   return (
     <div className={`mainCont ${isDark ? 'dark' : 'light'}`}>
@@ -99,6 +104,24 @@ export default function Overview() {
         isPaused={isPaused}
         handlePause={handlePause}
         handleResume={handleResume}
+      />
+
+      <Button 
+        onClick={toggleAlertPopup}
+        variant="subtle"
+        size="icon"
+        className="alertButton"
+      >
+        <IconBellRinging size={20} stroke={1.5} />
+        {activeAlertCount > 0 && (
+          <span className="alertCount">{activeAlertCount}</span>
+        )}
+      </Button>
+
+      <AlertPopupWindow 
+        isOpen={isAlertPopupOpen} 
+        onClose={() => setIsAlertPopupOpen(false)} 
+        isDark={isDark}
       />
 
       <Link to="/singleProfile/:fileName">
@@ -141,7 +164,7 @@ export default function Overview() {
         <SettingsBox />
       </div>
       <div className="settingsContainer">
-      <ChartSettings onChartTypeChange={handleChartTypeChange} />
+        <ChartSettings onChartTypeChange={handleChartTypeChange} />
       </div>
 
       <div className="shelfContainer">
