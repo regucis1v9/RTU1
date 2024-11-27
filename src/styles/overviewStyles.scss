@@ -162,6 +162,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background-color: $blue;
             color: $white;
             border: none;  // Remove the white border for light mode
+            
     
             &:hover {
                 background-color: lighten($blue, 10%);
@@ -837,9 +838,10 @@ align-items: center;
 .button-container {
     display: flex;
     justify-content: space-between;
-    height: 40px;
+    height: 30px;
     width: 80%;
     margin: 0 auto;
+    margin-top: 5px;
 
 }
 .width13{
