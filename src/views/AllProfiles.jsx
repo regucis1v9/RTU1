@@ -1,34 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { IconPencilPlus, IconGraph, IconList,IconSearch, IconExternalLink, IconTrashXFilled, IconLanguage, IconSun, IconMoon, IconUpload, IconPhoto, IconX, IconHelp } from '@tabler/icons-react';
+import {
+    IconPencilPlus,
+    IconGraph,
+    IconList,
+    IconSearch,
+    IconExternalLink,
+    IconTrashXFilled,
+    IconLanguage,
+    IconSun,
+    IconMoon,
+    IconUpload,
+    IconPhoto,
+    IconX,
+    IconHelp,
+    IconArrowLeft, IconAlertOctagonFilled, IconHomeFilled, IconChartSankey
+} from '@tabler/icons-react';
 import "../styles/AllProfiles.css";
-import { Tabs, AppShell, Pagination, Flex, Select, Group, ActionIcon, useMantineColorScheme, useComputedColorScheme, Text, Input, Button, rem, Modal, useMantineTheme} from '@mantine/core';
+import {
+    Tabs,
+    AppShell,
+    Pagination,
+    Flex,
+    Select,
+    Group,
+    ActionIcon,
+    useMantineColorScheme,
+    useComputedColorScheme,
+    Text,
+    Input,
+    Button,
+    rem,
+    Modal,
+    useMantineTheme,
+    Burger, Box, Stack, Transition
+} from '@mantine/core';
 import { Dropzone } from '@mantine/dropzone';
 import { showNotification } from '@mantine/notifications';
-import { useElementSize } from '@mantine/hooks';
+import {useDisclosure, useElementSize, useViewportSize} from '@mantine/hooks';
 import translations from '../locales/translations';
 import dropdown from "../styles/Dropdown.module.css";
 import '@mantine/dropzone/styles.css';
 import '@mantine/notifications/styles.css';
 import { useNavigate } from 'react-router-dom';
 const RESULTS_PER_PAGE = 5;
-
 const AllProfiles = () => {
-  const navigate = useNavigate();
-  const [tutorialOpen, setTutorialOpen] = useState(false);
-  const iconStyle = { width: rem(12), height: rem(12) };
-  const { setColorScheme } = useMantineColorScheme();
-  const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [projects, setProjects] = useState([]);
-  const theme = useMantineTheme();
-  const [isLoading, setIsLoading] = useState(false);
-  const [projectName, setProjectName] = useState("");
-  const [csvFile, setCsvFile] = useState(null);
-  const { ref, width, height } = useElementSize();
-  const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
-  const t = translations[language] || translations['Latviešu'];
+    const { screenHeight, screenWidth } = useViewportSize();
+    const [opened, { toggle }] = useDisclosure();
+    const navigate = useNavigate();
+    const [tutorialOpen, setTutorialOpen] = useState(false);
+    const iconStyle = { width: rem(12), height: rem(12) };
+    const { setColorScheme } = useMantineColorScheme();
+    const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
+    const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
+    const [searchQuery, setSearchQuery] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [projects, setProjects] = useState([]);
+    const theme = useMantineTheme();
+    const [isLoading, setIsLoading] = useState(false);
+    const [projectName, setProjectName] = useState("");
+    const [csvFile, setCsvFile] = useState(null);
+    const { ref, width, height } = useElementSize();
+    const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
+    const t = translations[language] || translations['Latviešu'];
 
   const fetchProjects = async () => {
     setIsLoading(true);
@@ -277,40 +311,80 @@ const AllProfiles = () => {
   return (
     <AppShell withBorder={false} header={{ height: 60 }}>
       <AppShell.Header p={12}>
-        <Flex align="center" justify="flex-end" w="100%">
-          <Group>
-            <ActionIcon
-              onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
-              variant="default"
-              size="xl"
-              aria-label="Toggle color scheme"
-            >
-              {computedColorScheme === 'light' ? (
-                <IconMoon stroke={1.5} />
-              ) : (
-                <IconSun stroke={1.5} />
-              )}
-            </ActionIcon>
-            <ActionIcon
-              onClick={() => setTutorialOpen(true)}
-              variant="default"
-              size="xl"
-              aria-label="Show Tutorial"
-            >
-              <IconHelp stroke={1.5} />
-            </ActionIcon>
-            <Select
-              leftSection={<IconLanguage size={26} />}
-              variant='unstyled'
-              allowDeselect={false}
-              value={language}
-              onChange={handleLanguageChange}
-              data={['Latviešu', 'English']}
-              classNames={dropdown}
-              comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 }}
-            />
-          </Group>
+        <Flex align="center" justify="space-between" w="100%">
+            <Link to="/landing">
+                <Button variant="transparent" color={buttonColor}>
+                    <IconArrowLeft stroke={3}></IconArrowLeft>
+                </Button>
+            </Link>
+            <Button color="red" leftSection={<IconAlertOctagonFilled/>} rightSection={<IconAlertOctagonFilled/>}>
+                STOP
+            </Button>
+            <Burger opened={opened} variant="transparent" aria-label="Settings" onClick={toggle} aria-label="Toggle navigation" style={{ zIndex: 11 }}>
+            </Burger>
         </Flex>
+          <Transition
+              mounted={opened}
+              transition="slide-left"
+              duration={400}
+              timingFunction="ease"
+          >
+              {(transitionStyle) => (
+                  <Box
+                      shadow="md"
+                      p="xl"
+                      pos="absolute"
+                      top={0}
+                      right={0}
+                      style={{
+                          ...transitionStyle,
+                          backgroundColor: computedColorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[1],
+                          zIndex: 10,
+                          height: '100vh',
+                      }}
+                      w={320}
+                      h={screenHeight}
+                  >
+                      <Stack
+                          gap={20}
+                          align='center'
+                      >
+                          <Select
+                              leftSection={<IconLanguage size={26} />}
+                              variant='unstyled'
+                              allowDeselect={false}
+                              value={language}
+                              onChange={handleLanguageChange}
+                              data={['Latviešu', 'English']}
+                              classNames={dropdown}
+                              comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 } }
+                          />
+                          <Group>
+                              <ActionIcon
+                                  onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
+                                  variant="default"
+                                  size="xl"
+                                  aria-label="Toggle color scheme"
+                              >
+                                  {computedColorScheme === 'light' ? (
+                                      <IconMoon  stroke={1.5} />
+                                  ) : (
+                                      <IconSun stroke={1.5} />
+                                  )}
+                              </ActionIcon>
+                              <ActionIcon
+                                  onClick={() => setTutorialOpen(true)}
+                                  variant="default"
+                                  size="xl"
+                                  aria-label="Show Tutorial"
+                              >
+                                  <IconHelp stroke={1.5} />
+                              </ActionIcon>
+                          </Group>
+                      </Stack>
+                  </Box>
+              )}
+          </Transition>
       </AppShell.Header>
       <AppShell.Main ref={ref}>
         <Flex w={width} h={height} gap="md" align="center" direction="column">
@@ -389,7 +463,7 @@ const AllProfiles = () => {
               </div>
               <div className="results-container">
                 {displayItems.length > 0 ? (
-                  displayItems.map((project) => (
+                  displayItems.map((project) => ( 
                     <div key={project.id} className="result-item" >
                       <Link to={`/singleProfile/${project.name}`}>
                         <Text>{project.name}</Text>
