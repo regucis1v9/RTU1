@@ -1,31 +1,35 @@
-import { AppShell, Burger, Transition, Box, Stack, useMantineTheme, rem, Tabs, Modal, Flex, Button, Table, ScrollArea, Group, Text, Input, NumberInput, Select, ActionIcon, useMantineColorScheme, useComputedColorScheme } from '@mantine/core';
+import {
+    AppShell,
+    useMantineTheme,
+    rem,
+    Flex,
+    Button,
+    Table,
+    ScrollArea,
+    Group,
+    Text,
+    Input,
+    NumberInput,
+    useMantineColorScheme,
+    useComputedColorScheme,
+} from '@mantine/core';
 import React, { useState, useEffect } from 'react';
 import {
-    IconGraph,
-    IconList,
-    IconPencilPlus,
-    IconHelp,
-    IconArrowLeft,
     IconCheck,
     IconPlayerPlayFilled,
     IconX,
     IconRowInsertTop,
     IconRowInsertBottom,
     IconTrashXFilled,
-    IconChartSankey,
-    IconHomeFilled,
-    IconLanguage,
-    IconSun,
-    IconMoon,
-    IconSettings, IconAlertOctagonFilled
 } from '@tabler/icons-react';
 import { showNotification } from '@mantine/notifications';
 import { useElementSize, useDisclosure, useViewportSize } from '@mantine/hooks';
 import translations from '../locales/translations';
 import classes from "../styles/Table.module.css";
-import dropdown from "../styles/Dropdown.module.css";
 import cx from 'clsx';
 import { Link, useParams } from 'react-router-dom';
+import Header from "../components/Header"
+import { useLanguage } from '../context/LanguageContext';
 
 const toFahrenheit = (celsius) => (celsius * 9/5) + 32;
 const toKelvin = (celsius) => celsius + 273.15;
@@ -33,29 +37,21 @@ const fromFahrenheitToCelsius = (fahrenheit) => (fahrenheit - 32) * 5/9;
 const fromKelvinToCelsius = (kelvin) => kelvin - 273.15;
 
 export default function SingleProfile() {
-    const { screenHeight, screenWidth } = useViewportSize();
-    const [opened, { toggle }] = useDisclosure();
     const [originalData, setOriginalData] = useState([]);
     const { fileName } = useParams();
     const [projectName, setProjectName] = useState('');
     const theme = useMantineTheme();
-    const iconStyle = { width: rem(12), height: rem(12) };
     const { setColorScheme } = useMantineColorScheme();
     const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
     const { ref, width, height } = useElementSize();
     const [scrolled, setScrolled] = useState(false);
     const [data, setData] = useState([{ step: 1, tMin: 0, tMax: 0, time: 1, tMinUnit: 'C', tMaxUnit: 'C',pressure: 1 }]);
     const [temperatureUnit, setTemperatureUnit] = useState('C');
-    const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
+    const { language, changeLanguage } = useLanguage();
     const t = translations[language] || translations['Latviešu'];
     const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
-    const [tutorialOpen, setTutorialOpen] = useState(false);
     const [totalTime, setTotalTime] = useState(data.reduce((total, row) => total + row.time, 0)); // Initialize total time
 
-    const handleLanguageChange = (value) => {
-        setLanguage(value);
-        localStorage.setItem('lang', value);
-    };
     const saveChanges = async () => {
         const updatedData = data.map((row) => ({
             step: row.step,
@@ -96,7 +92,7 @@ export default function SingleProfile() {
                 message: "Profils tika saglabāts",
                 color: 'green',
             });
-            
+
         } catch (error) {
             console.error('Failed to save changes:', error);
         }
@@ -250,37 +246,9 @@ export default function SingleProfile() {
             color: 'green',
         });
     };
-
-    const tutorialContent = (
-        <div style={{ padding: 20 }}>
-            <h2 style={{ color: theme.colors.gray[0], fontSize: '24px' }}>{t.tutorialTitle}</h2>
-
-            <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
-                {t.tutorialDescription}
-            </Text>
-
-            <Text style={{ color: theme.colors.gray[0], fontSize: '21px', fontWeight: 'bold', marginTop: '20px' }}>
-                1. {t.tutorialStep1}
-            </Text>
-            <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
-                {t.tutorialStep1Description}
-            </Text>
-
-            <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
-                2. {t.tutorialStep2}
-            </Text>
-            <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
-                {t.tutorialStep2Description}
-            </Text>
-
-            <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
-                3. {t.tutorialStep3}
-            </Text>
-            <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
-                {t.tutorialStep3Description}
-            </Text>
-        </div>
-    );
+    const handleLanguageChange = (newLang) => {
+        changeLanguage(newLang); // This will trigger a re-render and change language in all components
+    }
 
     const rows = data.map((row, index) => (
         <Table.Tr key={row.step}>
@@ -327,88 +295,7 @@ export default function SingleProfile() {
 
     return (
         <AppShell withBorder={false} header={{ height: 60 }}>
-            <AppShell.Header p={12}>
-                <Flex align="center" justify="space-between" w="100%">
-                    <Link to="/allProfiles">
-                        <Button variant="transparent" color={buttonColor}>
-                            <IconArrowLeft stroke={3}></IconArrowLeft>
-                        </Button>
-                    </Link>
-                    <Button color="red" leftSection={<IconAlertOctagonFilled/>} rightSection={<IconAlertOctagonFilled/>}>
-                        STOP
-                    </Button>
-                    <Burger opened={opened} variant="transparent" aria-label="Settings" onClick={toggle} aria-label="Toggle navigation" style={{ zIndex: 11 }}>
-                    </Burger>
-                </Flex>
-                <Transition
-                    mounted={opened}
-                    transition="slide-left"
-                    duration={400}
-                    timingFunction="ease"
-                >
-                    {(transitionStyle) => (
-                        <Box
-                            shadow="md"
-                            p="xl"
-                            pos="absolute"
-                            top={0}
-                            right={0}
-                            style={{
-                                ...transitionStyle,
-                                backgroundColor: computedColorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[1],
-                                zIndex: 10,
-                                height: '100vh',
-                            }}
-                            w={320}
-                            h={screenHeight}
-                        >
-                            <Stack
-                                gap={20}
-                                align='center'
-                            >
-                                <Link to="/landing">
-                                    <Button color={buttonColor} variant="transparent" leftSection={<IconHomeFilled />}> {t.home} </Button>
-                                </Link>
-                                <Link to={`/overview/${fileName}`}>
-                                    <Button color={buttonColor} variant="transparent" leftSection={<IconChartSankey />}> {t.graphs}</Button>
-                                </Link>
-                                <Select
-                                    leftSection={<IconLanguage size={26} />}
-                                    variant='unstyled'
-                                    allowDeselect={false}
-                                    value={language}
-                                    onChange={handleLanguageChange}
-                                    data={['Latviešu', 'English']}
-                                    classNames={dropdown}
-                                    comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 } }
-                                />
-                                <Group>
-                                    <ActionIcon
-                                        onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
-                                        variant="default"
-                                        size="xl"
-                                        aria-label="Toggle color scheme"
-                                    >
-                                        {computedColorScheme === 'light' ? (
-                                            <IconMoon  stroke={1.5} />
-                                        ) : (
-                                            <IconSun stroke={1.5} />
-                                        )}
-                                    </ActionIcon>
-                                    <ActionIcon
-                                        onClick={() => setTutorialOpen(true)}
-                                        variant="default"
-                                        size="xl"
-                                        aria-label="Show Tutorial"
-                                    >
-                                        <IconHelp stroke={1.5} />
-                                    </ActionIcon>
-                                </Group>
-                            </Stack>
-                        </Box>
-                    )}
-                </Transition>
-            </AppShell.Header>
+            <Header language={language} changeLanguage={changeLanguage} fileName={fileName} />
             <AppShell.Main ref={ref}>
                 <Flex w={width} h={height} gap="md" justify="center" align="center" direction="column">
                     <Group w={width * 0.8} justify='space-between'>
@@ -441,38 +328,6 @@ export default function SingleProfile() {
                     </Group>
                 </Flex>
             </AppShell.Main>
-            <Modal
-                opened={tutorialOpen}
-                onClose={() => setTutorialOpen(false)}
-                title={t.tutorialTitle}
-                centered
-                size="lg"
-            >
-                <Tabs variant="outline" defaultValue="gallery">
-                    <Tabs.List>
-                        <Tabs.Tab value="gallery" leftSection={<IconPencilPlus style={iconStyle} />}>
-                            Projekta izveide
-                        </Tabs.Tab>
-                        <Tabs.Tab value="messages" leftSection={<IconList style={iconStyle} />}>
-                            Soļu izveide
-                        </Tabs.Tab>
-                        <Tabs.Tab value="settings" leftSection={<IconGraph style={iconStyle} />}>
-                            Pārksats
-                        </Tabs.Tab>
-                    </Tabs.List>
-                    <Tabs.Panel value="gallery">
-                        {tutorialContent}
-                    </Tabs.Panel>
-
-                    <Tabs.Panel value="messages">
-                        {tutorialContent}
-                    </Tabs.Panel>
-
-                    <Tabs.Panel value="settings">
-                        {tutorialContent}
-                    </Tabs.Panel>
-                </Tabs>
-            </Modal>
         </AppShell>
     );
 }
