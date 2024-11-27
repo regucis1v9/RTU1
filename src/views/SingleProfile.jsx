@@ -29,7 +29,9 @@ import classes from "../styles/Table.module.css";
 import cx from 'clsx';
 import { Link, useParams } from 'react-router-dom';
 import Header from "../components/Header"
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext'; // Importing Language context
+import { usePressureUnit } from '../context/PressureUnitContext'; // Importing PressureUnit context
+import { useTemperatureUnit } from '../context/TemperatureUnitContext';
 
 const toFahrenheit = (celsius) => (celsius * 9/5) + 32;
 const toKelvin = (celsius) => celsius + 273.15;
@@ -46,8 +48,9 @@ export default function SingleProfile() {
     const { ref, width, height } = useElementSize();
     const [scrolled, setScrolled] = useState(false);
     const [data, setData] = useState([{ step: 1, tMin: 0, tMax: 0, time: 1, tMinUnit: 'C', tMaxUnit: 'C',pressure: 1 }]);
-    const [temperatureUnit, setTemperatureUnit] = useState('C');
-    const { language, changeLanguage } = useLanguage();
+    const { language, changeLanguage } = useLanguage(); // Access language from context
+    const { pressureUnit, togglePressureUnit } = usePressureUnit(); // Access pressure unit from context
+    const { temperatureUnit, changeTemperatureUnit } = useTemperatureUnit();
     const t = translations[language] || translations['Latviešu'];
     const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
     const [totalTime, setTotalTime] = useState(data.reduce((total, row) => total + row.time, 0)); // Initialize total time
@@ -200,8 +203,17 @@ export default function SingleProfile() {
             updatedData[index + 1].tMin = value;
         }
 
+        // Update temperature units if they are changed
+        if (field === 'tMin' || field === 'tMax') {
+            // Convert to the selected temperature unit
+            updatedData[index][field] = convertTemperature(value, updatedData[index][`${field}Unit`], temperatureUnit);
+        }
+        if (field === 'pressure') {
+            updatedData[index][field] = convertPressure(value, updatedData[index].pressureUnit, pressureUnit);
+        }
         setData(updatedData);
     };
+
 
 
     const convertTemperature = (value, fromUnit, toUnit) => {
@@ -213,10 +225,15 @@ export default function SingleProfile() {
         if (fromUnit === 'K' && toUnit === 'C') return fromKelvinToCelsius(value);
         if (fromUnit === 'K' && toUnit === 'F') return toFahrenheit(fromKelvinToCelsius(value));
     };
+    const convertPressure = (value, fromUnit, toUnit) => {
+        if (fromUnit === toUnit) return value;
+        if (fromUnit === 'Torr' && toUnit === 'Bar') return value * 0.00131579;  // Example conversion rate
+        if (fromUnit === 'Bar' && toUnit === 'Torr') return value * 760;  // Example conversion rate
+    };
 
     const toggleUnitsForAll = () => {
         const newUnit = temperatureUnit === 'C' ? 'F' : temperatureUnit === 'F' ? 'K' : 'C';
-        setTemperatureUnit(newUnit);
+        changeTemperatureUnit(newUnit);
         const updatedData = data.map(row => {
             const newRow = { ...row };
             newRow.tMinUnit = newUnit;
@@ -227,6 +244,7 @@ export default function SingleProfile() {
         });
         setData(updatedData);
     };
+
 
     const formatTimeDuration = (totalMinutes) => {
         const hours = Math.floor(totalMinutes / 60);
@@ -255,14 +273,25 @@ export default function SingleProfile() {
             <Table.Td ta='center'>{row.step}</Table.Td>
             <Table.Td ta='center'>
                 <Group align='center' justify='center'>
-                    <NumberInput w={90} variant="filled" value={row.tMin} onChange={(val) => updateRow(index, 'tMin', val)} />
-                    <Text>{row.tMinUnit}</Text>
+                    <NumberInput
+                        w={90}
+                        variant="filled"
+                        value={convertTemperature(row.tMin, row.tMinUnit, temperatureUnit)}  // Convert the value to the selected unit
+                        onChange={(val) => updateRow(index, 'tMin', val)}
+                    />
+                    <Text>{temperatureUnit}</Text> {/* Use the current temperature unit for display */}
                 </Group>
             </Table.Td>
             <Table.Td ta='center'>
                 <Group align='center' justify='center'>
-                    <NumberInput w={90} variant="filled" value={row.tMax} onChange={(val) => updateRow(index, 'tMax', val)} />
-                    <Text>{row.tMaxUnit}</Text>
+                    <NumberInput
+                        w={90}
+                        variant="filled"
+                        value={convertTemperature(row.tMax, row.tMaxUnit, temperatureUnit)}  // Convert the value to the selected unit
+                        onChange={(val) => updateRow(index, 'tMax', val)}
+                    />
+                    <Text>{temperatureUnit}</Text> {/* Use the current temperature unit for display */}
+
                 </Group>
             </Table.Td>
             <Table.Td ta='center'>
@@ -294,40 +323,47 @@ export default function SingleProfile() {
     ));
 
     return (
-        <AppShell withBorder={false} header={{ height: 60 }}>
-            <Header language={language} changeLanguage={changeLanguage} fileName={fileName} />
-            <AppShell.Main ref={ref}>
-                <Flex w={width} h={height} gap="md" justify="center" align="center" direction="column">
-                    <Group w={width * 0.8} justify='space-between'>
-                        <Input.Wrapper label={t.programName} withAsterisk>
-                            <Input placeholder="..." variant='filled' value={fileName} onChange={(e) => setProjectName(e.target.value)}/>
-                        </Input.Wrapper>
-                        <Group>
-                            <Button onClick={cancelChanges} rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>
-                            <Button onClick={handleSaveChanges} rightSection={<IconCheck size={16} />}>{t.saveChanges}</Button>
-                        </Group>
-                    </Group>
-                    <ScrollArea h={height * 0.7} w={width * 0.8} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
-                        <Table miw={700}>
-                            <Table.Thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
-                                <Table.Tr>
-                                    <Table.Th ta="center">{t.step}</Table.Th>
-                                    <Table.Th ta="center" onClick={toggleUnitsForAll}>{t.tMin}</Table.Th>
-                                    <Table.Th ta="center" onClick={toggleUnitsForAll}>{t.tMax}</Table.Th>
-                                    <Table.Th ta="center">{t.time}</Table.Th>
-                                    <Table.Th ta="center">{t.pressure}</Table.Th>
-                                    <Table.Th ta="center">{t.rowActions}</Table.Th>
-                                </Table.Tr>
-                            </Table.Thead>
-                            <Table.Tbody>{rows}</Table.Tbody>
-                        </Table>
-                    </ScrollArea>
-                    <Group w={width * 0.8} justify='space-between'>
-                        <Text>{t.totalProgramTime} {formattedProgramTime}</Text>
-                        <Button rightSection={<IconPlayerPlayFilled size={20} />} >{t.startProgram}</Button>
-                    </Group>
-                </Flex>
-            </AppShell.Main>
-        </AppShell>
+                <AppShell withBorder={false} header={{ height: 60 }}>
+                    <Header
+                        language={language}
+                        changeLanguage={changeLanguage}
+                        pressureUnit={pressureUnit}
+                        togglePressureUnit={togglePressureUnit}
+                        temperatureUnit={temperatureUnit}
+                        changeTemperatureUnit={changeTemperatureUnit}
+                    />
+                    <AppShell.Main ref={ref}>
+                        <Flex w={width} h={height} gap="md" justify="center" align="center" direction="column">
+                            <Group w={width * 0.8} justify='space-between'>
+                                <Input.Wrapper label={t.programName} withAsterisk>
+                                    <Input placeholder="..." variant='filled' value={fileName} onChange={(e) => setProjectName(e.target.value)}/>
+                                </Input.Wrapper>
+                                <Group>
+                                    <Button onClick={cancelChanges} rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>
+                                    <Button onClick={handleSaveChanges} rightSection={<IconCheck size={16} />}>{t.saveChanges}</Button>
+                                </Group>
+                            </Group>
+                            <ScrollArea h={height * 0.7} w={width * 0.8} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
+                                <Table miw={700}>
+                                    <Table.Thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
+                                        <Table.Tr>
+                                            <Table.Th ta="center">{t.step}</Table.Th>
+                                            <Table.Th ta="center" onClick={toggleUnitsForAll}>{t.tMin}</Table.Th>
+                                            <Table.Th ta="center" onClick={toggleUnitsForAll}>{t.tMax}</Table.Th>
+                                            <Table.Th ta="center">{t.time}</Table.Th>
+                                            <Table.Th ta="center">{t.pressure}</Table.Th>
+                                            <Table.Th ta="center">{t.rowActions}</Table.Th>
+                                        </Table.Tr>
+                                    </Table.Thead>
+                                    <Table.Tbody>{rows}</Table.Tbody>
+                                </Table>
+                            </ScrollArea>
+                            <Group w={width * 0.8} justify='space-between'>
+                                <Text>{t.totalProgramTime} {formattedProgramTime}</Text>
+                                <Button rightSection={<IconPlayerPlayFilled size={20} />} >{t.startProgram}</Button>
+                            </Group>
+                        </Flex>
+                    </AppShell.Main>
+                </AppShell>
     );
 }
