@@ -8,7 +8,7 @@ const ChartSettings = ({ onChartTypeChange }) => {
   const buttons = [
     { id: 'PLAUKTU TEMPERATŪRAS', label: 'PLAUKTU TEMPERATŪRAS', type: 'temperature' },
     { id: 'KAMERAS SPIEDIENS', label: 'KAMERAS SPIEDIENS', type: 'pressure' },
-    { id: 'KAMERAS TEMPERATŪRA', label: 'KAMERAS TEMPERATŪRA', type: 'temperature' },
+    { id: 'KAMERAS TEMPERATŪRA', label: 'KAMERAS TEMPERATŪRA', type: 'temperature2' },
     { id: 'CITI GRAFIKI', label: 'CITI GRAFIKI', type: 'temperature' },
   ];
 

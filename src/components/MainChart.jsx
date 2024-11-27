@@ -1,65 +1,70 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import * as d3 from 'd3';
 import Notiflix from 'notiflix';
-import LineVisibilityControls from './LineVisibilityControls';
+import { FaSearchPlus, FaSearchMinus, FaUndo } from 'react-icons/fa';
 
-
-
-const MainChart = ({ timeRange, onTimeRangeChange, chartType = 'temperature', isPaused }) => {
+const MainChart = ({ timeRange, chartType = 'temperature', isPaused }) => {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
+  const zoomRef = useRef(null);
+
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [collectedData, setCollectedData] = useState([]);
   const [dataPointCount, setDataPointCount] = useState(0);
   const [isProgramEnded, setIsProgramEnded] = useState(false);
   const [lineVisibility, setLineVisibility] = useState({
-    temp1: true,
-    temp2: true,
-    temp3: true
+    temp1: true, temp2: true, temp3: true, temp4: true,
+    temp5: true, temp6: true, temp7: true,
+    temp1_2: true, temp2_2: true
   });
-  const startTimeRef = useRef(null);
-  const dataIntervalRef = useRef(null);
-
-  
 
   const TIME_RANGES = {
-    '1m': 60,
-    '5m': 300,
-    '15m': 900,
-    '30m': 1800,
-    '1h': 3600,
-    '4h': 14400
+    '1m': 60, '5m': 300, '15m': 900,
+    '30m': 1800, '1h': 3600, '4h': 14400,
   };
   
   const COLORS = {
-    temp1: '#ff9f1c',
-    temp2: '#0AF7DD',
-    temp3: '#00ff09',
-    vacuum: '#4a90e2',
-    freeze: '#e25c5c',
-    vent: '#50c878',
-    pressure: '#4a90e2'
+    temp1: '#ff9f1c', temp2: '#0AF7DD', temp3: '#00ff09',
+    temp4: '#ff00ff', temp5: '#ff6347', temp6: '#4169e1',
+    temp7: '#ffd700', 
+    temp1_2: '#FF4500', temp2_2: '#1E90FF',
+    vacuum: '#4a90e2', freeze: '#e25c5c',
+    vent: '#50c878', pressure: '#4a90e2'
   };
-
 
   const toggleLine = (line) => {
-    if (chartType === 'pressure') return;
-    setLineVisibility(prev => ({
-      ...prev,
-      [line]: !prev[line]
-    }));
+    setLineVisibility(prev => ({ ...prev, [line]: !prev[line] }));
   };
 
-  const showAllLines = () => {
-    if (chartType === 'pressure') return;
-    setLineVisibility({
-      temp1: true,
-      temp2: true,
-      temp3: true,
-      pressure: true
-    });
+  const handleZoomIn = () => {
+    const { zoom, zoomRect, xScale, yScale } = zoomRef.current;
+    const currentTransform = d3.zoomTransform(zoomRect.node());
+    const newTransform = currentTransform.scale(1.2);
+    zoomRect.call(zoom.transform, newTransform);
+  };
+
+  const handleZoomOut = () => {
+    const { zoom, zoomRect, xScale, yScale } = zoomRef.current;
+    const currentTransform = d3.zoomTransform(zoomRect.node());
+    const newTransform = currentTransform.scale(1 / 1.2);
+    zoomRect.call(zoom.transform, newTransform);
+  };
+
+  const handleReset = () => {
+    const { zoom, zoomRect } = zoomRef.current;
+    zoomRect.call(zoom.transform, d3.zoomIdentity);
+  };
+
+  const showProgramEndDialog = () => {
+    Notiflix.Confirm.show(
+      'Programmas Beigas', 
+      'Visi soļi tika izpildīti, ko jūs vēlaties darīt?',
+      'Skatīt Grafiku',
+      'Uz Mājām',
+      () => console.log('View Graphs clicked'),
+      () => window.location.href = '/'
+    );
   };
 
   const generateSystemState = (prevState, currentTime) => {
@@ -81,130 +86,32 @@ const MainChart = ({ timeRange, onTimeRangeChange, chartType = 'temperature', is
     };
   };
 
-  
-
   const generateDataPoint = (secondsElapsed, prevData, isFirstPoint = false) => {
     const prevPoint = prevData.length > 0 ? prevData[prevData.length - 1] : null;
     
     const systemStates = isFirstPoint ? {
-      vacuum: [],
-      freeze: [],
-      vent: []
+      vacuum: [], freeze: [], vent: []
     } : {
       vacuum: [generateSystemState(prevPoint?.systemStates.vacuum, secondsElapsed)],
       freeze: [generateSystemState(prevPoint?.systemStates.freeze, secondsElapsed)],
       vent: [generateSystemState(prevPoint?.systemStates.vent, secondsElapsed)]
     };
 
-    // Generate both temperature and pressure data regardless of chart type
     return {
       time: secondsElapsed,
       systemStates,
-      // Temperature data
-      temp1: Math.sin(secondsElapsed / 500) * 10 + 25 + Math.random() * 2,
-      temp2: Math.sin(secondsElapsed / 500) * 8 + 22 + Math.random() * 2,
-      temp3: Math.sin(secondsElapsed / 500) * 6 + 20 + Math.random() * 2,
-      // Pressure data
-      pressure: Math.sin(secondsElapsed / 300) * 0.5 + 1 + Math.random() * 0.2,
+      temp1: Math.sin(secondsElapsed / 500) * 6 - 34 + Math.random() * 2,
+      temp2: Math.sin(secondsElapsed / 550) * 5 - 32 + Math.random() * 2,
+      temp3: Math.sin(secondsElapsed / 600) * 4 - 36 + Math.random() * 2,
+      temp4: Math.sin(secondsElapsed / 650) * 5 - 30 + Math.random() * 2,
+      temp5: Math.sin(secondsElapsed / 700) * 6 - 33 + Math.random() * 2,
+      temp6: Math.sin(secondsElapsed / 750) * 4 - 35 + Math.random() * 2,
+      temp7: Math.sin(secondsElapsed / 800) * 5 - 31 + Math.random() * 2,
+      temp1_2: Math.sin(secondsElapsed / 400) * 7 - 35 + Math.random() * 2,
+      temp2_2: Math.sin(secondsElapsed / 450) * 6 - 33 + Math.random() * 2,
+      pressure: Math.sin(secondsElapsed / 300) * 50 + 760 + Math.random() * 10,
     };
-};
-
-  // useEffect(() => {
-  //   // Reset data collection when chart type changes
-  //   setIsInitialLoad(true);
-  //   setCollectedData([]);
-  //   setDataPointCount(0);
-  //   setIsProgramEnded(false);
-  //   if (dataIntervalRef.current) {
-  //     clearInterval(dataIntervalRef.current);
-  //   }
-  // }, [chartType]);
-
-  
-
-
-  
-
-  const showProgramEndDialog = () => {
-    Notiflix.Confirm.show(
-      'Programmas Beigas', 
-      'Visi soļi tika izpildīti, ko jūs vēlaties darīt?',
-      'Skatīt Grafiku',
-      'Uz Mājām',
-      function () {
-        console.log('View Graphs clicked');
-      },
-      function () {
-        window.location.href = '/';
-      }
-    );
-
-  
-    // Showing a custom dialog using Notiflix's Confirm dialog
-    Notiflix.Confirm.show(
-      'Programmas Beigas', 
-      'Visi soļi tika izpildīti, ko jūs vēlaties darīt?',
-      'Skatīt Grafiku',
-      'Uz Mājām',
-      function () {
-        console.log('View Graphs clicked');
-        // Optionally, you can navigate to another route here
-      },
-      function () {
-        console.log('Go Home clicked');
-        window.location.href = '/';  // Redirect to home
-      }
-    );
   };
-  
-
-
-
-  
-
-
-  useEffect(() => {
-    if (!isInitialLoad || isProgramEnded) return;
-
-    const initialDelay = setTimeout(() => {
-      if (!startTimeRef.current) {
-        startTimeRef.current = Date.now();
-        const firstPoint = generateDataPoint(0, [], true);
-        setCollectedData([firstPoint]);
-        setDataPointCount(1);
-      }
-      
-      setIsInitialLoad(false);
-
-      dataIntervalRef.current = setInterval(() => {
-        setDataPointCount(prev => {
-          const newCount = prev + 1;
-          if (newCount <= 9) {
-            const secondsElapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-            setCollectedData(prevData => {
-              const newDataPoint = generateDataPoint(secondsElapsed, prevData);
-              return [...prevData, newDataPoint];
-            });
-          } else if (!isProgramEnded) {
-            setIsProgramEnded(true);
-            if (dataIntervalRef.current) {
-              clearInterval(dataIntervalRef.current);
-            }
-            showProgramEndDialog();
-          }
-          return newCount;
-        });
-      }, 10001);
-
-      return () => {
-        if (dataIntervalRef.current) {
-          clearInterval(dataIntervalRef.current);
-        }
-      };
-    }, 0);
-
-    return () => clearTimeout(initialDelay);
-  }, [isInitialLoad, isProgramEnded]);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -224,379 +131,469 @@ const MainChart = ({ timeRange, onTimeRangeChange, chartType = 'temperature', is
   }, []);
 
   useEffect(() => {
-    // Chart rendering logic
+    if (!isInitialLoad || isProgramEnded) return;
+
+    const initialDelay = setTimeout(() => {
+      const startTimeRef = Date.now();
+      const startTime = 0;
+
+      if (dataPointCount === 0) {
+        const firstPoint = generateDataPoint(startTime, [], true);
+        setCollectedData([firstPoint]);
+        setDataPointCount(1);
+      }
+      
+      setIsInitialLoad(false);
+
+      const dataInterval = setInterval(() => {
+        setDataPointCount(prev => {
+          const newCount = prev + 1;
+          if (newCount <= 9) {
+            const secondsElapsed = Math.floor((Date.now() - startTimeRef) / 1000);
+            setCollectedData(prevData => {
+              const newDataPoint = generateDataPoint(secondsElapsed, prevData);
+              return [...prevData, newDataPoint];
+            });
+          } else if (!isProgramEnded) {
+            setIsProgramEnded(true);
+            clearInterval(dataInterval);
+            showProgramEndDialog();
+          }
+          return newCount;
+        });
+      }, 10001);
+
+      return () => clearInterval(dataInterval);
+    }, 0);
+
+    return () => clearTimeout(initialDelay);
+  }, [isInitialLoad, isProgramEnded]);
+
+  useEffect(() => {
     if (dimensions.width === 0 || dimensions.height === 0 || collectedData.length === 0) return;
-
-    d3.select(svgRef.current).selectAll("*").remove();
-
+  
     const margin = { top: 80, right: 30, bottom: 120, left: 60 };
     const width = dimensions.width - margin.left - margin.right;
     const height = dimensions.height - margin.top - margin.bottom;
+  
+    d3.select(svgRef.current).selectAll("*").remove();
 
     const svg = d3.select(svgRef.current)
-      .attr('width', dimensions.width)
-      .attr('height', dimensions.height)
-      .append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
+    .attr('width', dimensions.width)
+    .attr('height', dimensions.height);
 
-    if (isInitialLoad) {
-      svg.append('text')
-        .attr('x', width / 2)
-        .attr('y', height / 2)
-        .attr('text-anchor', 'middle')
-        .attr('dominant-baseline', 'middle')
-        .attr('font-size', '24px')
-        .attr('fill', '#666')
-        .text('Ievāc Datus...');
-      return;
-    }
-  
-      if (collectedData.length === 0) return;
+    const chartArea = svg.append('g')
+    .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    // Update xScale domain to always show the most recent time window
-    const latestTime = collectedData[collectedData.length - 1].time;
-    const timeWindow = TIME_RANGES[timeRange];
-    const startTime = Math.max(0, latestTime - timeWindow);
-    
-    const xScale = d3.scaleLinear()
-      .domain([startTime, startTime + timeWindow])
-      .range([0, width]);
-
-    // Different y-scale domains for temperature and pressure
-    const yScale = d3.scaleLinear()
-      .domain(chartType === 'temperature' 
-        ? [
-            d3.min(collectedData, d => Math.min(d.temp1 || Infinity, d.temp2 || Infinity, d.temp3 || Infinity)) - 2,
-            d3.max(collectedData, d => Math.max(d.temp1 || -Infinity, d.temp2 || -Infinity, d.temp3 || -Infinity)) + 2
-          ]
-        : [0, d3.max(collectedData, d => d.pressure || 0) + 0.5]
-      )
-      .range([height, 0]);
-
-      svg.select('.y-axis-label')
-      .text(chartType === 'temperature' ? 'Temperatūra (°C)' : 'Spiediens (bar)');
-
-
-      svg.append('text')
-      .attr('transform', 'rotate(-90)')
-      .attr('x', -height / 2)
-      .attr('y', -45)
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#666')
-      .style('font-size', '14px')
-      .style('font-weight', '500')
-      .text(chartType === 'temperature' ? 'Temperatūra (°C)' : 'Spiediens (bar)');
-
-    // Create clip path
-    svg.append('defs')
+    const clipPath = svg.append('defs')
       .append('clipPath')
-      .attr('id', 'clip')
+      .attr('id', 'chart-clip')
       .append('rect')
       .attr('width', width)
       .attr('height', height);
 
-    // Add glow filter
-    const defs = svg.append('defs');
-    const filter = defs.append('filter')
-      .attr('id', 'glow');
+    const latestTime = collectedData[collectedData.length - 1].time;
+    const timeWindow = TIME_RANGES[timeRange];
     
-    filter.append('feGaussianBlur')
-      .attr('stdDeviation', '2')
-      .attr('result', 'coloredBlur');
-    
-    const feMerge = filter.append('feMerge');
-    feMerge.append('feMergeNode')
-      .attr('in', 'coloredBlur');
-    feMerge.append('feMergeNode')
-      .attr('in', 'SourceGraphic');
+    const startTime = Math.max(0, latestTime - timeWindow);
+    const filteredData = collectedData.filter(d => d.time >= startTime && d.time <= startTime + timeWindow);
 
-    const chartArea = svg.append('g')
-      .attr('clip-path', 'url(#clip)');
+    const xScale = d3.scaleLinear()
+      .domain([startTime, startTime + timeWindow])
+      .range([0, width]);
 
-    // Add title and subtitle
-    svg.append('text')
-      .attr('x', width / 2)
-      .attr('y', -margin.top / 2)
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#333')
-      .attr('font-size', '20px')
-      .attr('font-weight', 'bold')
-      .text('Project 1');
+    const yScale = d3.scaleLinear()
+      .domain(chartType === 'temperature' 
+        ? [
+            Math.min(...filteredData.map(d => 
+              Math.min(
+                d.temp1 ?? -Infinity, d.temp2 ?? -Infinity, 
+                d.temp3 ?? -Infinity, d.temp4 ?? -Infinity, 
+                d.temp5 ?? -Infinity, d.temp6 ?? -Infinity, 
+                d.temp7 ?? -Infinity
+              )
+            )) - 2, 
+            Math.max(...filteredData.map(d => 
+              Math.max(
+                d.temp1 ?? Infinity, d.temp2 ?? Infinity, 
+                d.temp3 ?? Infinity, d.temp4 ?? Infinity, 
+                d.temp5 ?? Infinity, d.temp6 ?? Infinity, 
+                d.temp7 ?? Infinity
+              )
+            )) + 2
+          ]
+        : chartType === 'temperature2'
+        ? [
+            Math.min(...filteredData.map(d => 
+              Math.min(
+                d.temp1_2 ?? -Infinity, d.temp2_2 ?? -Infinity
+              )
+            )) - 2, 
+            Math.max(...filteredData.map(d => 
+              Math.max(
+                d.temp1_2 ?? Infinity, d.temp2_2 ?? Infinity
+              )
+            )) + 2
+          ]
+        : [740, 780])
+      .range([height, 0]);
 
-    svg.append('text')
-      .attr('x', width / 2)
-      .attr('y', -margin.top / 4)
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#666')
-      .attr('font-size', '14px')
-      .text('12-12-2024-project1.csv');
+    const zoom = d3.zoom()
+      .scaleExtent([1, 20])
+      .translateExtent([[0, 0], [width, height]])
+      .extent([[0, 0], [width, height]])
+      .on('zoom', (event) => {
+        const { transform } = event;
+        const newXScale = transform.rescaleX(xScale);
+        const newYScale = transform.rescaleY(yScale);
 
-    // Add data point counter
-    svg.append('text')
-      .attr('x', width)
-      .attr('y', -margin.top / 4)
-      .attr('text-anchor', 'end')
-      .attr('fill', '#666')
-      .attr('font-size', '14px')
-      .text(`Solis: ${dataPointCount}/10`);
+        chartArea.select('.x-axis').call(d3.axisBottom(newXScale).ticks(10));
+        chartArea.select('.y-axis').call(d3.axisLeft(newYScale).ticks(10));
 
-    // Add temperature lines legend
-    const legend = svg.append("g")
-    .attr("class", "legend")
-    .attr("transform", `translate(0, -${margin.top - 60})`);
-  
+        xGridlines.call(d3.axisBottom(newXScale)
+          .tickSize(-height)
+          .tickFormat(''));
 
-      const legendData = chartType === 'temperature'
-  ? [
-      { label: "T1", color: COLORS.temp1, id: "temp1" },
-      { label: "T2", color: COLORS.temp2, id: "temp2" },
-      { label: "T3", color: COLORS.temp3, id: "temp3" }
-    ]
-  : [
-      { label: "Pressure", color: COLORS.pressure, id: "pressure" }
-    ];
+        yGridlines.call(d3.axisLeft(newYScale)
+          .tickSize(-width)
+          .tickFormat(''));
 
-    legendData.forEach((item, index) => {
-      const legendRow = legend.append("g")
-        .attr("transform", `translate(${index * 80}, 0)`);
-    
-      legendRow.append("circle")
-        .attr("cx", 10)
-        .attr("cy", 10)
-        .attr("r", 6)
-        .attr("fill", item.color);
-    
-      legendRow.append("text")
-        .attr("x", 20)
-        .attr("y", 14)
-        .attr("fill", "#616060")
-        .attr("font-size", "12px")
-        .text(item.label);
-    
-      // Add toggle buttons using foreignObject
-      
+        chartArea.selectAll('.line')
+          .attr('d', d => {
+            const lineGenerator = d3.line()
+              .x(d => newXScale(d.time))
+              .y(d => newYScale(d[d.key]));
+            return lineGenerator(d);
+          });
+
+        chartArea.selectAll('.dot')
+          .attr('cx', d => newXScale(d.time))
+          .attr('cy', d => newYScale(d[d.key]));
+      });
+
+    const zoomRect = chartArea.append('rect')
+      .attr('width', width)
+      .attr('height', height)
+      .style('fill', 'none')
+      .style('pointer-events', 'all')
+      .call(zoom);
+
+    zoomRect.on('wheel.zoom', (event) => {
+      event.preventDefault();
+      if (event.ctrlKey || event.metaKey) {
+        const delta = event.deltaY * -0.01;
+        const currentTransform = d3.zoomTransform(zoomRect.node());
+        const newScale = currentTransform.k * Math.pow(1.1, delta);
+        const point = d3.pointer(event);
+        
+        zoom.transform(zoomRect, d3.zoomIdentity
+          .translate(point[0], point[1])
+          .scale(Math.min(Math.max(newScale, 1), 20))
+          .translate(-point[0], -point[1])
+        );
+      }
     });
 
-    // Add grid lines
-    chartArea.append('g')
-      .attr('class', 'grid')
-      .attr('stroke', '#333')
-      .attr('stroke-opacity', 0.1)
-      .call(d3.axisLeft(yScale)
-        .tickSize(-width)
-        .tickFormat('')
-      );
-
-    chartArea.append('g')
-      .attr('class', 'grid')
+    const xGridlines = chartArea.append('g')
+      .attr('class', 'gridline x-gridline')
       .attr('transform', `translate(0,${height})`)
-      .attr('stroke', '#333')
-      .attr('stroke-opacity', 0.1)
-      .call(d3.axisBottom(xScale)
-        .tickSize(-height)
-        .tickFormat('')
-      );
+      .style('color', '#e0e0e0')
+      .style('opacity', 0.1);
 
-    // Add axes
-    svg.append('g')
-      .attr('class', 'x-axis')
-      .attr('transform', `translate(0,${height})`)
-      .call(d3.axisBottom(xScale).tickFormat(d => `${d}s`))
-      .selectAll('text')
-      .style('fill', '#666')
-      .style('font-size', '12px');
+    const yGridlines = chartArea.append('g')
+      .attr('class', 'gridline y-gridline')
+      .style('color', '#e0e0e0')
+      .style('opacity', 0.1);
 
-    svg.append('g')
-      .attr('class', 'y-axis')
-      .call(d3.axisLeft(yScale).tickFormat(d => `${d}°`))
-      .selectAll('text')
-      .style('fill', '#666')
-      .style('font-size', '12px');
+    xGridlines.call(d3.axisBottom(xScale)
+      .ticks(10)
+      .tickSize(-height)
+      .tickFormat(''));
 
-    // Add axis labels
-    svg.append('text')
-      .attr('x', width / 2)
-      .attr('y', height + 40)
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#666')
-      .style('font-size', '14px')
-      .style('font-weight', '500')
-      .text('Laiks (sekundes)');
+    yGridlines.call(d3.axisLeft(yScale)
+      .ticks(10)
+      .tickSize(-width)
+      .tickFormat(''));
 
-    svg.append('text')
-      .attr('transform', 'rotate(-90)')
-      .attr('x', -height / 2)
-      .attr('y', -45)
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#666')
-      .style('font-size', '14px')
-      .style('font-weight', '500')
-      .text('Temperatūra (°C)');
+    const renderAxes = () => {
+      const xAxis = d3.axisBottom(xScale).ticks(10);
+    
+      const yAxis = d3.axisLeft(yScale)
+        .ticks(10)
+        .tickFormat((d) => d);
 
-      const createLine = (accessor) => 
-        d3.line()
-          .x(d => xScale(d.time))
-          .y(d => yScale(accessor(d)))
-          .curve(d3.curveCatmullRom.alpha(0.5));
-      
-          const addLineWithDots = (data, accessor, color, lineId, transparentSegments = []) => {
-            chartArea.selectAll(`.line-${lineId}`).remove();
-            chartArea.selectAll(`.temp-dot-${lineId}`).remove();
-          
-            // Create line segments
-            const lineGenerator = d3.line()
-              .x(d => xScale(d.time))
-              .y(d => yScale(accessor(d)));
-          
-            for (let i = 0; i < data.length - 1; i++) {
-              const segmentData = [data[i], data[i + 1]];
-              const isTransparentSegment = transparentSegments.some(
-                ([start, end]) => start === i && end === i + 1
-              );
-          
-              chartArea.append('path')
-                .datum(segmentData)
-                .attr('class', `line-${lineId}`)
-                .attr('fill', 'none')
-                .attr('stroke', isTransparentSegment ? `${color}80` : color) // Transparency for specific segments
-                .attr('stroke-width', 2)
-                .attr('stroke-dasharray', isTransparentSegment ? '5,5' : 'none') // Dashed for specific segments
-                .attr('d', lineGenerator);
-            }
-          
-            // Add dots
-            chartArea.selectAll(null)
-              .data(data)
-              .enter()
-              .append('circle')
-              .attr('class', `temp-dot temp-dot-${lineId}`)
-              .attr('cx', d => xScale(d.time))
-              .attr('cy', d => yScale(accessor(d)))
-              .attr('r', 0)
-              .attr('fill', color)
-              .transition()
-              .delay((d, i) => i * 100)
-              .duration(100)
-              .attr('r', 4);
-          };
-          
-  
-      // Draw the lines based on chart type
-      const sharedTransparentSegments = [
-        [2, 3], // Segment between dots 2 and 3
-        [4, 5]  // Segment between dots 4 and 5
-      ];
-      
+      chartArea.append('g')
+        .attr('class', 'x-axis')
+        .attr('transform', `translate(0,${height})`)
+        .call(xAxis);
+
+      chartArea.append('g')
+        .attr('class', 'y-axis')
+        .call(yAxis);
+    };
+
+    const renderChartElements = () => {
+      chartArea.append('text')
+        .attr('x', width / 2)
+        .attr('y', -margin.top / 2)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#333')
+        .attr('font-size', '20px')
+        .attr('font-weight', 'bold')
+        .text('Project 1');
+
+      chartArea.append('text')
+        .attr('x', width / 2)
+        .attr('y', -margin.top / 4)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#666')
+        .attr('font-size', '14px')
+        .text('12-12-2024-project1.csv');
+
+      chartArea.append('text')
+        .attr('x', width)
+        .attr('y', -margin.top / 4)
+        .attr('text-anchor', 'end')
+        .attr('fill', '#666')
+        .attr('font-size', '14px')
+        .text(`Solis: ${dataPointCount}/10`);
+
+      renderAxes();
+
       if (chartType === 'temperature') {
-        if (lineVisibility.temp1) {
-          addLineWithDots(collectedData, d => d.temp1, COLORS.temp1, 'T1', sharedTransparentSegments);
-        }
-        if (lineVisibility.temp2) {
-          addLineWithDots(collectedData, d => d.temp2, COLORS.temp2, 'T2', sharedTransparentSegments);
-        }
-        if (lineVisibility.temp3) {
-          addLineWithDots(collectedData, d => d.temp3, COLORS.temp3, 'T3', sharedTransparentSegments);
-        }
+        ['temp1', 'temp2', 'temp3', 'temp4', 'temp5', 'temp6', 'temp7'].forEach(tempKey => {
+          if (lineVisibility[tempKey]) {
+            addLineWithDots(filteredData, d => d[tempKey], COLORS[tempKey], tempKey);
+          }
+        });
+      } else if (chartType === 'temperature2') {
+        ['temp1_2', 'temp2_2'].forEach(tempKey => {
+          if (lineVisibility[tempKey]) {
+            addLineWithDots(filteredData, d => d[tempKey], COLORS[tempKey], tempKey);
+          }
+        });
       } else {
-        addLineWithDots(collectedData, d => d.pressure, COLORS.pressure, 'pressure', sharedTransparentSegments);
+        addLineWithDots(filteredData, d => d.pressure, COLORS.pressure, 'pressure');
       }
-      
-      
+    };
 
+    const addLineWithDots = (data, accessor, color, lineId) => {
+      const lineGenerator = d3.line()
+        .x(d => xScale(d.time))
+        .y(d => yScale(accessor(d)));
 
-      svg.select('.y-axis-label')
-      .text(chartType === 'temperature' ? 'Temperatūra (°C)' : 'Spiediens (bar)');  
+      const sourceData = data.filter(d => 
+        accessor(d) !== undefined && 
+        !isNaN(accessor(d))
+      ).map(d => ({ ...d, key: lineId }));
 
-    // Draw system status timelines
-    const timelineHeight = 10;
-    const timelineGap = 15;
-    const timelineStartY = height + 50;
+      chartArea.append('path')
+        .datum(sourceData)
+        .attr('class', 'line')
+        .attr('fill', 'none')
+        .attr('stroke', color)
+        .attr('stroke-width', 3)
+        .style('opacity', 0.7)
+        .attr('clip-path', 'url(#chart-clip)')
+        .attr('d', lineGenerator);
+
+      chartArea.selectAll(`.dot-${lineId}`)
+        .data(sourceData)
+        .enter()
+        .append('circle')
+        .attr('class', `dot dot-${lineId}`)
+        .attr('cx', d => xScale(d.time))
+        .attr('cy', d => yScale(accessor(d)))
+        .attr('r', 4)
+        .attr('fill', color)
+        .style('opacity', 0.7)
+        .attr('clip-path', 'url(#chart-clip)');
+    };
+
+    // System timeline constants
+    const timelineHeight = 15;
+    const timelineGap = 10;
+    const systemLabelWidth = 80;
+    const timelineStartY = height + margin.bottom / 1;
 
     const systems = ['vacuum', 'freeze', 'vent'];
     const systemLabels = {
       vacuum: 'Vakuums',
-      freeze: 'Saldētājs',
+      freeze: 'Saldētājs', 
       vent: 'Ventilācija'
     };
 
     systems.forEach((system, index) => {
       const yPos = timelineStartY + index * (timelineHeight + timelineGap);
 
-    
-      
-      // Add system label
       svg.append('text')
-        .attr('x', -10)
+        .attr('x', margin.left - 10)
         .attr('y', yPos + timelineHeight / 2)
         .attr('text-anchor', 'end')
         .attr('dominant-baseline', 'middle')
-        .attr('fill', '#777')
-        .attr('font-size', '10px')
+        .attr('fill', '#333')
+        .attr('font-size', '8px')
+        .attr('font-weight', 'bold')
         .text(systemLabels[system]);
 
-      // Add timeline background
       svg.append('rect')
-        .attr('x', 0)
+        .attr('x', margin.left)
         .attr('y', yPos)
         .attr('width', width)
         .attr('height', timelineHeight)
-        .attr('fill', 'transparent')
+        .attr('stroke', '#d0d0d0')
+        .attr('stroke-width', 0.5)
+        .attr('fill', 'none');
 
-      // Combine all system states for this system
       const allStates = collectedData.map(d => d.systemStates[system][0]).filter(Boolean);
       
-      // Draw active periods
       allStates.forEach(state => {
         if (state.isActive) {
           svg.append('rect')
-            .attr('x', xScale(state.start))
+            .attr('x', margin.left + xScale(state.start))
             .attr('y', yPos)
-            .attr('width', xScale(state.end) - xScale(state.start))
+            .attr('width', Math.max(0, xScale(state.end) - xScale(state.start)))
             .attr('height', timelineHeight)
             .attr('fill', COLORS[system])
-            .attr('opacity', 0.8);
+            .attr('opacity', 0.7)
+            .attr('stroke', COLORS[system])
+            .attr('stroke-width', 0.5);
         }
       });
     });
 
-}, [dimensions, timeRange, isInitialLoad, collectedData, dataPointCount, lineVisibility, chartType]);
+    zoomRef.current = { zoom, zoomRect, xScale, yScale };
 
-return (
-  <div ref={containerRef} className="chart" style={{ position: 'relative' }}>
-    <div className="svg-container" style={{ height: '500px' }}>
-      <svg ref={svgRef} />
-    </div>
-    {chartType === 'temperature' && (
+    renderChartElements();
+  }, [dimensions, timeRange, collectedData, dataPointCount, lineVisibility, chartType]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="chart"
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '500px',
+      }}
+    >
+      <div className="svg-container" style={{ height: '100%', width: '100%' }}>
+        <svg
+          ref={svgRef}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
+
+      {(chartType === 'temperature' || chartType === 'temperature2') && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '10px',
+            left: '10px',
+            display: 'flex',
+            gap: '10px',
+          }}
+        >
+          {chartType === 'temperature' 
+            ? ['temp1', 'temp2', 'temp3', 'temp4', 'temp5', 'temp6', 'temp7'].map((temp) => (
+                <button
+                  key={temp}
+                  onClick={() => toggleLine(temp)}
+                  style={{
+                    backgroundColor: lineVisibility[temp] ? COLORS[temp] : '#808080',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    padding: '3px 7px',
+                    cursor: 'pointer',
+                    marginTop: '10px',
+                  }}
+                >
+                  {temp.toUpperCase()}
+                </button>
+              ))
+            : ['temp1_2', 'temp2_2'].map((temp) => (
+                <button
+                  key={temp}
+                  onClick={() => toggleLine(temp)}
+                  style={{
+                    backgroundColor: lineVisibility[temp] ? COLORS[temp] : '#808080',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    padding: '3px 7px',
+                    cursor: 'pointer',
+                    marginTop: '10px',
+                  }}
+                >
+                  {temp.toUpperCase()}
+                </button>
+              ))
+          }
+        </div>
+      )}
+
       <div
         style={{
           position: 'absolute',
           top: '10px',
-          left: '10px',
+          right: '10px',
           display: 'flex',
+          flexDirection: 'row',
           gap: '10px',
         }}
       >
-        {['temp1', 'temp2', 'temp3'].map((temp) => (
-  <button
-    key={temp}
-    onClick={() => toggleLine(temp)}
-    style={{
-      backgroundColor: lineVisibility[temp] ? COLORS[temp] : '#808080', // Use the line color when visible, grey when off
-      color: 'white',
-      border: 'none',
-      borderRadius: '5px',
-      padding: '3px 7px',
-      cursor: 'pointer',
-    }}
-  >
-    {temp.toUpperCase()}
-  </button>
-))}
-
+        <button
+          onClick={handleZoomIn}
+          style={{
+            backgroundColor: '#4caf50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            padding: '8px',
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <FaSearchPlus />
+        </button>
+        <button
+          onClick={handleZoomOut}
+          style={{
+            backgroundColor: '#ff5722',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            padding: '8px',
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <FaSearchMinus />
+        </button>
+        <button
+          onClick={handleReset}
+          style={{
+            backgroundColor: '#2196f3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            padding: '8px',
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <FaUndo />
+        </button>
       </div>
-    )}
-  </div>
-);
+    </div>
+  );
 };
 
 export default MainChart;

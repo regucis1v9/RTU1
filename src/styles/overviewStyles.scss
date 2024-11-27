@@ -162,6 +162,7 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             background-color: $blue;
             color: $white;
             border: none;  // Remove the white border for light mode
+            
     
             &:hover {
                 background-color: lighten($blue, 10%);
@@ -836,9 +837,10 @@ align-items: center;
 .button-container {
     display: flex;
     justify-content: space-between;
-    height: 40px;
+    height: 30px;
     width: 80%;
     margin: 0 auto;
+    margin-top: 5px;
 
 }
 .width13{
@@ -892,3 +894,56 @@ button, input, .custom-time-form {
     box-shadow: none;
 }
 
+/* MainChart.css */
+.line-controls {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: #6e2222;
+    border-radius: 4px;
+    justify-content: flex-start;
+    width: fit-content;
+    border: 1px solid #333;
+  }
+  
+  .line-button {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 32px;
+    color: #fff;
+    background: #2d2d2d;
+    opacity: 0.6;
+  }
+  
+  .line-button:hover {
+    opacity: 0.8;
+  }
+  
+  .line-button.active {
+    opacity: 1;
+  }
+  
+  .line-button.temp1-button.active {
+    background-color: #ff9f1c;
+    box-shadow: 0 0 4px rgba(255, 159, 28, 0.4);
+  }
+  
+  .line-button.temp2-button.active {
+    background-color: #0AF7DD;
+    box-shadow: 0 0 4px rgba(10, 247, 221, 0.4);
+  }
+  
+  .line-button.temp3-button.active {
+    background-color: #00ff09;
+    box-shadow: 0 0 4px rgba(0, 255, 9, 0.4);
+  }
+  
+  .line-button.all-button.active {
+    background-color: #4a5568;
+    box-shadow: 0 0 4px rgba(74, 85, 104, 0.4);
+  }
