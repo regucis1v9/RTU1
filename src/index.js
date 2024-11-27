@@ -11,21 +11,24 @@ import AlertsTest from './views/AlertsTest';
 import Login from './views/Login';
 import TestingPage from './views/Testing';
 import { Notifications } from '@mantine/notifications';
+import LanguageContext, {LanguageProvider} from './context/LanguageContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <MantineProvider>
     <Notifications />
-    <Router>
-      <Routes>
-        <Route path="/landing" element={<Landing />} />
-        <Route path="/allProfiles" element={<AllProfiles />} />
-        <Route path="/overView/:fileName" element={<Overview />} />
-        <Route path="/singleProfile/:fileName" element={<SingleProfile />} />
-        <Route path="/" element={<Login />} />
-        <Route path="/testing" element={<TestingPage />} />
-        
-      </Routes>
-    </Router>
+    <LanguageProvider >
+      <Router>
+        <Routes>
+          <Route path="/landing" element={<Landing />} />
+          <Route path="/allProfiles" element={<AllProfiles />} />
+          <Route path="/overView/:fileName" element={<Overview />} />
+          <Route path="/singleProfile/:fileName" element={<SingleProfile />} />
+          <Route path="/" element={<Login />} />
+          <Route path="/testing" element={<TestingPage />} />
+          
+        </Routes>
+      </Router>
+    </LanguageProvider>
   </MantineProvider>
 );
