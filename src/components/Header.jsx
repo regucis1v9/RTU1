@@ -17,26 +17,36 @@ import {
     useMantineColorScheme,
     useMantineTheme
 } from "@mantine/core";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
     IconAlertOctagonFilled,
     IconArrowLeft,
     IconChartSankey,
-    IconGraph,
-    IconHelp,
     IconHomeFilled,
     IconLanguage,
-    IconList,
     IconMoon,
     IconPencilPlus,
-    IconSun
+    IconSun,
+    IconHelp,
+    IconList,
+    IconGraph,
 } from "@tabler/icons-react";
 import dropdown from "../styles/Dropdown.module.css";
 import React, { useState } from "react";
 import { useDisclosure, useViewportSize } from "@mantine/hooks";
 import translations from "../locales/translations";
+import { usePressureUnit } from "../context/PressureUnitContext"; // Import context
+import { useTemperatureUnit } from "../context/TemperatureUnitContext"; // Import context
 
-export default function Header({ language, changeLanguage, fileName }) {
+export default function Header({
+                                   language,
+                                   changeLanguage,
+                                   fileName,
+                                   pressureUnit,
+                                   togglePressureUnit,
+                                   temperatureUnit,
+                                   changeTemperatureUnit
+                               }) {
     const iconStyle = { width: rem(12), height: rem(12) };
     const { screenHeight } = useViewportSize();
     const [opened, { toggle }] = useDisclosure();
@@ -46,6 +56,17 @@ export default function Header({ language, changeLanguage, fileName }) {
     const t = translations[language] || translations['Latviešu'];
     const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
     const [tutorialOpen, setTutorialOpen] = useState(false);
+
+
+    // Context values for pressure and temperature units
+    const { pressureUnit: contextPressureUnit, togglePressureUnit: contextTogglePressureUnit } = usePressureUnit();
+    const { temperatureUnit: contextTemperatureUnit, changeTemperatureUnit: contextChangeTemperatureUnit } = useTemperatureUnit();
+
+    // If the component props are passed, use them, otherwise fallback to context values
+    const currentPressureUnit = pressureUnit || contextPressureUnit;
+    const currentTemperatureUnit = temperatureUnit || contextTemperatureUnit;
+    const currentTogglePressureUnit = togglePressureUnit || contextTogglePressureUnit;
+    const currentChangeTemperatureUnit = changeTemperatureUnit || contextChangeTemperatureUnit;
 
     const tutorialSteps = [
         {
@@ -122,12 +143,48 @@ export default function Header({ language, changeLanguage, fileName }) {
                             <Select
                                 leftSection={<IconLanguage size={26} />}
                                 variant="unstyled"
+                                label={t.languageLabel}
                                 allowDeselect={false}
                                 value={language}
                                 onChange={handleLanguageChange}
                                 data={['Latviešu', 'English']}
                                 classNames={dropdown}
-                                comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 }}
+                                comboboxProps={{
+                                    transitionProps: { transition: 'pop', duration: 200 },
+                                    position: 'bottom',
+                                    middlewares: { flip: false, shift: false },
+                                    offset: 0
+                                }}
+                            />
+                            <Select
+                                variant="unstyled"
+                                label={t.pressureUnitLabel}
+                                value={currentPressureUnit}
+                                allowDeselect={false}
+                                onChange={currentTogglePressureUnit}
+                                data={["Torr", "Bar"]}
+                                classNames={dropdown}
+                                comboboxProps={{
+                                    transitionProps: { transition: 'pop', duration: 200 },
+                                    position: 'bottom',
+                                    middlewares: { flip: false, shift: false },
+                                    offset: 0
+                                }}
+                            />
+                            <Select
+                                variant="unstyled"
+                                label={t.temperatureUnitLabel}
+                                value={currentTemperatureUnit}
+                                allowDeselect={false}
+                                onChange={currentChangeTemperatureUnit}
+                                data={["C", "F", "K"]}
+                                classNames={dropdown}
+                                comboboxProps={{
+                                    transitionProps: { transition: 'pop', duration: 200 },
+                                    position: 'bottom',
+                                    middlewares: { flip: false, shift: false },
+                                    offset: 0
+                                }}
                             />
                             <Group>
                                 <ActionIcon
