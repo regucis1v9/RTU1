@@ -591,6 +591,19 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       right: 5px;
       z-index: 100;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+      .alertCount {
+        position: absolute;
+        top: 15px;
+        right: 32px;
+        background-color: red;
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        border-radius: 50%;
+        padding: 2px 5px;
+        line-height: 1;
+      }
   
       &:hover {
         transform: scale(1.1);
@@ -714,8 +727,70 @@ $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
       }
     }
-  
-  
+
+    .shelf-status-container {
+      position: relative;
+    }
+    
+    .shelf-diagram .shelf-line {
+      transition: stroke-width 0.3s ease, opacity 0.3s ease;
+    }
+    
+    .shelf-diagram .shelf-line:hover {
+      stroke-width: 4;
+      opacity: 0.8;
+    }
+    
+    .shelf-alert-modal {
+      .shelf-error-box, .shelf-no-error {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+    
+      &.light-mode {
+        .shelf-error-box {
+          background: rgba(255, 0, 0, 0.1);
+          border: 1px solid rgba(255, 0, 0, 0.2);
+          
+          span {
+            color: #ff4d4d;
+          }
+        }
+    
+        .shelf-no-error {
+          background: rgba(0, 255, 0, 0.1);
+          border: 1px solid rgba(0, 255, 0, 0.2);
+          
+          span {
+            color: green;
+          }
+        }
+      }
+    
+      &.dark-mode {
+        .shelf-error-box {
+          background: rgba(255, 0, 0, 0.2);
+          border: 1px solid rgba(255, 0, 0, 0.4);
+          
+          span {
+            color: #ff6666;
+          }
+        }
+    
+        .shelf-no-error {
+          background: rgba(0, 255, 0, 0.2);
+          border: 1px solid rgba(0, 255, 0, 0.4);
+          
+          span {
+            color: #66ff66;
+          }
+        }
+      }
+    }
   
 
     .current-emergency-box {
