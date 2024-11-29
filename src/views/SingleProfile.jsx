@@ -229,7 +229,9 @@ export default function SingleProfile() {
         if (fromUnit === toUnit) return value;
         if (fromUnit === 'Torr' && toUnit === 'Bar') return value * 0.00131579;  // Example conversion rate
         if (fromUnit === 'Bar' && toUnit === 'Torr') return value * 760;  // Example conversion rate
+        return value;
     };
+
 
     const toggleUnitsForAll = () => {
         const newUnit = temperatureUnit === 'C' ? 'F' : temperatureUnit === 'F' ? 'K' : 'C';
@@ -240,6 +242,7 @@ export default function SingleProfile() {
             newRow.tMaxUnit = newUnit;
             newRow.tMin = convertTemperature(newRow.tMin, row.tMinUnit, newUnit);
             newRow.tMax = convertTemperature(newRow.tMax, row.tMaxUnit, newUnit);
+            newRow.pressure  = 1;
             return newRow;
         });
         setData(updatedData);
@@ -302,7 +305,17 @@ export default function SingleProfile() {
             </Table.Td>
             <Table.Td ta='center'>
                 <Group align='center' justify='center'>
-                    <NumberInput w={90} variant="filled" value={row.pressure} onChange={(val) => updateRow(index, 'pressure', val)} />
+                    <NumberInput
+                        step={0.1}
+                        min={0.5}
+                        max={100}
+                        clampBehavior="strict"
+                        w={90}
+                        decimalScale={1}
+                        variant="filled"
+                        value={row.pressure} // Directly use raw state value
+                        onChange={(val) => updateRow(index, 'pressure', val)} // Update state directly
+                    />
                     <Text>bar</Text>
                 </Group>
             </Table.Td>
