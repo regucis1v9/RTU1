@@ -1,6 +1,5 @@
 import React from 'react';
-import "../styles/overviewStyles.scss"
-
+import '../../styles/overviewStyles.scss';
 const ShelfContainer = () => {
   const shelves = [
     { 
