@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { Button, useMantineColorScheme, useComputedColorScheme } from "@mantine/core";
 import { IconSun, IconMoon, IconPlayerPause, IconPlayerPlay, IconArrowLeft, IconBellRinging } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
-import MainChart from '../components/MainChart';
-import SettingsBox from '../components/SettingsBox';
-import ChartSettings from '../components/ChartSettings';
-import ShelfContainer from '../components/ShelfContainer';
+import MainChart from '../components/chart/MainChart';
+import SettingsBox from '../components/chart/SettingsBox';
+import ChartSettings from '../components/chart/ChartSettings';
+import ShelfContainer from '../components/chart/ShelfContainer';
 import AlertPopupWindow from './AlertPopupWindow';
 import "../styles/overviewStyles.scss";
-import PressureDisplay from '../components/PressureDisplay';
+import PressureDisplay from '../components/chart/PressureDisplay';
 
 export const TIME_RANGES = {
   '1m': 60,

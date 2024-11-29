@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Switch, Text } from "@mantine/core";
-import "../styles/overviewStyles.scss"; // Ensure this file has necessary custom styling if required.
-
+import '../../styles/overviewStyles.scss';
 export default function SettingsBox() {
   const [ventilation, setVentilation] = useState(false);
   const [vacuumPump, setVacuumPump] = useState(true);

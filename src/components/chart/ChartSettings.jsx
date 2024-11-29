@@ -1,6 +1,6 @@
 // ChartSettings.jsx
 import React, { useState } from 'react';
-import '../styles/overviewStyles.scss';
+import '../../styles/overviewStyles.scss';
 
 const ChartSettings = ({ onChartTypeChange }) => {
   const [activeButton, setActiveButton] = useState('PLAUKTU TEMPERATŪRAS');

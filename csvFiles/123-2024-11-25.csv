@@ -1,2 +1,2 @@
 step,tMin,tMax,time,pressure,tMinUnit,tMaxUnit
-1,0,0,6,3,C,C
+1,32,32,6,3,F,F
