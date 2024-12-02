@@ -1,9 +1,8 @@
-// ChartSettings.jsx
 import React, { useState } from 'react';
-import '../../styles/overviewStyles.scss';
+import '../styles/overviewStyles.scss';
 
-const ChartSettings = ({ onChartTypeChange }) => {
-  const [activeButton, setActiveButton] = useState('PLAUKTU TEMPERATŪRAS');
+const ChartSettings = ({ onChartTypeChange, onExtraButtonClick }) => {
+  const [selectedOption, setSelectedOption] = useState('PLAUKTU TEMPERATŪRAS');
 
   const buttons = [
     { id: 'PLAUKTU TEMPERATŪRAS', label: 'PLAUKTU TEMPERATŪRAS', type: 'temperature' },
@@ -12,24 +11,28 @@ const ChartSettings = ({ onChartTypeChange }) => {
     { id: 'CITI GRAFIKI', label: 'CITI GRAFIKI', type: 'temperature' },
   ];
 
-  const handleButtonClick = (buttonId, chartType) => {
-    setActiveButton(buttonId);
-    onChartTypeChange(chartType);
+  const handleSelectChange = (event) => {
+    setSelectedOption(event.target.value);
   };
 
   return (
     <div className="chart-settings-box">
-      <div className="button-grid">
-        {buttons.map((button) => (
-          <button
-            key={button.id}
-            onClick={() => handleButtonClick(button.id, button.type)}
-            className={`chart-button ${activeButton === button.id ? 'active' : ''}`}
-          >
-            {button.label}
-          </button>
-        ))}
+      <div className="dropdown-container">
+        <select
+          value={selectedOption}
+          onChange={handleSelectChange}
+          className="chart-dropdown"
+        >
+          {buttons.map((button) => (
+            <option key={button.id} value={button.label}>
+              {button.label}
+            </option>
+          ))}
+        </select>
       </div>
+      <button className="extra-button" onClick={onExtraButtonClick}>
+        Extra
+      </button>
     </div>
   );
 };
