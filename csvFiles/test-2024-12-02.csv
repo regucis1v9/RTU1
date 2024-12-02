@@ -1,3 +1,2 @@
 step,tMin,tMax,time,pressure,tMinUnit,tMaxUnit
-1,0,0,3,1.00,C,C
-2,0,0,1,1.00,K,K
+1,istabas,9,2,1.1,C,C

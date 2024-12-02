@@ -10,6 +10,8 @@ import {
     Text,
     Input,
     NumberInput,
+    Checkbox,
+    Stack,
     useMantineColorScheme,
     useComputedColorScheme,
 } from '@mantine/core';
@@ -39,6 +41,7 @@ const fromFahrenheitToCelsius = (fahrenheit) => (fahrenheit - 32) * 5/9;
 const fromKelvinToCelsius = (kelvin) => kelvin - 273.15;
 
 export default function SingleProfile() {
+    const [startFromRoomTemp, setStartFromRoomTemp] = useState(false);
     const [originalData, setOriginalData] = useState([]);
     const { fileName } = useParams();
     const [projectName, setProjectName] = useState('');
@@ -56,16 +59,16 @@ export default function SingleProfile() {
     const [totalTime, setTotalTime] = useState(data.reduce((total, row) => total + row.time, 0)); // Initialize total time
 
     const saveChanges = async () => {
-        const updatedData = data.map((row) => ({
+        const updatedData = data.map((row, index) => ({
             step: row.step,
-            tMin: row.tMin,
+            tMin: index === 0 && startFromRoomTemp ? "istabas" : row.tMin,
             tMax: row.tMax,
             time: row.time,
             pressure: row.pressure,
             tMinUnit: row.tMinUnit,
             tMaxUnit: row.tMaxUnit
         }));
-        console.log(updatedData)
+        console.log(updatedData);
         try {
             const response = await fetch(`http://localhost:5001/updateFile`, {
                 method: 'POST',
@@ -77,29 +80,26 @@ export default function SingleProfile() {
                     data: updatedData
                 }),
             });
-
             if (!response.ok) {
-                console.error('Error saving changes');
-                return;
                 showNotification({
                     title: "Neveiksmīgi saglabāts profils",
                     message: "Profils netika saglabāts",
                     color: 'red',
                 });
+                return;
             }
 
             const result = await response.json();
-            console.log('Save success:', result);
             showNotification({
                 title: "Veiksmīgi saglabāts profils",
                 message: "Profils tika saglabāts",
                 color: 'green',
             });
-
         } catch (error) {
             console.error('Failed to save changes:', error);
         }
     };
+
 
     // Button click handler for saving changes
     const handleSaveChanges = () => {
@@ -114,17 +114,18 @@ export default function SingleProfile() {
                     showNotification({
                         autoClose: false,
                         title: "Kļūda atlasot datus",
-                        message: "Nevarēja atrast failu"+ "  " + fileName,
+                        message: "Nevarēja atrast failu" + "  " + fileName,
                         color: 'red',
                     });
                     return;
                 }
                 const csvData = await response.text();
                 const rows = csvData.split('\n').map(row => row.split(','));
-                console.log(rows)
+                console.log(rows);
+
                 const dataRows = rows.slice(1).map(row => ({
                     step: parseInt(row[0]),
-                    tMin: parseFloat(row[1]),
+                    tMin: row[1] === 'istabas' ? 'istabas' : parseFloat(row[1]),
                     tMax: parseFloat(row[2]),
                     time: parseInt(row[3]),
                     pressure: parseFloat(row[4]),
@@ -134,9 +135,15 @@ export default function SingleProfile() {
 
                 setData(dataRows);
                 setOriginalData(JSON.parse(JSON.stringify(dataRows))); // Ensure a deep copy
+
+                // Set StartFromRoomTemp if the first row's tMin is 'istabas'
+                if (dataRows.length > 0 && dataRows[0].tMin === 'istabas') {
+                    setStartFromRoomTemp(true);
+                } else {
+                    setStartFromRoomTemp(false);
+                }
             } catch (error) {
                 console.error('Failed to fetch CSV data:', error);
-
             }
         };
 
@@ -144,6 +151,7 @@ export default function SingleProfile() {
             fetchCsvData();
         }
     }, [fileName]);
+
 
 
     const addRow = (index, position) => {
@@ -286,14 +294,19 @@ export default function SingleProfile() {
             <Table.Td ta='center'>{row.step}</Table.Td>
             <Table.Td ta='center'>
                 <Group align='center' justify='center'>
-                    <NumberInput
-                        decimalScale={0}
-                        w={90}
-                        variant="filled"
-                        value={convertTemperature(row.tMin, row.tMinUnit, temperatureUnit)}  
-                        onChange={(val) => updateRow(index, 'tMin', val)}
-                    />
-                    <Text>{temperatureUnit}</Text>
+                    {index === 0 && startFromRoomTemp ? (
+                        <Text>Istabas Temp.</Text>
+                    ) : (
+                        <NumberInput
+                            decimalScale={0}
+                            w={90}
+                            variant="filled"
+                            value={convertTemperature(row.tMin, row.tMinUnit, temperatureUnit)}
+                            disabled={index === 0 && startFromRoomTemp}
+                            onChange={(val) => updateRow(index, 'tMin', val)}
+                        />
+                    )}
+                    {!startFromRoomTemp && <Text>{temperatureUnit}</Text>}
                 </Group>
             </Table.Td>
             <Table.Td ta='center'>
@@ -367,9 +380,21 @@ export default function SingleProfile() {
                     <AppShell.Main ref={ref}>
                         <Flex w={width} h={height} gap="md" justify="center" align="center" direction="column">
                             <Group w={width * 0.8} justify='space-between'>
-                                <Input.Wrapper label={t.programName} withAsterisk>
-                                    <Input placeholder="..." variant='filled' value={fileName} onChange={(e) => setProjectName(e.target.value)}/>
-                                </Input.Wrapper>
+                                <Group>
+                                    <Input.Wrapper label={t.programName} withAsterisk>
+                                        <Input
+                                            placeholder="..."
+                                            variant='filled'
+                                            value={fileName} 
+                                            onChange={(e) => setProjectName(e.target.value)}
+                                        />
+                                    </Input.Wrapper>
+                                    <Checkbox
+                                        checked={startFromRoomTemp}
+                                        onChange={(event) => setStartFromRoomTemp(event.currentTarget.checked)}
+                                        label="Sākt no istabas temperatūras"
+                                    />
+                                </Group>
                                 <Group>
                                     <Button onClick={cancelChanges} rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>
                                     <Button onClick={handleSaveChanges} rightSection={<IconCheck size={16} />}>{t.saveChanges}</Button>
