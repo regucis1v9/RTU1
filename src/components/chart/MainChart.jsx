@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import Notiflix from 'notiflix';
 import { FaSearchPlus, FaSearchMinus, FaUndo } from 'react-icons/fa';
+import Sidebar from '../Sidebar';
 
-const MainChart = ({ timeRange, chartType = 'temperature', isPaused }) => {
+const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOpen, onSidebarClose}) => {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
   const zoomRef = useRef(null);
@@ -468,6 +469,7 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused }) => {
   }, [dimensions, timeRange, collectedData, dataPointCount, lineVisibility, chartType]);
 
   return (
+   
     <div
       ref={containerRef}
       className="chart"
@@ -477,6 +479,7 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused }) => {
         height: '500px',
       }}
     >
+       {isSidebarOpen && <Sidebar isOpen={isSidebarOpen} onClose={onSidebarClose} />}
       <div className="svg-container" style={{ height: '100%', width: '100%' }}>
         <svg
           ref={svgRef}
