@@ -10,13 +10,13 @@ import {
   IconArrowLeft 
 } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
-import MainChart from '../components/MainChart';
-import SettingsBox from '../components/SettingsBox';
-import ChartSettings from '../components/ChartSettings';
-import ShelfContainer from '../components/ShelfContainer';
-import PressureDisplay from '../components/PressureDisplay';
+import MainChart from '../components/chart/MainChart';
+import SettingsBox from '../components/chart/SettingsBox';
+import ChartSettings from '../components/chart/ChartSettings';
+import ShelfContainer from '../components/chart/ShelfContainer';
+import PressureDisplay from '../components/chart/PressureDisplay';
 import Sidebar from '../components/Sidebar';
-import "../styles/overviewStyles.scss";
+import '../styles/overviewStyles.scss';
 
 // Export TIME_RANGES so it can be imported by MainChart
 export const TIME_RANGES = {

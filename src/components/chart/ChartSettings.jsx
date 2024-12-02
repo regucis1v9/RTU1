@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import '../styles/overviewStyles.scss';
+import '../../styles/overviewStyles.scss';
 
 const ChartSettings = ({ onChartTypeChange, onExtraButtonClick }) => {
   const [selectedOption, setSelectedOption] = useState('PLAUKTU TEMPERATŪRAS');
