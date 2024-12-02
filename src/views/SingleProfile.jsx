@@ -121,7 +121,7 @@ export default function SingleProfile() {
                 }
                 const csvData = await response.text();
                 const rows = csvData.split('\n').map(row => row.split(','));
-
+                console.log(rows)
                 const dataRows = rows.slice(1).map(row => ({
                     step: parseInt(row[0]),
                     tMin: parseFloat(row[1]),
