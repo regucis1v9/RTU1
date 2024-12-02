@@ -154,7 +154,7 @@ app.post('/updateFile', (req, res) => {
 
   // Step 4: Separate header from the data rows
   const header = rows[0]; // First row is the header
-  let dataRows = rows.slice(1); // The rest are data rows
+  const dataRows = rows.slice(1); // The rest are data rows
 
   // Step 5: Process the incoming data
   const newRows = data.map((newRow) => {
@@ -162,36 +162,25 @@ app.post('/updateFile', (req, res) => {
     return `${step},${tMin},${tMax},${time},${pressure},${tMinUnit},${tMaxUnit}`;
   });
 
-  // Step 6: Identify and update/keep rows
-  const rowsToKeep = dataRows.map((row) => {
-    const step = row.split(',')[0]; // Extract the step from the existing row
-    const matchingNewRow = newRows.find((newRow) => newRow.startsWith(`${step},`)); // Find matching new row
-    return matchingNewRow || row; // If found, update with new row; else, keep old row
-  });
+  // Step 6: Create a Set of steps from the new data for quick lookup
+  const newSteps = new Set(data.map(row => row.step.toString()));
 
-  // Step 7: Add rows that are in the new data but not in the existing rows
-  newRows.forEach((newRow) => {
-    const step = newRow.split(',')[0]; // Extract the step from the new row
-    const existsInDataRows = rowsToKeep.some((row) => row.startsWith(`${step},`));
-    if (!existsInDataRows) {
-      rowsToKeep.push(newRow); // Add new row if it doesn't already exist
-    }
-  });
-
-  // Step 8: Handle row deletions: Remove rows that no longer exist in new data
-  const rowsToDelete = dataRows.filter((row) => {
+  // Step 7: Filter out rows that are not in the new data
+  const updatedRows = dataRows.filter(row => {
     const step = row.split(',')[0]; // Extract step from the row
-    return !newRows.some((newRow) => newRow.startsWith(`${step},`)); // Keep rows that are not in the new data
+    return newSteps.has(step);
   });
 
-  // If there are deleted rows, filter them out
-  const updatedRowsToKeep = rowsToKeep.filter((row) => {
-    const step = row.split(',')[0];
-    return !rowsToDelete.some((deletedRow) => deletedRow.startsWith(`${step},`)); // Remove deleted rows
+  // Step 8: Add new rows (overwriting or appending)
+  const rowsToAdd = newRows.filter(row => {
+    const step = row.split(',')[0]; // Extract step from the new row
+    return !updatedRows.some(existingRow => existingRow.startsWith(`${step},`));
   });
 
-  // Step 9: Combine the header with the updated rows
-  const updatedCsvContent = [header, ...updatedRowsToKeep].join('\n');
+  const finalRows = [...updatedRows, ...rowsToAdd];
+
+  // Step 9: Combine the header with the final rows
+  const updatedCsvContent = [header, ...finalRows].join('\n');
 
   // Step 10: Write the updated CSV content back to the file
   fs.writeFile(filePath, updatedCsvContent, 'utf8', (err) => {
@@ -199,8 +188,7 @@ app.post('/updateFile', (req, res) => {
       console.error('Error saving the updated CSV file:', err);
       return res.status(500).json({ message: 'Error saving the updated CSV file' });
     }
-
-    // Respond with a success message
+    
     res.json({ message: 'CSV file updated successfully', filePath });
   });
 });

@@ -111,28 +111,32 @@ export default function SingleProfile() {
                 const response = await fetch(`http://localhost:5001/get-csv/${fileName}`);
                 if (!response.ok) {
                     console.error('Error fetching CSV data');
+                    showNotification({
+                        autoClose: false,
+                        title: "Kļūda atlasot datus",
+                        message: "Nevarēja atrast failu"+ "  " + fileName,
+                        color: 'red',
+                    });
                     return;
                 }
                 const csvData = await response.text();
-                console.log('CSV Data:', csvData);
-
                 const rows = csvData.split('\n').map(row => row.split(','));
-
-                // Skip the first row (header) and process the rest
+                console.log(rows)
                 const dataRows = rows.slice(1).map(row => ({
                     step: parseInt(row[0]),
                     tMin: parseFloat(row[1]),
                     tMax: parseFloat(row[2]),
                     time: parseInt(row[3]),
-                    pressure:parseInt(row[4]),
+                    pressure: parseFloat(row[4]),
                     tMinUnit: row[5],
                     tMaxUnit: row[6],
                 }));
 
                 setData(dataRows);
-                setOriginalData(dataRows); // Store the initial fetched data
+                setOriginalData(JSON.parse(JSON.stringify(dataRows))); // Ensure a deep copy
             } catch (error) {
                 console.error('Failed to fetch CSV data:', error);
+
             }
         };
 
@@ -140,6 +144,7 @@ export default function SingleProfile() {
             fetchCsvData();
         }
     }, [fileName]);
+
 
     const addRow = (index, position) => {
         // Create a new row
@@ -217,14 +222,18 @@ export default function SingleProfile() {
 
 
     const convertTemperature = (value, fromUnit, toUnit) => {
-        if (fromUnit === toUnit) return value;
-        if (fromUnit === 'C' && toUnit === 'F') return toFahrenheit(value);
-        if (fromUnit === 'C' && toUnit === 'K') return toKelvin(value);
-        if (fromUnit === 'F' && toUnit === 'C') return fromFahrenheitToCelsius(value);
-        if (fromUnit === 'F' && toUnit === 'K') return toKelvin(fromFahrenheitToCelsius(value));
-        if (fromUnit === 'K' && toUnit === 'C') return fromKelvinToCelsius(value);
-        if (fromUnit === 'K' && toUnit === 'F') return toFahrenheit(fromKelvinToCelsius(value));
+        const roundTo = (num) => Math.round(num); 
+
+        if (fromUnit === toUnit) return roundTo(value);
+
+        if (fromUnit === 'C' && toUnit === 'F') return roundTo(toFahrenheit(value));
+        if (fromUnit === 'C' && toUnit === 'K') return roundTo(toKelvin(value));
+        if (fromUnit === 'F' && toUnit === 'C') return roundTo(fromFahrenheitToCelsius(value));
+        if (fromUnit === 'F' && toUnit === 'K') return roundTo(toKelvin(fromFahrenheitToCelsius(value)));
+        if (fromUnit === 'K' && toUnit === 'C') return roundTo(fromKelvinToCelsius(value));
+        if (fromUnit === 'K' && toUnit === 'F') return roundTo(toFahrenheit(fromKelvinToCelsius(value)));
     };
+
     const convertPressure = (value, fromUnit, toUnit) => {
         if (fromUnit === toUnit) return value;
         if (fromUnit === 'Torr' && toUnit === 'Bar') return value * 0.00131579;  // Example conversion rate
@@ -259,14 +268,15 @@ export default function SingleProfile() {
     const formattedProgramTime = formatTimeDuration(totalProgramTime);
 
     const cancelChanges = () => {
-        setData([...originalData]); // Reset data to the original state
-        setTotalTime(originalData.reduce((total, row) => total + row.time, 0)); // Reset totalTime to the original value
+        setData(JSON.parse(JSON.stringify(originalData))); // Deep clone to avoid reference issues
+        setTotalTime(originalData.reduce((total, row) => total + row.time, 0)); // Reset totalTime
         showNotification({
             title: "Izmaiņas atceltas",
-            message: "Izmaniņas atceltas veiksmīgi",
+            message: "Izmaiņas atceltas veiksmīgi",
             color: 'green',
         });
     };
+
     const handleLanguageChange = (newLang) => {
         changeLanguage(newLang); // This will trigger a re-render and change language in all components
     }
@@ -277,17 +287,19 @@ export default function SingleProfile() {
             <Table.Td ta='center'>
                 <Group align='center' justify='center'>
                     <NumberInput
+                        decimalScale={0}
                         w={90}
                         variant="filled"
-                        value={convertTemperature(row.tMin, row.tMinUnit, temperatureUnit)}  // Convert the value to the selected unit
+                        value={convertTemperature(row.tMin, row.tMinUnit, temperatureUnit)}  
                         onChange={(val) => updateRow(index, 'tMin', val)}
                     />
-                    <Text>{temperatureUnit}</Text> {/* Use the current temperature unit for display */}
+                    <Text>{temperatureUnit}</Text>
                 </Group>
             </Table.Td>
             <Table.Td ta='center'>
                 <Group align='center' justify='center'>
                     <NumberInput
+                        decimalScale={0}
                         w={90}
                         variant="filled"
                         value={convertTemperature(row.tMax, row.tMaxUnit, temperatureUnit)}  // Convert the value to the selected unit
@@ -299,7 +311,14 @@ export default function SingleProfile() {
             </Table.Td>
             <Table.Td ta='center'>
                 <Group align='center' justify='center'>
-                    <NumberInput min={1} w={70} variant="filled" value={row.time} onChange={(val) => updateRow(index, 'time', val)} />
+                    <NumberInput
+                        decimalScale={0}
+                        min={1}
+                        w={70}
+                        variant="filled" 
+                        value={row.time} 
+                        onChange={(val) => updateRow(index, 'time', val)}
+                    />
                     min
                 </Group>
             </Table.Td>
