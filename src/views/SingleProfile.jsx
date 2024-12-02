@@ -50,7 +50,9 @@ export default function SingleProfile() {
     const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
     const { ref, width, height } = useElementSize();
     const [scrolled, setScrolled] = useState(false);
-    const [data, setData] = useState([{ step: 1, tMin: 0, tMax: 0, time: 1, tMinUnit: 'C', tMaxUnit: 'C',pressure: 1 }]);
+    const [data, setData] = useState([
+        { step: 1, tMin: 0, tMax: 0, time: 1, tMinUnit: 'C', tMaxUnit: 'C', pressure: 1, shellTemp: 0 }
+    ]);
     const { language, changeLanguage } = useLanguage(); // Access language from context
     const { pressureUnit, togglePressureUnit } = usePressureUnit(); // Access pressure unit from context
     const { temperatureUnit, changeTemperatureUnit } = useTemperatureUnit();
@@ -66,7 +68,8 @@ export default function SingleProfile() {
             time: row.time,
             pressure: row.pressure,
             tMinUnit: row.tMinUnit,
-            tMaxUnit: row.tMaxUnit
+            tMaxUnit: row.tMaxUnit,
+            shellTemp: row.shellTemp,
         }));
         console.log(updatedData);
         try {
@@ -131,7 +134,9 @@ export default function SingleProfile() {
                     pressure: parseFloat(row[4]),
                     tMinUnit: row[5],
                     tMaxUnit: row[6],
+                    shellTemp: row[7] ? parseFloat(row[7]) : 0, // Add shellTemp with default 0
                 }));
+
 
                 setData(dataRows);
                 setOriginalData(JSON.parse(JSON.stringify(dataRows))); // Ensure a deep copy
@@ -351,6 +356,23 @@ export default function SingleProfile() {
                     <Text>bar</Text>
                 </Group>
             </Table.Td>
+            <Table.Td ta='center'>
+                <Group align='center' justify='center'>
+                    <Table.Td ta='center'>
+                        <Group align='center' justify='center'>
+                            <NumberInput
+                                step={1}
+                                w={90}
+                                decimalScale={0}
+                                variant="filled"
+                                value={row.shellTemp} // Use state value
+                                onChange={(val) => updateRow(index, 'shellTemp', val)} // Update state
+                            />
+                            <Text>{temperatureUnit}</Text> {/* Use the current temperature unit */}
+                        </Group>
+                    </Table.Td>
+                </Group>
+            </Table.Td>
             <Table.Td>
                 <Group align='center' justify='center' miw={235}>
                     <Button color="blue" size="xs" variant='transparent' onClick={() => addRow(index, 'above')}>
@@ -380,7 +402,7 @@ export default function SingleProfile() {
                     <AppShell.Main ref={ref}>
                         <Flex w={width} h={height} gap="md" justify="center" align="center" direction="column">
                             <Group w={width * 0.8} justify='space-between'>
-                                <Group>
+                                <Stack>
                                     <Input.Wrapper label={t.programName} withAsterisk>
                                         <Input
                                             placeholder="..."
@@ -394,7 +416,7 @@ export default function SingleProfile() {
                                         onChange={(event) => setStartFromRoomTemp(event.currentTarget.checked)}
                                         label="Sākt no istabas temperatūras"
                                     />
-                                </Group>
+                                </Stack>
                                 <Group>
                                     <Button onClick={cancelChanges} rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>
                                     <Button onClick={handleSaveChanges} rightSection={<IconCheck size={16} />}>{t.saveChanges}</Button>
@@ -409,6 +431,7 @@ export default function SingleProfile() {
                                             <Table.Th ta="center" onClick={toggleUnitsForAll}>{t.tMax}</Table.Th>
                                             <Table.Th ta="center">{t.time}</Table.Th>
                                             <Table.Th ta="center">{t.pressure}</Table.Th>
+                                            <Table.Th ta="center" >Kondensatora temp.</Table.Th>
                                             <Table.Th ta="center">{t.rowActions}</Table.Th>
                                         </Table.Tr>
                                     </Table.Thead>
