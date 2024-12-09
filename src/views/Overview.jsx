@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, useMantineColorScheme, useComputedColorScheme } from "@mantine/core";
 import { 
   IconSun, 
-  IconMoon, 
-  IconPlayerPause, 
-  IconPlayerPlay, 
+  IconMoon,
   IconArrowLeft 
 } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
@@ -14,6 +12,7 @@ import ChartSettings from '../components/chart/ChartSettings';
 import ShelfContainer from '../components/chart/ShelfContainer';
 import PressureDisplay from '../components/chart/PressureDisplay';
 import Sidebar from '../components/Sidebar';
+import PauseButton from '../components/PauseButton';
 import '../styles/overviewStyles.scss';
 
 export const TIME_RANGES = {
@@ -40,23 +39,6 @@ const ThemeToggleButton = ({ isDark, toggleColorScheme }) => (
   </Button>
 );
 
-const PauseButton = ({ isPaused, handlePause, handleResume }) => {
-  return (
-    <Button
-      onClick={isPaused ? handleResume : handlePause}
-      variant="subtle"
-      size="sm"
-      className="pauseButton"
-    >
-      {isPaused ? (
-        <IconPlayerPlay size={20} stroke={1.5} />
-      ) : (
-        <IconPlayerPause size={20} stroke={1.5} />
-      )}
-    </Button>
-  );
-};
-
 export default function Overview() {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
@@ -66,7 +48,7 @@ export default function Overview() {
   // State hooks must be inside the component
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar state
   const [timeRange, setTimeRange] = useState('1m');
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(localStorage.getItem('isPaused'));
   const [chartType, setChartType] = useState('temperature');
 
   // Handlers must be inside the component to access state
@@ -82,12 +64,10 @@ export default function Overview() {
   const handleSidebarClose = () => {
     setIsSidebarOpen(false);
   };
-
-  const handlePause = () => {
-    console.log("Pausing...");
-    setIsPaused(true);
-  };
-
+    useEffect(() => {
+        console.log(isPaused)
+        setIsPaused(localStorage.getItem("isPaused"));
+    }, []);
   const handleResume = () => {
     console.log("Resuming...");
     setIsPaused(false);
@@ -111,27 +91,13 @@ export default function Overview() {
         toggleColorScheme={toggleColorScheme}
       />
       
-      <PauseButton
-        isPaused={isPaused}
-        handlePause={handlePause}
-        handleResume={handleResume}
-      />
+      <PauseButton/>
 
       <Link to="/singleProfile/:fileName">
         <Button className='backButton' variant="transparent" color={buttonColor}>
           <IconArrowLeft stroke={3}></IconArrowLeft>
         </Button>
       </Link>
-      
-      {isPaused && (
-        <div className="pausedScreen">
-          <div className="labelBox">
-            <div className="pausedLabel">APSTĀDINĀTS</div>
-            <button className="resumeButton" onClick={handleResume}>TURPINĀT</button>
-          </div>
-        </div>
-      )}
-      
       <div className="chartContainer">
         <MainChart 
           timeRange={timeRange} 

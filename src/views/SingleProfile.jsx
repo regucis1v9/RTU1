@@ -125,8 +125,8 @@ export default function SingleProfile() {
                     console.error('Error fetching CSV data');
                     showNotification({
                         autoClose: false,
-                        title: "Kļūda atlasot datus",
-                        message: "Nevarēja atrast failu" + "  " + fileName,
+                        title: "Nevarēja atrast failu" + "  " + fileName+ ".csv",
+                        message: "Dodieties atpakaļ un pārliecinaties, ka fails eksistē.",
                         color: 'red',
                     });
                     return;
@@ -352,6 +352,7 @@ export default function SingleProfile() {
                         decimalScale={0}
                         min={1}
                         w={70}
+                        clampBehavior="strict"
                         variant="filled" 
                         value={row.time} 
                         onChange={(val) => updateRow(index, 'time', val)}

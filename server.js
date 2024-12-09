@@ -73,7 +73,7 @@ app.post('/save-csv', (req, res) => {
 
   // Define the default row and its values
   const defaultHeader = 'step,tMin,tMax,time,pressure,tMinUnit,tMaxUnit,shellTemp';
-  const defaultRow = '1,0,0,3,1,C,C,0'; // Include 'ShellTemp' in default row
+  const defaultRow = '1,0,0,1,1,C,C,0'; // Include 'ShellTemp' in default row
 
   // Check if csvData exists and is not empty; otherwise, use default values
   let finalCsvData = defaultRow;
@@ -153,11 +153,7 @@ app.post('/updateFile', (req, res) => {
   // Step 4: Separate header from the data rows
   const header = rows[0]; // First row is the header
   let dataRows = rows.slice(1); // The rest are data rows
-
-  // Ensure the header includes the new 'ShellTemp' column
-  const updatedHeader = header.includes('shelltemp')
-    ? header
-    : header + ',shellTemp';
+  
 
   // Step 5: Process the incoming data
   const newRows = data.map((newRow) => {
