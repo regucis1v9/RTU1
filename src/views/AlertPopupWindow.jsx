@@ -1,385 +1,414 @@
-import React, { useState } from 'react';
-import { Modal, useMantineColorScheme } from '@mantine/core';
-import { IconAlertTriangle, IconAlertCircle, IconInfoCircle, IconCircleCheck } from '@tabler/icons-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Minimize2, Maximize2, X, Move } from 'lucide-react';
 
-const ALERT_TYPES = {
-  urgent: {
-    color: 'red',
-    icon: (size) => <IconAlertTriangle color="red" size={size} />,
-    label: 'Urgent'
-  },
-  minor: {
-    color: 'orange',
-    icon: (size) => <IconAlertCircle color="orange" size={size} />,
-    label: 'Minor'
-  },
-  recommendation: {
-    color: 'green',
-    icon: (size) => <IconCircleCheck color="green" size={size} />,
-    label: 'Recommendation'
-  },
-  info: {
-    color: 'blue',
-    icon: (size) => <IconInfoCircle color="blue" size={size} />,
-    label: 'Information'
-  }
-};
+export const AlertPopup = ({ alerts = [], onClose }) => {
+  const [isFullScreen, setIsFullScreen] = useState(true);
+  const [currentAlertIndex, setCurrentAlertIndex] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: window.innerWidth - 350, y: 100 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [showConfirm, setShowConfirm] = useState(false);
+  const dragRef = useRef(null);
 
-const getShelfColor = (hasError, errorType) => {
-  if (!hasError) return 'currentColor'; // Default color for non-error
-  return ALERT_TYPES[errorType]?.color || ALERT_TYPES.urgent.color;
-};
-
-const ShelfStatusCircle = ({ shelves, systemAlert, onShelfClick, onSystemAlertClick }) => {
-  return (
-    <div className="shelf-status-container">
-      <svg viewBox="0 0 100 100" className="shelf-diagram">
-        <rect 
-          x="10" 
-          y="10" 
-          width="80" 
-          height="80" 
-          fill="none" 
-          stroke={getShelfColor(shelves[0]?.hasError, shelves[0]?.alertType)}
-          strokeWidth="2" 
-          onClick={systemAlert?.hasError ? () => onSystemAlertClick(systemAlert) : null}
-          cursor={systemAlert?.hasError ? 'pointer' : 'default'}
-        />
-        
-        {shelves
-          .filter((shelf) => shelf.id !== 0) // Skip the outer box (id: 0)
-          .map((shelf, index) => (
-            <g key={shelf.id}>
-            <line
-              x1="15"
-              y1={20 + index * 10}
-              x2="85"
-              y2={20 + index * 10}
-              stroke={getShelfColor(shelf.hasError, shelf.alertType)}
-              strokeWidth="2"
-              className={`shelf-line ${shelf.hasError ? 'error-line' : ''}`}
-              onClick={() => onShelfClick(shelf)}
-              cursor="pointer"
-            />
-            <text 
-              x="50" 
-              y={18 + index * 10} 
-              fontSize="4" 
-              textAnchor="middle"
-              fill="currentColor"
-            >
-              {shelf.id}
-            </text>
-          </g>
-        ))}
-      </svg>
-    </div>
-  );
-};
-
-
-const ShelfAlertModal = ({ shelf, isOpen, onClose, colorScheme }) => {
-  if (!shelf) return null;
-  const isDark = colorScheme === 'dark';
-
-  return (
-    <Modal
-      opened={isOpen}
-      onClose={onClose}
-      title={`Alert for ${shelf.id === 0 ? 'Outer Box' : `Shelf ${shelf.id}`}`}
-      size="sm"
-      centered
-      className={`shelf-alert-modal ${isDark ? 'dark-mode' : 'light-mode'}`}
-    >
-      <div className="shelf-alert-content">
-        {shelf.hasError ? (
-          <div 
-            className="shelf-error-box"
-            style={{ 
-              borderColor: ALERT_TYPES[shelf.alertType].color,
-              backgroundColor: `${ALERT_TYPES[shelf.alertType].color}10`,
-            }}
-          >
-            {ALERT_TYPES[shelf.alertType].icon(24)}
-            <div>
-              <h4 style={{ color: ALERT_TYPES[shelf.alertType].color }}>
-                {ALERT_TYPES[shelf.alertType].label} Alert
-              </h4>
-              <span>{shelf.errorMessage}</span>
-            </div>
-          </div>
-        ) : (
-          <div className="no-alerts-box">
-            <h4>No alerts found for this shelf.</h4>
-          </div>
-        )}
-
-        {shelf.alertHistory && shelf.alertHistory.length > 0 ? (
-          <div className="shelf-alert-history">
-            <h4>Shelf Alert History</h4>
-            {shelf.alertHistory.map((alert, index) => (
-              <div key={index} className={`alert-item alert-${alert.type}`}>
-                <div className="alert-icon">{ALERT_TYPES[alert.type].icon(20)}</div>
-                <div className="alert-details">
-                  <span className="timestamp">{alert.timestamp}</span>
-                  <span className="message">{alert.message}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : !shelf.hasError && (
-          <div className="no-history-box">
-            <h4>No alert history available.</h4>
-          </div>
-        )}
-      </div>
-    </Modal>
-  );
-};
-
-
-const SystemAlertModal = ({ systemAlert, isOpen, onClose, colorScheme }) => {
-  if (!systemAlert) return null;
-  const isDark = colorScheme === 'dark';
-  const alertType = ALERT_TYPES[systemAlert.type];
-
-  return (
-    <Modal
-      opened={isOpen}
-      onClose={onClose}
-      title="System Alert"
-      size="sm"
-      centered
-      className={`system-alert-modal ${isDark ? 'dark-mode' : 'light-mode'}`}
-    >
-      <div className="system-alert-content">
-        {systemAlert.hasError ? (
-          <div 
-            className={`system-error-box alert-${systemAlert.type}`}
-            style={{ 
-              borderColor: alertType.color, 
-              backgroundColor: `${alertType.color}10` 
-            }}
-          >
-            {alertType.icon(24)}
-            <div>
-              <h4 style={{ color: alertType.color }}>{alertType.label} Alert</h4>
-              <span>{systemAlert.errorMessage}</span>
-            </div>
-          </div>
-        ) : (
-          <div className="no-alerts-box">
-            <h4>No alerts found for the system.</h4>
-          </div>
-        )}
-
-        {systemAlert.alertHistory && systemAlert.alertHistory.length > 0 ? (
-          <div className="system-alert-history">
-            <h4>Alert History</h4>
-            {systemAlert.alertHistory.map((alert, index) => (
-              <div key={index} className={`alert-item alert-${alert.type}`}>
-                <div className="alert-icon">{ALERT_TYPES[alert.type].icon(20)}</div>
-                <div className="alert-details">
-                  <span className="timestamp">{alert.timestamp}</span>
-                  <span className="message">{alert.message}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : !systemAlert.hasError && (
-          <div className="no-history-box">
-            <h4>No alert history available.</h4>
-          </div>
-        )}
-      </div>
-    </Modal>
-  );
-};
-
-const AlertPopupWindow = ({ isOpen, onClose }) => {
-  const { colorScheme } = useMantineColorScheme();
-  const isDark = colorScheme === 'dark';
-
-  const [shelves, setShelves] = useState([
-    {
-      id: 0, // Outer box as a shelf
-      hasError: true,
-      alertType: 'minor',
-      errorMessage: 'Outer box alert: Minor issue detected',
-      alertHistory: [
-        {
-          timestamp: '2024-02-16 11:20',
-          message: 'Outer box temperature warning',
-          type: 'minor',
-        },
-      ],
+  // Alert type color mapping with more nuanced gradients
+  const alertTypeColors = {
+    warning: {
+      background: 'linear-gradient(135deg, #FFC107 0%, #FF9800 100%)',
+      textColor: 'white',
+      shadowColor: 'rgba(255, 152, 0, 0.5)'
     },
-    {
-      id: 1,
-      hasError: true,
-      alertType: 'urgent',
-      errorMessage: 'Shelf 1 pressure anomaly',
-      alertHistory: [
-        {
-          timestamp: '2024-02-15 10:30',
-          message: 'Pressure anomaly detected on Shelf 1',
-          type: 'urgent',
-        },
-      ],
+    critical: {
+      background: 'linear-gradient(135deg, #F44336 0%, #D32F2F 100%)',
+      textColor: 'white',
+      shadowColor: 'rgba(244, 67, 54, 0.5)'
     },
-    { id: 2, hasError: false, alertType: null },
-    { id: 3, hasError: false, alertType: null },
-    {
-      id: 4,
-      hasError: true,
-      alertType: 'recommendation',
-      errorMessage: 'Shelf 4 maintenance required',
-      alertHistory: [
-        {
-          timestamp: '2024-02-14 15:45',
-          message: 'Routine check recommended for Shelf 4',
-          type: 'recommendation',
-        },
-      ],
+    info: {
+      background: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
+      textColor: 'white',
+      shadowColor: 'rgba(33, 150, 243, 0.5)'
     },
-    { id: 5, hasError: false, alertType: null },
-    { id: 6, hasError: false, alertType: null },
-    {
-      id: 7,
-      hasError: true,
-      alertType: 'info',
-      errorMessage: 'Kautkas nogāja greizi',
-      alertHistory: [
-        {
-          timestamp: '2024-02-14 15:45',
-          message: 'Nezinu plauktā 7',
-          type: 'info',
-        },
-      ],
-    },
-  ]);
-
-  const [systemAlert, setSystemAlert] = useState({
-    hasError: true,
-    type: 'urgent',
-    errorMessage: 'Critical system temperature outside safe range',
-    alertHistory: [
-      {
-        timestamp: '2024-02-16 11:20',
-        message: 'System temperature exceeded maximum threshold',
-        type: 'urgent',
-      },
-      {
-        timestamp: '2024-02-16 10:45',
-        message: 'Initial temperature warning detected',
-        type: 'minor',
-      }
-    ]
-  });
-
-  const [alertHistory, setAlertHistory] = useState([
-    {
-      timestamp: '2024-02-15 10:30',
-      message: 'Temperature fluctuation detected on Shelf 1',
-      type: 'minor',
-    },
-    {
-      timestamp: '2024-02-14 15:45',
-      message: 'Pressure anomaly on Shelf 4',
-      type: 'urgent',
-    },
-    {
-      timestamp: '2024-02-13 09:15',
-      message: 'Routine system check completed',
-      type: 'recommendation',
-    },
-    {
-      timestamp: '2024-02-16 11:20',
-      message: 'System temperature exceeded maximum threshold',
-      type: 'urgent',
+    default: {
+      background: 'linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%)',
+      textColor: 'white',
+      shadowColor: 'rgba(156, 39, 176, 0.5)'
     }
-  ]);
-
-  const [selectedShelf, setSelectedShelf] = useState(null);
-  const [isShelfModalOpen, setIsShelfModalOpen] = useState(false);
-  const [isSystemAlertModalOpen, setIsSystemAlertModalOpen] = useState(false);
-
-  const handleShelfClick = (shelf) => {
-    setSelectedShelf(shelf);
-    setIsShelfModalOpen(true);
   };
 
-  const handleSystemAlertClick = (alert) => {
-    setIsSystemAlertModalOpen(true);
+  // Drag event handlers
+  const handleMouseDown = (e) => {
+    if (!isFullScreen) {
+      setIsDragging(true);
+      const rect = dragRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+    }
   };
 
-  const currentEmergency = shelves.find((shelf) => shelf.hasError);
+  const handleMouseMove = (e) => {
+    if (isDragging && !isFullScreen) {
+      setPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
+  // Existing navigation handlers remain the same
+  const nextAlert = () => {
+    setCurrentAlertIndex((prevIndex) => 
+      (prevIndex + 1) % alerts.length
+    );
+  };
+
+  const prevAlert = () => {
+    setCurrentAlertIndex((prevIndex) => 
+      prevIndex === 0 ? alerts.length - 1 : prevIndex - 1
+    );
+  };
+
+  const toggleScreenMode = () => {
+    setIsFullScreen(!isFullScreen);
+  };
+
+  const handleCloseCurrentAlert = () => {
+    onClose(currentAlertIndex);
+  };
+
+  const handleCloseRequest = () => {
+    setShowConfirm(true); // Show the confirmation dialog
+  };
+
+  const confirmClose = () => {
+    setShowConfirm(false);
+    onClose(currentAlertIndex); // Proceed with closing the alert
+  };
+
+  const cancelClose = () => {
+    setShowConfirm(false); // Cancel closing
+  };
+
+  const currentAlert = alerts[currentAlertIndex];
+
+  // Memoized styles with enhanced design
+  const styles = useMemo(() => {
+    const getAlertTypeStyle = () => {
+      const type = currentAlert?.type?.toLowerCase() || 'default';
+      return alertTypeColors[type] || alertTypeColors.default;
+    };
+
+    const alertStyle = getAlertTypeStyle();
+
+    return {
+      fullScreenOverlay: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+        padding: '40px',
+        boxSizing: 'border-box'
+      },
+      minimizedSidebar: {
+        position: 'fixed',
+        top: position.y,
+        left: position.x,
+        width: '350px',
+        background: alertStyle.background,
+        color: alertStyle.textColor,
+        borderRadius: '20px',
+        padding: '20px',
+        zIndex: 1000,
+        boxShadow: `0 15px 30px ${alertStyle.shadowColor}`,
+        cursor: isDragging ? 'grabbing' : 'grab',
+        transition: 'transform 0.2s ease',
+        transform: isDragging ? 'scale(1.05)' : 'scale(1)',
+      },
+      alertContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        position: 'relative',
+      },
+      fullScreenContent: {
+        backgroundColor: 'white',
+        borderRadius: '20px',
+        padding: '40px',
+        maxWidth: '800px',
+        width: '100%',
+        boxShadow: '0 20px 50px rgba(0,0,0,0.2)',
+        position: 'relative',
+        background: alertStyle.background,
+        color: alertStyle.textColor,
+      },
+      controlHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '20px',
+        minWidth: '90%',
+      },
+      controlButton: {
+        background: 'rgba(255,255,255,0.2)',
+        border: 'none',
+        borderRadius: '50%',
+        width: '40px',
+        height: '40px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        cursor: 'pointer',
+        transition: 'background 0.3s ease',
+        color: 'white',
+      },
+      navigationButton: {
+        background: 'rgba(0,0,0,0.3)',
+        border: 'none',
+        borderRadius: '50%',
+        width: '50px',
+        height: '50px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        cursor: 'pointer',
+        transition: 'background 0.3s ease',
+        color: 'white',
+      },
+      confirmOverlay: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 2000,
+        backdropFilter: 'blur(8px)', // Glassmorphism effect
+        animation: 'fadeIn 0.3s ease-in-out',
+      },
+      
+      confirmBox: {
+        background: 'rgba(255, 255, 255, 0.15)', // Translucent with blur
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.3)',
+        padding: '30px 20px',
+        borderRadius: '20px',
+        textAlign: 'center',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.6)',
+        maxWidth: '400px',
+        width: '90%',
+        animation: 'scaleUp 0.3s ease-in-out',
+        color: '#ffffff', // Modern white text
+      },
+      
+      confirmHeader: {
+        fontSize: '1.8rem',
+        fontWeight: '600',
+        marginBottom: '15px',
+        color: '#ffffff',
+        textShadow: '0 2px 4px rgba(0,0,0,0.4)', // Slight glow effect
+      },
+      
+      confirmText: {
+        fontSize: '1rem',
+        marginBottom: '25px',
+        lineHeight: 1.6,
+        color: 'rgba(255, 255, 255, 0.85)', // Subtle translucence for text
+      },
+      
+      confirmButton: {
+        margin: '10px',
+        padding: '12px 30px',
+        cursor: 'pointer',
+        border: 'none',
+        borderRadius: '10px',
+        fontSize: '16px',
+        fontWeight: '600',
+        transition: 'all 0.3s ease-in-out',
+        textTransform: 'uppercase',
+      },
+      
+      confirmYes: {
+        background: 'linear-gradient(135deg, #ff4a4a, #ff6161)', // Vibrant red gradient
+        color: '#ffffff',
+        boxShadow: '0 5px 15px rgba(255, 97, 97, 0.5)',
+        '&:hover': {
+          background: 'linear-gradient(135deg, #ff6161, #ff4a4a)',
+          transform: 'translateY(-2px) scale(1.05)',
+        },
+      },
+      
+      confirmNo: {
+        background: 'linear-gradient(135deg, #4caf50, #66bb6a)', // Vibrant green gradient
+        color: '#ffffff',
+        boxShadow: '0 5px 15px rgba(102, 187, 106, 0.5)',
+        '&:hover': {
+          background: 'linear-gradient(135deg, #66bb6a, #4caf50)',
+          transform: 'translateY(-2px) scale(1.05)',
+        },
+      },
+      alertContent: {
+        padding: isFullScreen ? '0 40px' : '0',
+      },
+      alertHeader: {
+        fontSize: isFullScreen ? '2rem' : '1.2rem',
+        marginBottom: '15px',
+        fontWeight: 'bold',
+      },
+      alertDetails: {
+        fontSize: isFullScreen ? '1.5rem' : '1rem',
+        lineHeight: 1.5,
+      },
+      dragHandle: {
+        position: 'absolute',
+        top: '10px',
+        left: '10px',
+        cursor: 'move',
+        color: 'rgba(255,255,255,0.7)',
+        transition: 'color 0.3s ease',
+      }
+    };
+  }, [isFullScreen, currentAlert, position, isDragging]);
+
+  if (!currentAlert) return null;
 
   return (
-    <>
-      <Modal
-        opened={isOpen}
-        onClose={onClose}
-        title="Freeze Dryer Alerts"
-        size="md"
-        centered
-        className={`alert-popup ${isDark ? 'dark-mode' : 'light-mode'}`}
-      >
-        <div className="alert-popup-content">
-          <ShelfStatusCircle 
-            shelves={shelves} 
-            systemAlert={systemAlert}
-            onShelfClick={handleShelfClick}
-            onSystemAlertClick={handleSystemAlertClick}
-          />
-
-          {systemAlert.hasError && (
-            <div 
-              className={`current-emergency-box alert-${systemAlert.type}`}
-              style={{ 
-                backgroundColor: `${ALERT_TYPES[systemAlert.type].color}10`,
-                borderColor: ALERT_TYPES[systemAlert.type].color,
-                cursor: 'pointer'
-              }}
-              onClick={handleSystemAlertClick}
+    <div 
+      style={isFullScreen ? styles.fullScreenOverlay : styles.minimizedSidebar}
+      ref={dragRef}
+      onMouseDown={handleMouseDown}
+    >
+      <div style={styles.alertContainer}>
+        <div style={isFullScreen ? styles.fullScreenContent : {}}>
+        <div style={{ ...styles.controlHeader, minWidth: '280px' }}>
+            <button 
+              onClick={toggleScreenMode} 
+              style={styles.controlButton}
             >
-              {ALERT_TYPES[systemAlert.type].icon(24)}
-              <span>{systemAlert.errorMessage}</span>
+              {isFullScreen ? <Minimize2 /> : <Maximize2 />}
+            </button>
+            <button 
+              onClick={handleCloseRequest} 
+              style={styles.controlButton}
+            >
+              <X />
+            </button>
+          </div>
+
+          {alerts.length > 1 && !isFullScreen && (
+            <div style={{ 
+              textAlign: 'center', 
+              marginBottom: '10px',
+              color: 'white' 
+            }}>
+              Alert {currentAlertIndex + 1} of {alerts.length}
             </div>
           )}
 
-          <div className={`alert-history ${isDark ? 'dark-history' : 'light-history'}`}>
-            <h3>Global Alert History</h3>
-            <div className="alert-list">
-              {alertHistory.map((alert, index) => (
-                <div key={index} className={`alert-item alert-${alert.type}`}>
-                  <div className="alert-icon">{ALERT_TYPES[alert.type].icon(20)}</div>
-                  <div className="alert-details">
-                    <span className="timestamp">{alert.timestamp}</span>
-                    <span className="message">{alert.message}</span>
-                  </div>
-                </div>
+          {alerts.length > 1 && isFullScreen && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              position: 'absolute',
+              top: '50%',
+              left: 0,
+              right: 0,
+              transform: 'translateY(-50%)',
+              padding: '0 20px'
+            }}>
+              <button 
+                onClick={prevAlert} 
+                style={styles.navigationButton}
+              >
+                <ChevronLeft size={30} />
+              </button>
+              <button 
+                onClick={nextAlert} 
+                style={styles.navigationButton}
+              >
+                <ChevronRight size={30} />
+              </button>
+            </div>
+          )}
+
+          <div style={styles.alertContent}>
+            <h2 style={styles.alertHeader}>{currentAlert.title}</h2>
+            <p style={styles.alertDetails}>{currentAlert.message}</p>
+          </div>
+
+          {alerts.length > 1 && !isFullScreen && (
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              marginTop: '10px' 
+            }}>
+              {alerts.map((_, index) => (
+                <div 
+                  key={index} 
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    backgroundColor: index === currentAlertIndex ? 'white' : 'rgba(255,255,255,0.5)',
+                    margin: '0 5px',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setCurrentAlertIndex(index)}
+                />
               ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {showConfirm && (
+        <div style={styles.confirmOverlay}>
+          <div style={styles.confirmBox}>
+            <h2 style={styles.confirmHeader}>Are you sure?</h2>
+            <p style={styles.confirmText}>
+              This action cannot be undone. Please confirm if you wish to proceed.
+            </p>
+            <div>
+              <button
+                onClick={confirmClose}
+                style={{ ...styles.confirmButton, ...styles.confirmYes }}
+              >
+                Yes, Close
+              </button>
+              <button
+                onClick={cancelClose}
+                style={{ ...styles.confirmButton, ...styles.confirmNo }}
+              >
+                No, Cancel
+              </button>
             </div>
           </div>
         </div>
-      </Modal>
-
-      <ShelfAlertModal 
-        shelf={selectedShelf} 
-        isOpen={isShelfModalOpen} 
-        onClose={() => setIsShelfModalOpen(false)}
-        colorScheme={colorScheme}
-      />
-
-      <SystemAlertModal
-        systemAlert={systemAlert}
-        isOpen={isSystemAlertModalOpen}
-        onClose={() => setIsSystemAlertModalOpen(false)}
-        colorScheme={colorScheme}
-      />
-    </>
+      )}
+    </div>
   );
 };
-
-export default AlertPopupWindow;
