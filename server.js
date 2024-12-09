@@ -73,7 +73,7 @@ app.post('/save-csv', (req, res) => {
 
   // Define the default row and its values
   const defaultHeader = 'step,tMin,tMax,time,pressure,tMinUnit,tMaxUnit,shellTemp';
-  const defaultRow = '1,0,0,3,1,C,C,0'; // Include 'ShellTemp' in default row
+  const defaultRow = '1,0,0,1,1,C,C,0'; // Include 'ShellTemp' in default row
 
   // Check if csvData exists and is not empty; otherwise, use default values
   let finalCsvData = defaultRow;
