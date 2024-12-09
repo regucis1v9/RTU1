@@ -19,6 +19,8 @@ import {
 } from "@mantine/core";
 import { Link } from "react-router-dom";
 import {
+    IconTemperature,
+    IconEaseIn,
     IconAlertOctagonFilled,
     IconArrowLeft,
     IconChartSankey,
@@ -142,7 +144,7 @@ export default function Header({
                             </Link>
                             <Select
                                 leftSection={<IconLanguage size={26} />}
-                                variant="unstyled"
+                                variant="filled"
                                 label={t.languageLabel}
                                 allowDeselect={false}
                                 value={language}
@@ -157,7 +159,8 @@ export default function Header({
                                 }}
                             />
                             <Select
-                                variant="unstyled"
+                                leftSection={<IconEaseIn size={26} />}
+                                variant="filled"
                                 label={t.pressureUnitLabel}
                                 value={currentPressureUnit}
                                 allowDeselect={false}
@@ -172,7 +175,8 @@ export default function Header({
                                 }}
                             />
                             <Select
-                                variant="unstyled"
+                                leftSection={<IconTemperature size={26} />}
+                                variant="filled"
                                 label={t.temperatureUnitLabel}
                                 value={currentTemperatureUnit}
                                 allowDeselect={false}
