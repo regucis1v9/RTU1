@@ -32,6 +32,10 @@ import {useDisclosure, useElementSize, useViewportSize} from '@mantine/hooks';
 import translations from '../locales/translations';
 import { Link } from 'react-router-dom';
 import dropdown from "../styles/Dropdown.module.css";
+import {useLanguage} from "../context/LanguageContext";
+import {usePressureUnit} from "../context/PressureUnitContext";
+import {useTemperatureUnit} from "../context/TemperatureUnitContext";
+import Header from "../components/Header";
 
 export default function Landing() {
     const { screenHeight, screenWidth } = useViewportSize();
@@ -39,17 +43,13 @@ export default function Landing() {
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
   const { ref, width, height } = useElementSize();
-  const [language, setLanguage] = useState(localStorage.getItem('lang') || 'Latviešu');
   const [tutorialOpen, setTutorialOpen] = useState(false);
-  const t = translations[language] || translations['Latviešu'];
   const theme = useMantineTheme();
     const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
-
-  const handleLanguageChange = (value) => {
-    setLanguage(value);
-    localStorage.setItem('lang', value);
-  };
-
+    const { language, changeLanguage } = useLanguage();
+    const { pressureUnit, togglePressureUnit } = usePressureUnit();
+    const { temperatureUnit, changeTemperatureUnit } = useTemperatureUnit();
+    const t = translations[language] || translations['Latviešu'];
   const iconStyle = { width: 20, height: 20 };
 
   // Tutorial content for the modal
@@ -86,84 +86,14 @@ export default function Landing() {
 
   return (
     <AppShell withBorder={false} header={{ height: 60 }}>
-      <AppShell.Header p={12}>
-        <Flex align="center" justify="space-between" w="100%">
-          <Link to="/">
-              <Button variant="transparent" color={buttonColor}>
-                  <IconArrowLeft stroke={3}></IconArrowLeft>
-              </Button>
-          </Link>
-            <Button color="red" leftSection={<IconAlertOctagonFilled/>} rightSection={<IconAlertOctagonFilled/>}>
-                STOP
-            </Button>
-            <Burger opened={opened} variant="transparent" aria-label="Settings" onClick={toggle} aria-label="Toggle navigation" style={{ zIndex: 11 }}>
-            </Burger>
-            <Transition
-                mounted={opened}
-                transition="slide-left"
-                duration={400}
-                timingFunction="ease"
-            >
-                {(transitionStyle) => (
-                    <Box
-                        shadow="md"
-                        p="xl"
-                        pos="absolute"
-                        top={0}
-                        right={0}
-                        style={{
-                            ...transitionStyle,
-                            backgroundColor: computedColorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[1],
-                            zIndex: 10,
-                            height: '100vh',
-                        }}
-                        w={320}
-                        h={screenHeight}
-                    >
-                        <Stack
-                            gap={20}
-                            align='center'
-                        >
-                            <Select
-                                leftSection={<IconLanguage size={26} />}
-                                variant='unstyled'
-                                allowDeselect={false}
-                                value={language}
-                                onChange={handleLanguageChange}
-                                data={['Latviešu', 'English']}
-                                classNames={dropdown}
-                                comboboxProps={{ transitionProps: { transition: 'pop', duration: 200 }, position: 'bottom', middlewares: { flip: false, shift: false }, offset: 0 } }
-                            />
-                            <Group>
-                                <ActionIcon
-                                    onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
-                                    variant="default"
-                                    size="xl"
-                                    aria-label="Toggle color scheme"
-                                >
-                                    {computedColorScheme === 'light' ? (
-                                        <IconMoon  stroke={1.5} />
-                                    ) : (
-                                        <IconSun stroke={1.5} />
-                                    )}
-                                </ActionIcon>
-                                <ActionIcon
-                                    onClick={() => setTutorialOpen(true)}
-                                    variant="default"
-                                    size="xl"
-                                    aria-label="Show Tutorial"
-                                >
-                                    <IconHelp stroke={1.5} />
-                                </ActionIcon>
-                            </Group>
-                        </Stack>
-                    </Box>
-                )}
-            </Transition>
-            
-        </Flex>
-      </AppShell.Header>
-
+        <Header
+            language={language}
+            changeLanguage={changeLanguage}
+            pressureUnit={pressureUnit}
+            togglePressureUnit={togglePressureUnit}
+            temperatureUnit={temperatureUnit}
+            changeTemperatureUnit={changeTemperatureUnit}
+        />
       <AppShell.Main ref={ref}>
         <Flex w={width} h={height} gap="md" justify="center" align="center" direction="row">
           <Link to="/testing">
