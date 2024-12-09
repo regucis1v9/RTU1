@@ -1134,6 +1134,18 @@ align-items: center;
     background-color: rgb(30, 30, 30);
     border-radius: 30%; /* Optional: make it round */
 }
+.mode3-button {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px; /* Increase button size as desired */
+  height: 40px; /* Increase button size as desired */
+  right: 15px;
+  top: 100px;
+  background-color: red;
+  border-radius: 30%; /* Optional: make it round */
+}
 .chartContainer {
     width: 90%;
     height: 65%;

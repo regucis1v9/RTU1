@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Button, useMantineColorScheme, useComputedColorScheme } from "@mantine/core";
-import { 
+import {Button, useMantineColorScheme, useComputedColorScheme, ActionIcon} from "@mantine/core";
+import {
+    IconAlertOctagonFilled,
   IconSun, 
   IconMoon,
   IconArrowLeft 
@@ -12,9 +13,9 @@ import ChartSettings from '../components/chart/ChartSettings';
 import Sidebar from '../components/Sidebar';
 import PauseButton from '../components/PauseButton';
 import '../styles/overviewStyles.scss';
-import '../styles/terminalStyles.scss'
 
 import Terminal from '../components/chart/Terminal';
+import {usePause} from "../context/PauseContext";
 
 export const TIME_RANGES = {
   '1m': 60,
@@ -49,10 +50,12 @@ export default function Overview() {
   // State hooks must be inside the component
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar state
   const [timeRange, setTimeRange] = useState('1m');
-  const [isPaused, setIsPaused] = useState(localStorage.getItem('isPaused'));
   const [chartType, setChartType] = useState('temperature');
+    const { isPaused, togglePause } = usePause();
 
-  // Handlers must be inside the component to access state
+    const handleClick = () => {
+        togglePause(!isPaused);
+    };
   const handleChartTypeChange = (type) => {
     console.log('Changing chart type to:', type);
     setChartType(type);
@@ -64,14 +67,6 @@ export default function Overview() {
 
   const handleSidebarClose = () => {
     setIsSidebarOpen(false);
-  };
-    useEffect(() => {
-        console.log(isPaused)
-        setIsPaused(localStorage.getItem("isPaused"));
-    }, []);
-  const handleResume = () => {
-    console.log("Resuming...");
-    setIsPaused(false);
   };
 
   const handleTimeRangeChange = (range) => {
@@ -91,7 +86,9 @@ export default function Overview() {
         isDark={isDark}
         toggleColorScheme={toggleColorScheme}
       />
-      
+        <ActionIcon className="mode3-button" color={"red"} onClick={handleClick}>
+            <IconAlertOctagonFilled/>
+        </ActionIcon>
       <PauseButton/>
 
       <Link to="/singleProfile/:fileName">
