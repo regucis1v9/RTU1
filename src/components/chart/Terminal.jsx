@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Plus, Play, Terminal as TerminalIcon, ChevronDown, Search, Filter } from 'lucide-react';
+import { X, Plus, Play, Terminal as TerminalIcon, ChevronDown } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBook, faWindowRestore, faCompressAlt } from '@fortawesome/free-solid-svg-icons';
 import Draggable from 'react-draggable';
+import styles from '../../styles/terminalStyles.module.css';
 
 const DirectoryCommands = {
   '/': [
@@ -28,73 +29,66 @@ const DirectoryCommands = {
   ]
 };
 
-
 const ManualPanel = ({ isOpen, isFloating, toggleManual, toggleManualFloating }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDirectory, setSelectedDirectory] = useState('/');
   const [sortOrder, setSortOrder] = useState('asc');
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-
-  const handleDrag = (e, data) => {
-    // Store the current position of the panel when dragging
-    setPosition({ x: data.x, y: data.y });
-  };
+  const manualRef = useRef(null);
 
   const filteredCommands = DirectoryCommands[selectedDirectory]
-    .filter(cmd => 
-      cmd.command.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    .filter(cmd =>
+      cmd.command.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cmd.description.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    .sort((a, b) => 
-      sortOrder === 'asc' 
-        ? a.command.localeCompare(b.command) 
+    .sort((a, b) =>
+      sortOrder === 'asc'
+        ? a.command.localeCompare(b.command)
         : b.command.localeCompare(a.command)
     );
 
   return isFloating ? (
     <Draggable
-      handle=".manual-header" // Only the header will be draggable
-      position={position} // Explicitly control position to avoid lag
-      onDrag={handleDrag}  // Track the dragging
-      defaultPosition={{ x: 0, y: 0 }}  // Set initial position if needed
+      handle=".manual-header"
+      defaultPosition={{ x: 0, y: 0 }} // Start at top-left
     >
-      <div className={`manual-panel floating ${isOpen ? 'open' : ''}`}>
-        <div className="manual-header">
+      <div
+        ref={manualRef}
+        className={`${styles['manual-panel']} ${styles['floating']} ${isOpen ? styles['open'] : ''}`}
+      >
+        <div className={styles['manual-header']}>
           <h3>Command Reference</h3>
-          <div className="manual-controls">
-            <FontAwesomeIcon 
-              icon={faCompressAlt} 
-              onClick={toggleManualFloating} 
-              className="pop-in-icon"
+          <div className={styles['manual-controls']}>
+            <FontAwesomeIcon
+              icon={faCompressAlt}
+              onClick={toggleManualFloating}
+              className={styles['pop-in-icon']}
             />
-            <X 
-              size={16} 
-              onClick={toggleManual} 
-              className="close-manual-icon"
+            <X
+              size={16}
+              onClick={toggleManual}
+              className={styles['close-manual-icon']}
             />
           </div>
         </div>
-        <div className="manual-content">
-          <div className="manual-controls-bar">
-    
-            <div className="directory-selector">
-              <select 
+        <div className={styles['manual-content']}>
+          <div className={styles['manual-controls-bar']}>
+            <div className={styles['directory-selector']}>
+              <select
                 value={selectedDirectory}
                 onChange={(e) => setSelectedDirectory(e.target.value)}
-                className="directory-dropdown"
+                className={styles['directory-dropdown']}
               >
                 {Object.keys(DirectoryCommands).map(dir => (
                   <option key={dir} value={dir}>{dir}</option>
                 ))}
               </select>
             </div>
-          
           </div>
-          <div className="commands-list">
+          <div className={styles['commands-list']}>
             {filteredCommands.map((cmd, index) => (
-              <div key={index} className="command-item">
-                <span className="command-name">{cmd.command}</span>
-                <span className="command-description">{cmd.description}</span>
+              <div key={index} className={styles['command-item']}>
+                <span className={styles['command-name']}>{cmd.command}</span>
+                <span className={styles['command-description']}>{cmd.description}</span>
               </div>
             ))}
           </div>
@@ -102,44 +96,44 @@ const ManualPanel = ({ isOpen, isFloating, toggleManual, toggleManualFloating })
       </div>
     </Draggable>
   ) : (
-    <div className={`manual-panel ${isOpen ? 'open' : ''}`}>
-      {/* Similar structure to floating version */}
-      <div className="manual-header">
+    <div
+      ref={manualRef}
+      className={`${styles['manual-panel']} ${isOpen ? styles['open'] : ''}`}
+    >
+      <div className={styles['manual-header']}>
         <h3>Command Reference</h3>
-        <div className="manual-controls">
-          <FontAwesomeIcon 
-            icon={faWindowRestore} 
-            onClick={toggleManualFloating} 
-            className="pop-out-icon"
+        <div className={styles['manual-controls']}>
+          <FontAwesomeIcon
+            icon={faWindowRestore}
+            onClick={toggleManualFloating}
+            className={styles['pop-out-icon']}
           />
-          <X 
-            size={16} 
-            onClick={toggleManual} 
-            className="close-manual-icon"
+          <X
+            size={16}
+            onClick={toggleManual}
+            className={styles['close-manual-icon']}
           />
         </div>
       </div>
-      <div className="manual-content">
-        <div className="manual-controls-bar">
-        
-          <div className="directory-selector">
-            <select 
+      <div className={styles['manual-content']}>
+        <div className={styles['manual-controls-bar']}>
+          <div className={styles['directory-selector']}>
+            <select
               value={selectedDirectory}
               onChange={(e) => setSelectedDirectory(e.target.value)}
-              className="directory-dropdown"
+              className={styles['directory-dropdown']}
             >
               {Object.keys(DirectoryCommands).map(dir => (
                 <option key={dir} value={dir}>{dir}</option>
               ))}
             </select>
           </div>
-          
         </div>
-        <div className="commands-list">
+        <div className={styles['commands-list']}>
           {filteredCommands.map((cmd, index) => (
-            <div key={index} className="command-item">
-              <span className="command-name">{cmd.command}</span>
-              <span className="command-description">{cmd.description}</span>
+            <div key={index} className={styles['command-item']}>
+              <span className={styles['command-name']}>{cmd.command}</span>
+              <span className={styles['command-description']}>{cmd.description}</span>
             </div>
           ))}
         </div>
@@ -147,6 +141,7 @@ const ManualPanel = ({ isOpen, isFloating, toggleManual, toggleManualFloating })
     </div>
   );
 };
+
 
 const TerminalWindow = ({ onClose, isActive, initialOutput = [] }) => {
   const [command, setCommand] = useState('');
@@ -166,10 +161,10 @@ const TerminalWindow = ({ onClose, isActive, initialOutput = [] }) => {
       const param = args.slice(1).join(' ');
 
       let outputText = '';
-      let status = 'success'; // Default status
+      let status = 'success';
 
       if (mainCommand.startsWith('.')) {
-        const targetDirectory = mainCommand.substring(1); // Remove the leading dot
+        const targetDirectory = mainCommand.substring(1);
         if (targetDirectory === 'home') {
           setCurrentPath('/');
           outputText = 'Returned to home directory';
@@ -201,7 +196,7 @@ const TerminalWindow = ({ onClose, isActive, initialOutput = [] }) => {
             break;
           case 'calc':
             try {
-              outputText = eval(param); // Use caution with eval
+              outputText = eval(param);
             } catch {
               outputText = 'Invalid expression';
               status = 'error';
@@ -262,21 +257,21 @@ const TerminalWindow = ({ onClose, isActive, initialOutput = [] }) => {
   }, [outputs]);
 
   return (
-    <div className={`terminal-window ${isActive ? 'active' : ''}`}>
-      <div className="terminal-input-container">
-        <div ref={pathSelectorRef} className="path-selector-container">
+    <div className={`${styles['terminal-window']} ${isActive ? styles['active'] : ''}`}>
+      <div className={styles['terminal-input-container']}>
+        <div ref={pathSelectorRef} className={styles['path-selector-container']}>
           <span
-            className="prompt-symbol"
+            className={styles['prompt-symbol']}
             onClick={() => setIsPathDropdownOpen(!isPathDropdownOpen)}
           >
             {currentPath}&gt; <ChevronDown size={14} />
           </span>
           {isPathDropdownOpen && (
-            <div className="path-dropdown">
+            <div className={styles['path-dropdown']}>
               {availablePaths.map((path) => (
                 <div
                   key={path}
-                  className={`path-dropdown-item ${currentPath === path ? 'active' : ''}`}
+                  className={`${styles['path-dropdown-item']} ${currentPath === path ? styles['active'] : ''}`}
                   onClick={() => {
                     setCurrentPath(path);
                     setIsPathDropdownOpen(false);
@@ -288,33 +283,31 @@ const TerminalWindow = ({ onClose, isActive, initialOutput = [] }) => {
             </div>
           )}
         </div>
-        <div className="current-input-line">
+        <div className={styles['current-input-line']}>
           <textarea
             ref={inputRef}
-            className="terminal-textarea-input"
+            className={styles['terminal-textarea-input']}
             value={command}
             onChange={(e) => setCommand(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Enter your command here..."
             rows={1}
           />
-          <button className="execute-button" onClick={handleCommandSubmit}>
+          <button className={styles['execute-button']} onClick={handleCommandSubmit}>
             <Play size={15} />
           </button>
         </div>
       </div>
-      <div ref={outputRef} className="terminal-output-container">
-        <div className="terminal-output">
+      <div ref={outputRef} className={styles['terminal-output-container']}>
+        <div className={styles['terminal-output']}>
           {outputs.map((output, index) => (
             <div
               key={index}
-              className={`output-line ${
-                output.type === 'command'
-                  ? 'command-line'
-                  : output.status === 'error'
-                  ? 'error-line'
-                  : 'success-line'
-              }`}
+              className={`
+                ${styles['output-line']} 
+                ${output.type === 'command' ? styles['command-line'] : 
+                  output.status === 'error' ? styles['error-line'] : styles['success-line']}
+              `}
             >
               {output.text}
             </div>
@@ -324,7 +317,6 @@ const TerminalWindow = ({ onClose, isActive, initialOutput = [] }) => {
     </div>
   );
 };
-
 
 const Terminal = () => {
   const [terminals, setTerminals] = useState([{ id: 1 }]);
@@ -372,22 +364,22 @@ const Terminal = () => {
   };
 
   return (
-    <div className="terminal-container">
+    <div className={styles['terminal-container']}>
       <div
         ref={tabBarRef}
-        className="terminal-tab-bar"
+        className={styles['terminal-tab-bar']}
       >
         {terminals.map((terminal) => (
           <div
             key={terminal.id}
-            className={`terminal-tab ${activeTerminalId === terminal.id ? 'active' : ''}`}
+            className={`${styles['terminal-tab']} ${activeTerminalId === terminal.id ? styles['active'] : ''}`}
             onClick={() => setActiveTerminalId(terminal.id)}
           >
             <TerminalIcon size={14} />
             Terminālis {terminal.id}
             <X
               size={12}
-              className="close-tab-icon"
+              className={styles['close-tab-icon']}
               onClick={(e) => {
                 e.stopPropagation();
                 removeTerminal(terminal.id);
@@ -396,20 +388,20 @@ const Terminal = () => {
           </div>
         ))}
         <button
-          className="add-terminal-btn"
+          className={styles['add-terminal-btn']}
           onClick={addTerminal}
           disabled={terminals.length >= 10}
         >
           <Plus size={14} />
         </button>
         <button 
-          className="manual-toggle-btn"
+          className={styles['manual-toggle-btn']}
           onClick={toggleManual}
         >
           <FontAwesomeIcon icon={faBook} />
         </button>
       </div>
-      <div className="terminals-wrapper">
+      <div className={styles['terminals-wrapper']}>
         {terminals.map((terminal) => (
           <TerminalWindow
             key={terminal.id}
