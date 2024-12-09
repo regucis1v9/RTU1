@@ -352,6 +352,7 @@ export default function SingleProfile() {
                         decimalScale={0}
                         min={1}
                         w={70}
+                        clampBehavior="strict"
                         variant="filled" 
                         value={row.time} 
                         onChange={(val) => updateRow(index, 'time', val)}

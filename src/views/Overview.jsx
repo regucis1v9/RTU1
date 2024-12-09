@@ -14,6 +14,8 @@ import ChartSettings from '../components/chart/ChartSettings';
 import ShelfContainer from '../components/chart/ShelfContainer';
 import PressureDisplay from '../components/chart/PressureDisplay';
 import Sidebar from '../components/Sidebar';
+import PauseButton from '../components/PauseButton';
+import PauseScreen from '../components/PauseScreen';
 import '../styles/overviewStyles.scss';
 
 export const TIME_RANGES = {
@@ -39,23 +41,6 @@ const ThemeToggleButton = ({ isDark, toggleColorScheme }) => (
     )}
   </Button>
 );
-
-const PauseButton = ({ isPaused, handlePause, handleResume }) => {
-  return (
-    <Button
-      onClick={isPaused ? handleResume : handlePause}
-      variant="subtle"
-      size="sm"
-      className="pauseButton"
-    >
-      {isPaused ? (
-        <IconPlayerPlay size={20} stroke={1.5} />
-      ) : (
-        <IconPlayerPause size={20} stroke={1.5} />
-      )}
-    </Button>
-  );
-};
 
 export default function Overview() {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
@@ -84,10 +69,13 @@ export default function Overview() {
   };
 
   const handlePause = () => {
+      localStorage.setItem("isPaused", true)
     console.log("Pausing...");
     setIsPaused(true);
   };
-
+    useEffect(() => {
+        setIsPaused(localStorage.getItem("isPaused"));
+    }, []);
   const handleResume = () => {
     console.log("Resuming...");
     setIsPaused(false);
@@ -122,16 +110,7 @@ export default function Overview() {
           <IconArrowLeft stroke={3}></IconArrowLeft>
         </Button>
       </Link>
-      
-      {isPaused && (
-        <div className="pausedScreen">
-          <div className="labelBox">
-            <div className="pausedLabel">APSTĀDINĀTS</div>
-            <button className="resumeButton" onClick={handleResume}>TURPINĀT</button>
-          </div>
-        </div>
-      )}
-      
+      <PauseScreen/>  
       <div className="chartContainer">
         <MainChart 
           timeRange={timeRange} 
