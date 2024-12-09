@@ -1,18 +1,13 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import '../styles/overviewStyles.scss';
+import { usePause } from '../context/PauseContext';
 
 export default function PauseScreen() {
-    const [isPaused, setIsPaused] = useState(false);
+    const { isPaused, togglePause } = usePause();
 
-    useEffect(() => {
-        setIsPaused(localStorage.getItem("isPaused"));
-    }, []);
-    
     const handleResume = () => {
-        localStorage.setItem("isPaused", false)
-
         console.log("Resuming...");
-        setIsPaused(false);
+        togglePause(false);
     };
 
     return (

@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, useMantineColorScheme, useComputedColorScheme } from "@mantine/core";
 import { 
   IconSun, 
-  IconMoon, 
-  IconPlayerPause, 
-  IconPlayerPlay, 
+  IconMoon,
   IconArrowLeft 
 } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
@@ -15,7 +13,6 @@ import ShelfContainer from '../components/chart/ShelfContainer';
 import PressureDisplay from '../components/chart/PressureDisplay';
 import Sidebar from '../components/Sidebar';
 import PauseButton from '../components/PauseButton';
-import PauseScreen from '../components/PauseScreen';
 import '../styles/overviewStyles.scss';
 
 export const TIME_RANGES = {
@@ -51,7 +48,7 @@ export default function Overview() {
   // State hooks must be inside the component
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar state
   const [timeRange, setTimeRange] = useState('1m');
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(localStorage.getItem('isPaused'));
   const [chartType, setChartType] = useState('temperature');
 
   // Handlers must be inside the component to access state
@@ -67,13 +64,8 @@ export default function Overview() {
   const handleSidebarClose = () => {
     setIsSidebarOpen(false);
   };
-
-  const handlePause = () => {
-      localStorage.setItem("isPaused", true)
-    console.log("Pausing...");
-    setIsPaused(true);
-  };
     useEffect(() => {
+        console.log(isPaused)
         setIsPaused(localStorage.getItem("isPaused"));
     }, []);
   const handleResume = () => {
@@ -99,18 +91,13 @@ export default function Overview() {
         toggleColorScheme={toggleColorScheme}
       />
       
-      <PauseButton
-        isPaused={isPaused}
-        handlePause={handlePause}
-        handleResume={handleResume}
-      />
+      <PauseButton/>
 
       <Link to="/singleProfile/:fileName">
         <Button className='backButton' variant="transparent" color={buttonColor}>
           <IconArrowLeft stroke={3}></IconArrowLeft>
         </Button>
       </Link>
-      <PauseScreen/>  
       <div className="chartContainer">
         <MainChart 
           timeRange={timeRange} 

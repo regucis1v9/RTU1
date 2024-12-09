@@ -1,11 +1,18 @@
-import {Button} from "@mantine/core";
-import {IconPlayerPause, IconPlayerPlay} from "@tabler/icons-react";
+import { Button } from "@mantine/core";
+import { IconPlayerPause, IconPlayerPlay } from "@tabler/icons-react";
 import React from "react";
+import { usePause } from '../context/PauseContext';
 
-export default function PauseButton ({ isPaused, handlePause, handleResume }) {
+export default function PauseButton() {
+    const { isPaused, togglePause } = usePause();
+
+    const handleClick = () => {
+        togglePause(!isPaused);
+    };
+
     return (
         <Button
-            onClick={isPaused ? handleResume : handlePause}
+            onClick={handleClick}
             variant="subtle"
             size="sm"
             className="pauseButton"
@@ -17,4 +24,4 @@ export default function PauseButton ({ isPaused, handlePause, handleResume }) {
             )}
         </Button>
     );
-};
+}
