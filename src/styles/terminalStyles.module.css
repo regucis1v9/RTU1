@@ -124,15 +124,18 @@
 }
 
 .terminal-input-container {
-  background-color: #121212;
+  background-color: #131313;
   padding: 10px;
   border-bottom: 1px solid #333;
+  display: flex;
+  flex-direction: row;
 }
 
 .current-input-line {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 92%;
 }
 
 .prompt-symbol {
