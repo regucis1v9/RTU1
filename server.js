@@ -153,11 +153,7 @@ app.post('/updateFile', (req, res) => {
   // Step 4: Separate header from the data rows
   const header = rows[0]; // First row is the header
   let dataRows = rows.slice(1); // The rest are data rows
-
-  // Ensure the header includes the new 'ShellTemp' column
-  const updatedHeader = header.includes('shelltemp')
-    ? header
-    : header + ',shellTemp';
+  
 
   // Step 5: Process the incoming data
   const newRows = data.map((newRow) => {

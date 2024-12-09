@@ -74,8 +74,11 @@ const AllProfiles = () => {
       const data = await response.json();
       setProjects(data);
     } catch (error) {
-      console.error('Error fetching projects:', error);
-      alert('Error fetching projects. Please try again later.');
+        showNotification({
+            title: t.error,
+            message: t.noProjectFound,
+            color: 'red',
+        });
     } finally {
       setIsLoading(false);
     }

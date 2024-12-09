@@ -125,8 +125,8 @@ export default function SingleProfile() {
                     console.error('Error fetching CSV data');
                     showNotification({
                         autoClose: false,
-                        title: "Kļūda atlasot datus",
-                        message: "Nevarēja atrast failu" + "  " + fileName,
+                        title: "Nevarēja atrast failu" + "  " + fileName+ ".csv",
+                        message: "Dodieties atpakaļ un pārliecinaties, ka fails eksistē.",
                         color: 'red',
                     });
                     return;
