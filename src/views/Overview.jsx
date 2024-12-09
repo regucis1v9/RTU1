@@ -9,11 +9,12 @@ import { Link } from 'react-router-dom';
 import MainChart from '../components/chart/MainChart';
 import SettingsBox from '../components/chart/SettingsBox';
 import ChartSettings from '../components/chart/ChartSettings';
-import ShelfContainer from '../components/chart/ShelfContainer';
-import PressureDisplay from '../components/chart/PressureDisplay';
 import Sidebar from '../components/Sidebar';
 import PauseButton from '../components/PauseButton';
 import '../styles/overviewStyles.scss';
+import '../styles/terminalStyles.scss'
+
+import Terminal from '../components/chart/Terminal';
 
 export const TIME_RANGES = {
   '1m': 60,
@@ -131,15 +132,9 @@ export default function Overview() {
       </div>
 
       {/* Render Sidebar at the top level of Overview */}
-      <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
-      
-      <div className="shelfContainer">
-        <ShelfContainer />
-      </div>
-      
-      <div className="shelfContainer2">
-        <PressureDisplay isPaused={isPaused} />
-      </div>
+        <Sidebar isOpen={isSidebarOpen} onClose={handleSidebarClose} />
+
+        <Terminal/>
     </div>
   );
 }
