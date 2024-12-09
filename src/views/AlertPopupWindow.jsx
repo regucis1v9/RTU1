@@ -17,11 +17,6 @@ const ALERT_TYPES = {
     color: 'green',
     icon: (size) => <IconCircleCheck color="green" size={size} />,
     label: 'Recommendation'
-  },
-  info: {
-    color: 'blue',
-    icon: (size) => <IconInfoCircle color="blue" size={size} />,
-    label: 'Information'
   }
 };
 
@@ -51,10 +46,10 @@ const ShelfStatusCircle = ({ shelves, systemAlert, onShelfClick, onSystemAlertCl
           .map((shelf, index) => (
             <g key={shelf.id}>
             <line
-              x1="15"
-              y1={20 + index * 10}
-              x2="85"
-              y2={20 + index * 10}
+              x1="20"
+              y1={80 - index * 12}
+              x2="80"
+              y2={80 - index * 12}
               stroke={getShelfColor(shelf.hasError, shelf.alertType)}
               strokeWidth="2"
               className={`shelf-line ${shelf.hasError ? 'error-line' : ''}`}
@@ -62,10 +57,10 @@ const ShelfStatusCircle = ({ shelves, systemAlert, onShelfClick, onSystemAlertCl
               cursor="pointer"
             />
             <text 
-              x="50" 
-              y={18 + index * 10} 
-              fontSize="4" 
-              textAnchor="middle"
+              x="50" // Centered horizontally
+              y={78 - index * 12} // Moved slightly above the line
+              fontSize="5" 
+              textAnchor="middle" // Centered alignment
               fill="currentColor"
             >
               {shelf.id}
@@ -76,7 +71,6 @@ const ShelfStatusCircle = ({ shelves, systemAlert, onShelfClick, onSystemAlertCl
     </div>
   );
 };
-
 
 const ShelfAlertModal = ({ shelf, isOpen, onClose, colorScheme }) => {
   if (!shelf) return null;
@@ -111,25 +105,6 @@ const ShelfAlertModal = ({ shelf, isOpen, onClose, colorScheme }) => {
         ) : (
           <div className="no-alerts-box">
             <h4>No alerts found for this shelf.</h4>
-          </div>
-        )}
-
-        {shelf.alertHistory && shelf.alertHistory.length > 0 ? (
-          <div className="shelf-alert-history">
-            <h4>Shelf Alert History</h4>
-            {shelf.alertHistory.map((alert, index) => (
-              <div key={index} className={`alert-item alert-${alert.type}`}>
-                <div className="alert-icon">{ALERT_TYPES[alert.type].icon(20)}</div>
-                <div className="alert-details">
-                  <span className="timestamp">{alert.timestamp}</span>
-                  <span className="message">{alert.message}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : !shelf.hasError && (
-          <div className="no-history-box">
-            <h4>No alert history available.</h4>
           </div>
         )}
       </div>
@@ -172,25 +147,6 @@ const SystemAlertModal = ({ systemAlert, isOpen, onClose, colorScheme }) => {
             <h4>No alerts found for the system.</h4>
           </div>
         )}
-
-        {systemAlert.alertHistory && systemAlert.alertHistory.length > 0 ? (
-          <div className="system-alert-history">
-            <h4>Alert History</h4>
-            {systemAlert.alertHistory.map((alert, index) => (
-              <div key={index} className={`alert-item alert-${alert.type}`}>
-                <div className="alert-icon">{ALERT_TYPES[alert.type].icon(20)}</div>
-                <div className="alert-details">
-                  <span className="timestamp">{alert.timestamp}</span>
-                  <span className="message">{alert.message}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : !systemAlert.hasError && (
-          <div className="no-history-box">
-            <h4>No alert history available.</h4>
-          </div>
-        )}
       </div>
     </Modal>
   );
@@ -202,79 +158,39 @@ const AlertPopupWindow = ({ isOpen, onClose }) => {
 
   const [shelves, setShelves] = useState([
     {
-      id: 0, // Outer box as a shelf
+      id: 0,
       hasError: true,
       alertType: 'minor',
       errorMessage: 'Outer box alert: Minor issue detected',
-      alertHistory: [
-        {
-          timestamp: '2024-02-16 11:20',
-          message: 'Outer box temperature warning',
-          type: 'minor',
-        },
-      ],
     },
+    { id: 1, hasError: false, alertType: null },
+    { id: 2, hasError: false, alertType: null },
     {
-      id: 1,
+      id: 3,
       hasError: true,
       alertType: 'urgent',
-      errorMessage: 'Shelf 1 pressure anomaly',
-      alertHistory: [
-        {
-          timestamp: '2024-02-15 10:30',
-          message: 'Pressure anomaly detected on Shelf 1',
-          type: 'urgent',
-        },
-      ],
+      errorMessage: 'Shelf 3 pressure anomaly',
     },
-    { id: 2, hasError: false, alertType: null },
-    { id: 3, hasError: false, alertType: null },
     {
       id: 4,
       hasError: true,
       alertType: 'recommendation',
       errorMessage: 'Shelf 4 maintenance required',
-      alertHistory: [
-        {
-          timestamp: '2024-02-14 15:45',
-          message: 'Routine check recommended for Shelf 4',
-          type: 'recommendation',
-        },
-      ],
     },
     { id: 5, hasError: false, alertType: null },
-    { id: 6, hasError: false, alertType: null },
     {
-      id: 7,
+      id: 6,
       hasError: true,
-      alertType: 'info',
-      errorMessage: 'Kautkas nogāja greizi',
-      alertHistory: [
-        {
-          timestamp: '2024-02-14 15:45',
-          message: 'Nezinu plauktā 7',
-          type: 'info',
-        },
-      ],
+      alertType: 'minor',
+      errorMessage: 'Shelf 6 minor alert',
     },
   ]);
+
 
   const [systemAlert, setSystemAlert] = useState({
     hasError: true,
     type: 'urgent',
     errorMessage: 'Critical system temperature outside safe range',
-    alertHistory: [
-      {
-        timestamp: '2024-02-16 11:20',
-        message: 'System temperature exceeded maximum threshold',
-        type: 'urgent',
-      },
-      {
-        timestamp: '2024-02-16 10:45',
-        message: 'Initial temperature warning detected',
-        type: 'minor',
-      }
-    ]
   });
 
   const [alertHistory, setAlertHistory] = useState([
