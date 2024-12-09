@@ -7,7 +7,6 @@ import AllProfiles from './views/AllProfiles';
 import Overview from './views/Overview';
 import Landing from './views/Landing';
 import SingleProfile from './views/SingleProfile';
-import AlertsTest from './views/AlertsTest';
 import Login from './views/Login';
 import TestingPage from './views/Testing';
 import { Notifications } from '@mantine/notifications';

@@ -1,0 +1,626 @@
+.terminal-container {
+  width: 35%;
+  height: 30%;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  font-family: 'Consolas', 'Monaco', monospace;
+  overflow: hidden;
+  border: 1px solid #333;
+  position: relative;
+}
+
+.terminal-tab-bar {
+  display: flex;
+  background-color: #252525;
+  border-bottom: 1px solid #444;
+  align-items: center;
+  padding: 0 5px;
+  overflow-x: scroll;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  position: relative;
+}
+
+.terminal-tab-bar::-webkit-scrollbar {
+  height: 4px;
+  background: transparent;
+}
+
+.terminal-tab-bar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.terminal-tab-bar::-webkit-scrollbar-thumb {
+  background: rgba(68, 68, 68, 0.3);
+  border-radius: 4px;
+}
+
+.manual-toggle-btn {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+  padding: 5px;
+}
+
+.manual-toggle-btn:hover {
+  color: #4CAF50;
+}
+
+.terminal-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  color: #888;
+  cursor: pointer;
+  position: relative;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.terminal-tab.active {
+  background-color: #1a1a1a;
+  color: #4CAF50;
+}
+
+.terminal-tab .close-tab-icon {
+  margin-left: 5px;
+  color: #ff4136;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.terminal-tab .close-tab-icon:hover {
+  opacity: 1;
+}
+
+.add-terminal-btn {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-left: 5px;
+  padding: 5px;
+  flex-shrink: 0;
+}
+
+.add-terminal-btn:hover {
+  color: #4CAF50;
+}
+
+.add-terminal-btn:disabled {
+  color: #444;
+  cursor: not-allowed;
+}
+
+.terminals-wrapper {
+  flex-grow: 1;
+  position: relative;
+}
+
+.terminal-window {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  flex-direction: column;
+}
+
+.terminal-window.active {
+  display: flex;
+}
+
+.terminal-input-container {
+  background-color: #121212;
+  padding: 10px;
+  border-bottom: 1px solid #333;
+}
+
+.current-input-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.prompt-symbol {
+  color: #4CAF50;
+  white-space: nowrap;
+}
+
+.terminal-textarea-input {
+  flex-grow: 1;
+  background: transparent;
+  border: none;
+  color: #4CAF50;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  overflow: hidden;
+  line-height: 1.5;
+}
+
+.terminal-output-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  background-color: #1a1a1a;
+  padding: 15px;
+}
+
+.terminal-output {
+  color: #4CAF50;
+  font-size: 14px;
+}
+
+.output-line {
+  margin-bottom: 5px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.execute-button {
+  background-color: #4CAF50;
+  color: #121212;
+  border: none;
+  padding: 5px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.execute-button:hover {
+  background-color: #45a049;
+}
+
+.terminal-output-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-output-container::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.terminal-output-container::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+/* Styles for error and success outputs */
+.success-line {
+  color: #4caf50; /* Green */
+}
+
+.error-line {
+  color: #af4c4c; /* Red */
+}
+
+.command-line {
+  color: #00BFFF; /* Blue for command input */
+}
+
+
+.manual-panel {
+  position: absolute;
+  top: 0;
+  right: -300px;
+  width: 300px;
+  height: 100%;
+  background-color: #121212;
+  transition: right 0.3s ease-in-out;
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  border-left: 1px solid #222;
+}
+
+.manual-panel.open {
+  right: 0;
+}
+
+.manual-panel.floating {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 8px;
+  max-width: 400px;
+  max-height: 500px;
+  width: 90%;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid #222;
+}
+
+.manual-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1a1a1a;
+  padding: 12px 15px;
+  border-bottom: 1px solid #222;
+}
+
+.manual-header h3 {
+  margin: 0;
+  color: #4CAF50;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.manual-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.manual-controls svg {
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.manual-controls svg:hover {
+  color: #4CAF50;
+}
+
+.manual-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.manual-controls-bar {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  height: 60px;
+  border-bottom: 1px solid #222;
+  background-color: #e31616;
+  gap: 8px;
+}
+
+.search-container {
+  position: relative;
+  max-width: 120px;
+  height: 100%;
+  display: flex;
+}
+
+.search-icon {
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  height: 15px;
+}
+
+.search-input {
+  width: 100%;
+  height: 100px;
+  background-color: #121212;
+  border: 1px solid #222;
+  border-radius: 4px;
+  color: #4CAF50;
+  font-size: 11px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.directory-selector {
+  flex-shrink: 0;
+}
+
+.directory-dropdown {
+  background-color: #121212;
+  border: 1px solid #222;
+  color: #4CAF50;
+  padding: 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  outline: none;
+  width: 80px;
+}
+
+.commands-list {
+  padding: 10px 0;
+}
+
+.command-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 15px;
+  transition: background-color 0.2s ease;
+}
+
+.command-item:hover {
+  background-color: rgba(74, 203, 80, 0.1);
+}
+
+.command-name {
+  color: #4CAF50;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.command-description {
+  color: #888;
+  font-size: 11px;
+  text-align: right;
+}
+
+/* Scrollbar Styling */
+.manual-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.manual-content::-webkit-scrollbar-track {
+  background: #121212;
+}
+
+.manual-content::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+.path-option {
+  color: #888;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  background-color: rgba(50, 50, 50, 0.5);
+}
+
+.path-option:hover {
+  color: #4CAF50;
+  background-color: rgba(50, 50, 50, 0.8);
+}
+
+.path-option.active-path {
+  color: #4CAF50;
+  background-color: #252525;
+  border: 1px solid #444;
+}
+
+.path-selector-container {
+  position: relative;
+  display: inline-block;
+}
+
+.prompt-symbol {
+  color: #4CAF50;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 5px;
+}
+
+.path-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #252525;
+  border: 1px solid #444;
+}
+
+.manual-panel {
+  position: absolute;
+  top: 0;
+  right: -320px;
+  width: 320px;
+  height: 100%;
+  background-color: #121212;
+  transition: right 0.3s ease-in-out, transform 0.3s ease;
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  border-left: 1px solid #222;
+}
+
+.manual-panel.open {
+  right: 0;
+}
+
+.manual-panel.floating {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  border-radius: 12px;
+  max-width: 450px;
+  max-height: 600px;
+  width: 90%;
+  overflow: hidden;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid #222;
+}
+
+.manual-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1a1a1a;
+  padding: 12px 15px;
+  border-bottom: 1px solid #222;
+}
+
+.manual-header h3 {
+  margin: 0;
+  color: #4CAF50;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.manual-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.manual-controls svg {
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.manual-controls svg:hover {
+  color: #4CAF50;
+  transform: scale(1.1);
+}
+
+.manual-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  position: relative;
+}
+
+.manual-controls-bar {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  background-color: #1a1a1a;
+  border-bottom: 1px solid #222;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.search-container {
+  position: relative;
+  flex-grow: 1;
+  max-height: 36px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  z-index: 2;
+}
+
+.search-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px 0 35px;
+  background-color: #121212;
+  border: 1px solid #222;
+  border-radius: 6px;
+  color: #4CAF50;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #4CAF50;
+}
+
+.directory-selector {
+  flex-shrink: 0;
+}
+
+.directory-dropdown {
+  background-color: #121212;
+  border: 1px solid #222;
+  color: #4CAF50;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  outline: none;
+  width: 100px;
+  cursor: pointer;
+}
+
+.commands-list {
+  padding: 0;
+}
+
+.command-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 15px;
+  border-bottom: 1px solid #222;
+  transition: background-color 0.2s ease;
+}
+
+.command-item:last-child {
+  border-bottom: none;
+}
+
+.command-item:hover {
+  background-color: rgba(74, 203, 80, 0.05);
+}
+
+.command-name {
+  color: #00BFFF;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.command-description {
+  color: #888;
+  font-size: 11px;
+  text-align: right;
+  max-width: 50%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Scrollbar Styling */
+.manual-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.manual-content::-webkit-scrollbar-track {
+  background: #121212;
+}
+
+.manual-content::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.manual-panel.floating {
+  animation: floatIn 0.3s ease-out;
+}
