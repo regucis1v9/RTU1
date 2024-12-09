@@ -1,5 +1,3 @@
-// src/views/Overview.jsx
-
 import React, { useEffect, useState } from 'react';
 import { Button, useMantineColorScheme, useComputedColorScheme } from "@mantine/core";
 import { 
@@ -18,7 +16,6 @@ import PressureDisplay from '../components/chart/PressureDisplay';
 import Sidebar from '../components/Sidebar';
 import '../styles/overviewStyles.scss';
 
-// Export TIME_RANGES so it can be imported by MainChart
 export const TIME_RANGES = {
   '1m': 60,
   '5m': 300,

@@ -106,8 +106,17 @@ export default function SingleProfile() {
 
     // Button click handler for saving changes
     const handleSaveChanges = () => {
+        if (!validateData()) {
+            showNotification({
+                title: "Nepieciešamie lauki",
+                message: "Lūdzu, aizpildiet visus laukus pirms saglabāšanas.",
+                color: 'red',
+            });
+            return;
+        }
         saveChanges();
     };
+
     useEffect(() => {
         const fetchCsvData = async () => {
             try {
@@ -157,7 +166,17 @@ export default function SingleProfile() {
         }
     }, [fileName]);
 
-
+    const validateData = () => {
+        for (const row of data) {
+            if (
+                row.tMin === '' || row.tMax === '' || row.time === '' || row.pressure === '' ||
+                row.tMin === null || row.tMax === null || row.time === null || row.pressure === null
+            ) {
+                return false;
+            }
+        }
+        return true;
+    };
 
     const addRow = (index, position) => {
         // Create a new row
@@ -298,7 +317,7 @@ export default function SingleProfile() {
         <Table.Tr key={row.step}>
             <Table.Td ta='center'>{row.step}</Table.Td>
             <Table.Td ta='center'>
-                <Group align='center' justify='center'>
+                <Group align='center' justify='center' miw={117}>
                     {index === 0 && startFromRoomTemp ? (
                         <Text>Istabas Temp.</Text>
                     ) : (
@@ -315,7 +334,7 @@ export default function SingleProfile() {
                 </Group>
             </Table.Td>
             <Table.Td ta='center'>
-                <Group align='center' justify='center'>
+                <Group align='center' justify='center' miw={117}>
                     <NumberInput
                         decimalScale={0}
                         w={90}
@@ -328,7 +347,7 @@ export default function SingleProfile() {
                 </Group>
             </Table.Td>
             <Table.Td ta='center'>
-                <Group align='center' justify='center'>
+                <Group align='center' justify='center' miw={117}>
                     <NumberInput
                         decimalScale={0}
                         min={1}
@@ -341,7 +360,7 @@ export default function SingleProfile() {
                 </Group>
             </Table.Td>
             <Table.Td ta='center'>
-                <Group align='center' justify='center'>
+                <Group align='center' justify='center' miw={132}>
                     <NumberInput
                         step={0.1}
                         min={0.5}
@@ -357,9 +376,9 @@ export default function SingleProfile() {
                 </Group>
             </Table.Td>
             <Table.Td ta='center'>
-                <Group align='center' justify='center'>
+                <Group align='center' justify='center' >
                     <Table.Td ta='center'>
-                        <Group align='center' justify='center'>
+                        <Group align='center' justify='center' miw={117}>
                             <NumberInput
                                 step={1}
                                 w={90}
