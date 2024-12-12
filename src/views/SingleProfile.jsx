@@ -54,8 +54,62 @@ export default function SingleProfile() {
     const t = translations[language] || translations['Latviešu'];
     const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
     const [totalTime, setTotalTime] = useState(data.reduce((total, row) => total + row.time, 0)); // Initialize total time
+    const [editedFileName, setEditedFileName] = useState(fileName); // Local state for file name
 
-    const saveChanges = async () => {
+    const renameFile = async () => {
+        try {
+            const response = await fetch(`http://localhost:5001/renameFile`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    oldFileName: fileName,
+                    newFileName: editedFileName,
+                }),
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Error renaming file:', errorData);
+                showNotification({
+                    title: t.renameFailed,
+                    message: t.fileNotRenamed,
+                    color: 'red',
+                });
+                return false;
+            }
+    
+            const result = await response.json();
+            console.log('Rename success:', result);
+            
+            // Update the local state and URL
+            const newFileName = result.newFileName;
+            setProjectName(editedFileName);
+            
+            // Update the URL without reloading the page
+            window.history.replaceState(null, '', `/profile/${newFileName}`);
+    
+            showNotification({
+                title: t.renameSuccess,
+                message: t.fileRenamed,
+                color: 'green',
+            });
+    
+            // Return the new filename
+            return newFileName;
+        } catch (error) {
+            console.error('Failed to rename file:', error);
+            showNotification({
+                title: t.error,
+                message: t.fileRenameError,
+                color: 'red',
+            });
+            return false;
+        }
+    };
+    
+    const saveChanges = async (fileNameToUse) => {
         const updatedData = data.map((row) => ({
             step: row.step,
             tMin: row.tMin,
@@ -65,7 +119,7 @@ export default function SingleProfile() {
             tMinUnit: row.tMinUnit,
             tMaxUnit: row.tMaxUnit
         }));
-        console.log(updatedData)
+    
         try {
             const response = await fetch(`http://localhost:5001/updateFile`, {
                 method: 'POST',
@@ -73,38 +127,59 @@ export default function SingleProfile() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    fileName: fileName,
+                    fileName: fileNameToUse || fileName,
                     data: updatedData
                 }),
             });
-
+    
             if (!response.ok) {
-                console.error('Error saving changes');
-                return;
+                const errorData = await response.json();
+                console.error('Error saving changes:', errorData);
                 showNotification({
-                    title: "Neveiksmīgi saglabāts profils",
-                    message: "Profils netika saglabāts",
+                    title: t.saveFailed,
+                    message: t.fileNotSaved,
                     color: 'red',
                 });
+                return;
             }
-
+    
             const result = await response.json();
             console.log('Save success:', result);
             showNotification({
-                title: "Veiksmīgi saglabāts profils",
-                message: "Profils tika saglabāts",
+                title: t.saveSuccess,
+                message: t.fileSaved,
                 color: 'green',
             });
-
         } catch (error) {
             console.error('Failed to save changes:', error);
+            showNotification({
+                title: t.error,
+                message: t.saveError,
+                color: 'red',
+            });
         }
     };
-
-    // Button click handler for saving changes
-    const handleSaveChanges = () => {
-        saveChanges();
+    
+    const handleSaveChanges = async () => {
+        // Check if the filename is being changed
+        const sanitizedCurrentFileName = fileName.replace(/-\d{4}-\d{2}-\d{2}.*/, '');
+        const sanitizedEditedFileName = editedFileName.replace(/-\d{4}-\d{2}-\d{2}.*/, '');
+    
+        let newFileName = fileName;
+    
+        // Rename if the filename is different
+        if (sanitizedCurrentFileName !== sanitizedEditedFileName) {
+            const renamedFile = await renameFile();
+            if (!renamedFile) {
+                return; // Exit if renaming fails
+            }
+            newFileName = renamedFile;
+        }
+    
+        // Save changes with the potentially new filename
+        await saveChanges(newFileName);
     };
+    
     useEffect(() => {
         const fetchCsvData = async () => {
             try {
@@ -349,7 +424,7 @@ export default function SingleProfile() {
                         <Flex w={width} h={height} gap="md" justify="center" align="center" direction="column">
                             <Group w={width * 0.8} justify='space-between'>
                                 <Input.Wrapper label={t.programName} withAsterisk>
-                                    <Input placeholder="..." variant='filled' value={fileName} onChange={(e) => setProjectName(e.target.value)}/>
+                                    <Input placeholder="..." variant='filled' value={editedFileName} onChange={(e) => setEditedFileName(e.target.value)} />
                                 </Input.Wrapper>
                                 <Group>
                                     <Button onClick={cancelChanges} rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>
