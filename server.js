@@ -153,7 +153,6 @@ app.post('/updateFile', (req, res) => {
   // Step 4: Separate header from the data rows
   const header = rows[0]; // First row is the header
   let dataRows = rows.slice(1); // The rest are data rows
-  
 
   // Step 5: Process the incoming data
   const newRows = data.map((newRow) => {
@@ -199,7 +198,7 @@ app.post('/updateFile', (req, res) => {
   });
 
   // Step 9: Combine the header with the updated rows
-  const updatedCsvContent = [updatedHeader, ...updatedRowsToKeep].join('\n');
+  const updatedCsvContent = [header, ...updatedRowsToKeep].join('\n');
 
   // Step 10: Write the updated CSV content back to the file
   fs.writeFile(filePath, updatedCsvContent, 'utf8', (err) => {
@@ -212,3 +211,24 @@ app.post('/updateFile', (req, res) => {
     res.json({ message: 'CSV file updated successfully', filePath });
   });
 });
+const { exec } = require('child_process');
+
+// Endpoint to run test.sh
+app.post('/run-script', (req, res) => {
+  const scriptPath = path.join(__dirname, 'test.sh');
+
+  // Execute the shell script
+  exec(`bash ${scriptPath}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error executing script: ${error.message}`);
+      return res.status(500).json({ message: 'Error running the script', error: error.message });
+    }
+    if (stderr) {
+      console.warn(`Script stderr: ${stderr}`);
+    }
+
+    // Respond with the script's output
+    res.json({ message: 'Script executed successfully', output: stdout.trim() });
+  });
+});
+

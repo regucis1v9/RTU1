@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import "../styles/overviewStyles.scss"; // Custom styles
+import "../styles/overviewStyles.scss"; 
 import { Link } from 'react-router-dom';
 import { Input, Button } from '@mantine/core';
 
-// Import the JSON config directly
-import configData from '../config.json'; // Now inside src folder
+import configData from '../config.json'; 
 
 const Login = () => {
     const [showLogin, setShowLogin] = useState(false);
