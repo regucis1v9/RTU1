@@ -287,10 +287,6 @@ app.post('/updateFile', (req, res) => {
 });
 const { exec } = require('child_process');
 
-// Endpoint to run test.sh
-const path = require('path');
-const { exec } = require('child_process');
-
 app.post('/run-script', (req, res) => {
   const scriptPath = path.join(__dirname, 'test.bat'); // Change the extension to '.bat'
 
