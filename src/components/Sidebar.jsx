@@ -72,11 +72,11 @@ const Sidebar = ({ isOpen, onClose }) => {
             </div>
           ))}
           <div className="tempBox max-temp">
-            <div className="tempTitle">Maksimālā Temperatūra</div>
+            <div className="tempTitle">Max Temp</div>
             <div className="tempDisplay">{maxTemp}°C</div>
           </div>
           <div className="tempBox min-temp">
-            <div className="tempTitle">Minimālā Temperatūra</div>
+            <div className="tempTitle">Min Temp</div>
             <div className="tempDisplay">{minTemp}°C</div>
           </div>
         </div>
