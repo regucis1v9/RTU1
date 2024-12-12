@@ -1,0 +1,508 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500&display=swap');
+
+:root {
+    --bg-dark: #121212;
+    --bg-darker: #0a0a0a;
+    --text-primary: #ffffff;
+    --text-secondary: #888888;
+    --accent-primary: #3b82f6;
+    --accent-secondary: #4ade80;
+    --border-color: #2c2c2c;
+    --selection-bg: #3b82f6;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-primary) var(--bg-dark);
+}
+mark{
+    font-family: 'Fira Code', monospace;
+}
+
+*::selection {
+    background-color: var(--selection-bg);
+    color: var(--text-primary);
+    font-family: 'Fira Code', monospace;
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--accent-primary);
+    border-radius: 4px;
+}
+
+.o-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    height: 60vh;
+}
+
+.botCont {
+    width: 90vw;
+    height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.terminalContainer {
+    width: 90%;
+    height: 90%;
+    border-radius: 12px;
+    display: flex;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    border: 1px solid var(--border-color);
+    position: relative;
+    z-index: 11;
+    font-family: 'Fira Code', monospace;
+}
+
+.manualContainer {
+    position: absolute;
+    left: -300px;
+    top: 0;
+    width: 300px;
+    height: 100%;
+    background-color: var(--bg-darker);
+    border-right: 1px solid var(--border-color);
+    transition: transform 0.3s ease;
+    z-index: 10;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.manualContainer.open {
+    transform: translateX(100%);
+}
+
+.terminalLeft {
+    width: 70%;
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-dark);
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.editorToolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px;
+    background-color: var(--bg-darker);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.editorActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.searchContainer {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-dark);
+    border-radius: 20px;
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    gap: 6px;
+    width: 250px;
+    height: 40px;
+}
+
+.search-icon {
+    color: var(--text-secondary);
+    margin-right: 4px;
+}
+
+.searchInput {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    outline: none;
+    flex-grow: 1;
+    font-size: 12px;
+}
+
+.search-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-secondary);
+    font-size: 8px;
+}
+
+.search-nav button {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 8px;
+}
+
+.editorButton {
+    background-color: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: color 0.3s ease;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.editorButton:hover {
+    background-color: var(--border-color);
+    color: var(--accent-primary);
+}
+
+.terminalRight {
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-darker);
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.terminalBox {
+    width: 80%;
+    height: 60%;
+    background-color: var(--bg-darker);
+    border-radius: 12px;
+    margin: auto;
+    display: flex;
+    border: 1px solid var(--border-color);
+    position: relative;
+}
+
+.lineNumberContainer {
+    width: 40px;
+    background-color: var(--bg-dark);
+    padding: 15px 0;
+    text-align: right;
+    color: var(--text-secondary);
+    user-select: none;
+    overflow-y: hidden;
+    border-right: 1px solid var(--border-color);
+}
+
+.lineNumber {
+    font-size: 11px;
+    padding-right: 8px;
+    opacity: 0.5;
+}
+
+.code-wrapper {
+    position: relative;
+    width: 100%;
+    font-family: 'Fira Code', monospace;
+}
+
+.tInput, .code-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    font-family: 'Fira Code', monospace;
+    line-height: 1.6;
+    font-size: 12px;
+    
+}
+
+.tInput {
+    background: transparent;
+    color: transparent;
+    caret-color: var(--text-primary);
+    resize: none;
+    z-index: 2;
+    padding: 15px;
+    border: none;
+    outline: none;
+    font-family: 'Fira Code', monospace;
+}
+
+.code-highlight {
+    z-index: 1;
+    margin: 0;
+    padding: 15px;
+    overflow: auto;
+    background-color: var(--bg-darker);
+    font-family: 'Fira Code', monospace;
+}
+
+.search-highlight {
+    background-color: var(--accent-primary);
+    color: var(--text-primary);
+    padding: 0 4px;
+    border-radius: 2px;
+    font-family: 'Fira Code', monospace;
+}
+
+.buttonCont {
+    width: 80%;
+    margin: 10px auto;
+    height: 40px;
+    display: flex;
+    gap: 10px;
+}
+
+.testBtn, .saveBtn {
+    flex: 1;
+    height: 100%;
+    background-color: var(--accent-primary);
+    color: var(--text-primary);
+    border: none;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.testBtn:hover, .saveBtn:hover {
+    background-color: var(--accent-secondary);
+}
+
+.csvListContainer {
+    width: 90%;
+    height: 70%;
+    background-color: var(--bg-dark);
+    margin: auto;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.csv-file {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background-color: var(--bg-darker);
+    margin-bottom: 8px;
+    border-radius: 6px;
+    cursor: grab;
+    transition: background-color 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.csv-file:hover {
+    background-color: var(--border-color);
+}
+
+.file-icon {
+    color: var(--accent-primary);
+    margin-right: 10px;
+}
+
+.file-name {
+    color: var(--text-primary);
+    flex-grow: 1;
+    font-size: 12px;
+}
+
+.file-size {
+    color: var(--text-secondary);
+    font-size: 10px;
+}
+
+.fileActionButtons {
+    display: flex;
+    width: 90%;
+    margin: 10px auto;
+    gap: 10px;
+}
+
+.csvCreateBtn, .csvUploadBtn {
+    flex: 1;
+    background-color: var(--accent-secondary);
+    color: var(--bg-dark);
+    border: none;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    transition: background-color 0.3s ease;
+}
+
+.csvCreateBtn:hover, .csvUploadBtn:hover {
+    background-color: var(--accent-primary);
+}
+
+.terminalOutputContainer {
+    width: 100%;
+    height: 20%;
+    background-color: var(--bg-darker);
+    border-top: 1px solid var(--border-color);
+    padding: 10px;
+    overflow-y: auto;
+    font-family: 'Fira Code', monospace;
+}
+
+.terminal-line {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.terminal-line.output {
+    color: var(--accent-secondary);
+}
+
+.terminal-line.error {
+    color: #ff6b6b;
+}
+
+.manual-content h2 {
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.manual-content h3 {
+    color: var(--accent-primary);
+    margin-bottom: 10px;
+}
+
+.manual-content ul {
+    list-style-type: none;
+    padding-left: 10px;
+}
+
+.manual-content li {
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    padding-left: 15px;
+    position: relative;
+}
+
+.manual-content li::before {
+    content: '•';
+    color: var(--accent-secondary);
+    position: absolute;
+    left: 0;
+}
+.fileNameInput{
+    width: 30%;
+    height: 40px;
+    position: absolute;
+    margin-left: 10px;
+    top: 8px;
+    border: 1px solid white;
+}
+.fileName-container {
+    position: absolute;
+    left: 10px;
+    width: calc(70% - 20px);
+    z-index: 10;
+  }
+  
+  .fileNameInput {
+    width: 40%;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: 
+      background-color 0.3s ease, 
+      border-color 0.3s ease,
+      transform 0.2s ease;
+  }
+  
+  .fileNameInput:focus {
+    outline: none;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: var(--accent-primary);
+    transform: scale(1.01);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+  }
+  
+  .csv-file {
+    position: relative;
+  }
+  
+  .delete-file-btn {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    background-color: transparent;
+    border: none;
+    color: #ff6b6b;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .csv-file:hover .delete-file-btn {
+    opacity: 1;
+  }
+
+  .csv-file {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background-color: var(--bg-darker);
+    margin-bottom: 8px;
+    border-radius: 6px;
+    cursor: grab;
+    transition: background-color 0.3s ease;
+    border: 1px solid var(--border-color);
+    position: relative;
+  }
+  
+  .file-icon {
+    color: var(--accent-primary);
+    margin-right: 10px;
+  }
+  
+  .file-name {
+    color: var(--text-primary);
+    flex-grow: 1;
+    font-size: 12px;
+  }
+  
+  .delete-file-btn {
+    background-color: transparent;
+    border: none;
+    color: #ff6b6b;
+    cursor: pointer;
+    padding: 4px;
+    transition: 
+      color 0.3s ease,
+      transform 0.3s ease;
+  }
+  
+  .delete-file-btn:hover {
+    color: #ff4757;
+    transform: scale(1.05);
+  }
+  
+  .delete-file-btn:active {
+    transform: scale(0.9);
+  }
