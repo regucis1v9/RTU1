@@ -232,12 +232,7 @@ const AllProfiles = () => {
             setProjectToDelete(null);
         }
     };
-
-    const handleLanguageChange = (value) => {
-        setLanguage(value);
-        localStorage.setItem('lang', value);
-    };
-
+    
     const tutorialContent1 = (
         <div style={{ padding: 20 }}>
             <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>

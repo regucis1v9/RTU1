@@ -116,7 +116,7 @@ export default function SingleProfile() {
     };
     
     const saveChanges = async (fileNameToUse) => {
-        const updatedData = data.map((row) => ({
+        const updatedData = data.map((row, index) => ({
             step: row.step,
             tMin: index === 0 && startFromRoomTemp ? "istabas" : row.tMin,
             tMax: row.tMax,
@@ -401,8 +401,8 @@ export default function SingleProfile() {
 
             const result = await response.json();
             showNotification({
-                title: 'Program Started Successfully',
-                message: `Script output: ${result.output}`,
+                title: 'Paziņojums no programmas',
+                message: `Programma palaista veiksmīgi`,
                 color: 'green',
             });
         } catch (error) {
@@ -480,7 +480,7 @@ export default function SingleProfile() {
                                 </Tabs>
                             <Group w={width * 0.8} justify='space-between'>
                                 <Text>{t.totalProgramTime} {formattedProgramTime}</Text>
-                                <Link to={'/overview/filename'}>
+                                <Link to={'/overviewMain/filename'}>
                                     <Button
                                         onClick={startProgram}
                                         rightSection={<IconPlayerPlayFilled size={20} />}
