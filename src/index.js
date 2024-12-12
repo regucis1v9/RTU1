@@ -16,6 +16,8 @@ import { TemperatureUnitProvider } from './context/TemperatureUnitContext';
 import { PauseProvider } from './context/PauseContext';
 import { AlertPopup } from './views/AlertPopup';
 import PauseScreen from "./components/PauseScreen";
+import OverviewMain from './views/OverviewMain';
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -121,7 +123,7 @@ function App() {
                 <Routes>
                   <Route path="/landing" element={<Landing />} />
                   <Route path="/allProfiles" element={<AllProfiles />} />
-                  <Route path="/overView/:fileName" element={<Overview />} />
+                  <Route path="/OverviewMain/:fileName" element={<OverviewMain />} />
                   <Route path="/singleProfile/:fileName" element={<SingleProfile />} />
                   <Route path="/" element={<Login />} />
                   <Route path="/testing" element={<TestingPage />} />
