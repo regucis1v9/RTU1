@@ -1,1 +1,2 @@
-osascript -e 'display dialog "Fails tika palaists" with title "Paziņojums" buttons {"OK"} with icon file POSIX file "/Users/regnarsklavins/Desktop/programming/rtu1/zVwOQQHJb54y5A3NvviupegCTNCHLA1N.icns"'
+@echo off
+powershell -ExecutionPolicy Bypass -File "C:\path\to\show_dialog.ps1"

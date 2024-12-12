@@ -17,7 +17,7 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
   const [lineVisibility, setLineVisibility] = useState({
     temp1: true, temp2: true, temp3: true, temp4: true,
     temp5: true, temp6: true, temp7: true,
-    temp1_2: true, temp2_2: true
+    T_istaba: true, T_kodola: true
   });
 
   const TIME_RANGES = {
@@ -29,7 +29,7 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
     temp1: '#ff9f1c', temp2: '#0AF7DD', temp3: '#00ff09',
     temp4: '#ff00ff', temp5: '#ff6347', temp6: '#4169e1',
     temp7: '#ffd700', 
-    temp1_2: '#FF4500', temp2_2: '#1E90FF',
+    T_istaba: '#FF4500', T_kodola: '#1E90FF',
     vacuum: '#4a90e2', freeze: '#e25c5c',
     vent: '#50c878', pressure: '#4a90e2'
   };
@@ -61,7 +61,7 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
     Notiflix.Confirm.show(
       'Programmas Beigas', 
       'Visi soļi tika izpildīti, ko jūs vēlaties darīt?',
-      'Skatīt Grafiku',
+      'Palikt',
       'Uz Mājām',
       () => console.log('View Graphs clicked'),
       () => window.location.href = '/'
@@ -108,8 +108,8 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
       temp5: Math.sin(secondsElapsed / 700) * 6 - 33 + Math.random() * 2,
       temp6: Math.sin(secondsElapsed / 750) * 4 - 35 + Math.random() * 2,
       temp7: Math.sin(secondsElapsed / 800) * 5 - 31 + Math.random() * 2,
-      temp1_2: Math.sin(secondsElapsed / 400) * 7 - 35 + Math.random() * 2,
-      temp2_2: Math.sin(secondsElapsed / 450) * 6 - 33 + Math.random() * 2,
+      T_istaba: Math.sin(secondsElapsed / 400) * 7 - 35 + Math.random() * 2,
+      T_kodola: Math.sin(secondsElapsed / 450) * 6 - 33 + Math.random() * 2,
       pressure: Math.sin(secondsElapsed / 300) * 50 + 760 + Math.random() * 10,
     };
   };
@@ -172,8 +172,19 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
 
   useEffect(() => {
     if (dimensions.width === 0 || dimensions.height === 0 || collectedData.length === 0) return;
-  
-    const margin = { top: 80, right: 30, bottom: 120, left: 60 };
+    const margin = (() => {
+      switch(chartType) {
+        case 'temperature':
+          return { top: 100, right: 30, bottom: 100, left: 60 };
+        case 'pressure':
+          return { top: 50, right: 30, bottom: 90, left: 60 }; // Increased bottom margin
+        case 'temperature2':
+          return { top: 50, right: 30, bottom: 80, left: 60 }; // Adjusted bottom margin
+        default:
+          return { top: 50, right: 30, bottom: 50, left: 60 };
+      }
+    })();
+    
     const width = dimensions.width - margin.left - margin.right;
     const height = dimensions.height - margin.top - margin.bottom;
   
@@ -227,12 +238,12 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
         ? [
             Math.min(...filteredData.map(d => 
               Math.min(
-                d.temp1_2 ?? -Infinity, d.temp2_2 ?? -Infinity
+                d.T_istaba ?? -Infinity, d.T_kodola ?? -Infinity
               )
             )) - 2, 
             Math.max(...filteredData.map(d => 
               Math.max(
-                d.temp1_2 ?? Infinity, d.temp2_2 ?? Infinity
+                d.T_istaba ?? Infinity, d.T_kodola ?? Infinity
               )
             )) + 2
           ]
@@ -334,33 +345,45 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
     };
 
     const renderChartElements = () => {
-      chartArea.append('text')
-        .attr('x', width / 2)
-        .attr('y', -margin.top / 2)
-        .attr('text-anchor', 'middle')
-        .attr('fill', '#333')
-        .attr('font-size', '20px')
-        .attr('font-weight', 'bold')
-        .text('Project 1');
-
-      chartArea.append('text')
-        .attr('x', width / 2)
-        .attr('y', -margin.top / 4)
-        .attr('text-anchor', 'middle')
-        .attr('fill', '#666')
-        .attr('font-size', '14px')
-        .text('12-12-2024-project1.csv');
-
-      chartArea.append('text')
-        .attr('x', width)
-        .attr('y', -margin.top / 4)
-        .attr('text-anchor', 'end')
-        .attr('fill', '#666')
-        .attr('font-size', '14px')
-        .text(`Solis: ${dataPointCount}/10`);
-
+      if (chartType === 'temperature' || chartType === 'temperature2' || chartType === 'pressure') {
+        const titleText = chartType === 'pressure' ? 'Pressure' : 
+                          chartType === 'temperature2' ? 'Temperature' : 
+                          'Temperature';
+        const showFileText = chartType === 'temperature'; // Only show the file text for 'temperature'
+    
+        // Title
+        chartArea.append('text')
+          .attr('x', width / 2)
+          .attr('y', chartType === 'pressure' || chartType === 'temperature2' ? -9 : -margin.top / 2)
+          .attr('text-anchor', 'middle')
+          .attr('fill', '#333')
+          .attr('font-size', '20px')
+          .attr('font-weight', 'bold')
+          .text(titleText);
+    
+        // File text (only for 'temperature')
+        if (showFileText) {
+          chartArea.append('text')
+            .attr('x', width / 2)
+            .attr('y', -margin.top / 4)
+            .attr('text-anchor', 'middle')
+            .attr('fill', '#666')
+            .attr('font-size', '14px')
+            .text('12-12-2024-project1.csv');
+        }
+    
+        // Solis Text
+        chartArea.append('text')
+          .attr('x', width)
+          .attr('y', -margin.top / 4)
+          .attr('text-anchor', 'end')
+          .attr('fill', '#666')
+          .attr('font-size', '14px')
+          .text(`Solis: ${dataPointCount}/10`);
+      }
+    
       renderAxes();
-
+    
       if (chartType === 'temperature') {
         ['temp1', 'temp2', 'temp3', 'temp4', 'temp5', 'temp6', 'temp7'].forEach(tempKey => {
           if (lineVisibility[tempKey]) {
@@ -368,15 +391,16 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
           }
         });
       } else if (chartType === 'temperature2') {
-        ['temp1_2', 'temp2_2'].forEach(tempKey => {
+        ['T_istaba', 'T_kodola'].forEach(tempKey => {
           if (lineVisibility[tempKey]) {
             addLineWithDots(filteredData, d => d[tempKey], COLORS[tempKey], tempKey);
           }
         });
-      } else {
+      } else if (chartType === 'pressure') {
         addLineWithDots(filteredData, d => d.pressure, COLORS.pressure, 'pressure');
       }
     };
+    
 
     const addLineWithDots = (data, accessor, color, lineId) => {
       const lineGenerator = d3.line()
@@ -411,57 +435,58 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
         .attr('clip-path', 'url(#chart-clip)');
     };
 
-    // System timeline constants
-    const timelineHeight = 15;
-    const timelineGap = 10;
-    const systemLabelWidth = 80;
-    const timelineStartY = height + margin.bottom / 1;
+    if (chartType === 'temperature') {
+      const timelineHeight = 15;
+      const timelineGap = 10;
+      const systemLabelWidth = 80;
+      const timelineStartY = height + margin.bottom / 1 + 25; // Move down by 20 pixels
 
-    const systems = ['vacuum', 'freeze', 'vent'];
-    const systemLabels = {
-      vacuum: 'Vakuums',
-      freeze: 'Saldētājs', 
-      vent: 'Ventilācija'
-    };
+      const systems = ['vacuum', 'freeze', 'vent'];
+      const systemLabels = {
+        vacuum: 'Vakuums',
+        freeze: 'Saldētājs', 
+        vent: 'Ventilācija'
+      };
 
-    systems.forEach((system, index) => {
-      const yPos = timelineStartY + index * (timelineHeight + timelineGap);
+      systems.forEach((system, index) => {
+        const yPos = timelineStartY + index * (timelineHeight + timelineGap);
 
-      svg.append('text')
-        .attr('x', margin.left - 10)
-        .attr('y', yPos + timelineHeight / 2)
-        .attr('text-anchor', 'end')
-        .attr('dominant-baseline', 'middle')
-        .attr('fill', '#333')
-        .attr('font-size', '8px')
-        .attr('font-weight', 'bold')
-        .text(systemLabels[system]);
+        svg.append('text')
+          .attr('x', margin.left - 10)
+          .attr('y', yPos + timelineHeight / 2)
+          .attr('text-anchor', 'end')
+          .attr('dominant-baseline', 'middle')
+          .attr('fill', '#333')
+          .attr('font-size', '8px')
+          .attr('font-weight', 'bold')
+          .text(systemLabels[system]);
 
-      svg.append('rect')
-        .attr('x', margin.left)
-        .attr('y', yPos)
-        .attr('width', width)
-        .attr('height', timelineHeight)
-        .attr('stroke', '#d0d0d0')
-        .attr('stroke-width', 0.5)
-        .attr('fill', 'none');
+        svg.append('rect')
+          .attr('x', margin.left)
+          .attr('y', yPos)
+          .attr('width', width)
+          .attr('height', timelineHeight)
+          .attr('stroke', '#d0d0d0')
+          .attr('stroke-width', 0.5)
+          .attr('fill', 'none');
 
-      const allStates = collectedData.map(d => d.systemStates[system][0]).filter(Boolean);
-      
-      allStates.forEach(state => {
-        if (state.isActive) {
-          svg.append('rect')
-            .attr('x', margin.left + xScale(state.start))
-            .attr('y', yPos)
-            .attr('width', Math.max(0, xScale(state.end) - xScale(state.start)))
-            .attr('height', timelineHeight)
-            .attr('fill', COLORS[system])
-            .attr('opacity', 0.7)
-            .attr('stroke', COLORS[system])
-            .attr('stroke-width', 0.5);
-        }
+        const allStates = collectedData.map(d => d.systemStates[system][0]).filter(Boolean);
+        
+        allStates.forEach(state => {
+          if (state.isActive) {
+            svg.append('rect')
+              .attr('x', margin.left + xScale(state.start))
+              .attr('y', yPos)
+              .attr('width', Math.max(0, xScale(state.end) - xScale(state.start)))
+              .attr('height', timelineHeight)
+              .attr('fill', COLORS[system])
+              .attr('opacity', 0.7)
+              .attr('stroke', COLORS[system])
+              .attr('stroke-width', 0.5);
+          }
+        });
       });
-    });
+    }
 
     zoomRef.current = { zoom, zoomRect, xScale, yScale };
 
@@ -469,17 +494,15 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
   }, [dimensions, timeRange, collectedData, dataPointCount, lineVisibility, chartType]);
 
   return (
-   
     <div
       ref={containerRef}
       className="chart"
       style={{
         position: 'relative',
         width: '100%',
-        height: '500px',
       }}
     >
-       {isSidebarOpen && <Sidebar isOpen={isSidebarOpen} onClose={onSidebarClose} />}
+      {isSidebarOpen && <Sidebar isOpen={isSidebarOpen} onClose={onSidebarClose} />}
       <div className="svg-container" style={{ height: '100%', width: '100%' }}>
         <svg
           ref={svgRef}
@@ -491,7 +514,6 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
         <div
           style={{
             position: 'absolute',
-            top: '10px',
             left: '10px',
             display: 'flex',
             gap: '10px',
@@ -515,7 +537,7 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
                   {temp.toUpperCase()}
                 </button>
               ))
-            : ['temp1_2', 'temp2_2'].map((temp) => (
+            : ['T_istaba', 'T_kodola'].map((temp) => (
                 <button
                   key={temp}
                   onClick={() => toggleLine(temp)}
