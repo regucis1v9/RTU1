@@ -288,11 +288,14 @@ app.post('/updateFile', (req, res) => {
 const { exec } = require('child_process');
 
 // Endpoint to run test.sh
-app.post('/run-script', (req, res) => {
-  const scriptPath = path.join(__dirname, 'test.sh');
+const path = require('path');
+const { exec } = require('child_process');
 
-  // Execute the shell script
-  exec(`bash ${scriptPath}`, (error, stdout, stderr) => {
+app.post('/run-script', (req, res) => {
+  const scriptPath = path.join(__dirname, 'test.bat'); // Change the extension to '.bat'
+
+  // Execute the batch script using cmd.exe on Windows
+  exec(`cmd.exe /c "${scriptPath}"`, (error, stdout, stderr) => {
     if (error) {
       console.error(`Error executing script: ${error.message}`);
       return res.status(500).json({ message: 'Error running the script', error: error.message });
@@ -305,4 +308,5 @@ app.post('/run-script', (req, res) => {
     res.json({ message: 'Script executed successfully', output: stdout.trim() });
   });
 });
+
 
