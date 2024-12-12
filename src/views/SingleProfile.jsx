@@ -4,7 +4,7 @@ import {
     rem,
     Flex,
     Button,
-    Table,
+    Tabs,
     ScrollArea,
     Group,
     Text,
@@ -34,7 +34,8 @@ import Header from "../components/Header"
 import { useLanguage } from '../context/LanguageContext'; // Importing Language context
 import { usePressureUnit } from '../context/PressureUnitContext'; // Importing PressureUnit context
 import { useTemperatureUnit } from '../context/TemperatureUnitContext';
-
+import StepTable from "../components/singleProfile/StepTable";
+import ConfigScreen from "../components/singleProfile/ConfigScreen";
 const toFahrenheit = (celsius) => (celsius * 9/5) + 32;
 const toKelvin = (celsius) => celsius + 273.15;
 const fromFahrenheitToCelsius = (fahrenheit) => (fahrenheit - 32) * 5/9;
@@ -100,6 +101,7 @@ export default function SingleProfile() {
             });
         } catch (error) {
             console.error('Failed to save changes:', error);
+            console.log(data)
         }
     };
 
@@ -312,102 +314,31 @@ export default function SingleProfile() {
     const handleLanguageChange = (newLang) => {
         changeLanguage(newLang); // This will trigger a re-render and change language in all components
     }
+    const startProgram = async () => {
+        try {
+            const response = await fetch('http://localhost:5001/run-script', {
+                method: 'POST',
+            });
 
-    const rows = data.map((row, index) => (
-        <Table.Tr key={row.step}>
-            <Table.Td ta='center'>{row.step}</Table.Td>
-            <Table.Td ta='center'>
-                <Group align='center' justify='center' miw={117}>
-                    {index === 0 && startFromRoomTemp ? (
-                        <Text>Istabas Temp.</Text>
-                    ) : (
-                        <NumberInput
-                            decimalScale={0}
-                            w={90}
-                            variant="filled"
-                            value={convertTemperature(row.tMin, row.tMinUnit, temperatureUnit)}
-                            disabled={index === 0 && startFromRoomTemp}
-                            onChange={(val) => updateRow(index, 'tMin', val)}
-                        />
-                    )}
-                    {!startFromRoomTemp && <Text>{temperatureUnit}</Text>}
-                </Group>
-            </Table.Td>
-            <Table.Td ta='center'>
-                <Group align='center' justify='center' miw={117}>
-                    <NumberInput
-                        decimalScale={0}
-                        w={90}
-                        variant="filled"
-                        value={convertTemperature(row.tMax, row.tMaxUnit, temperatureUnit)}  // Convert the value to the selected unit
-                        onChange={(val) => updateRow(index, 'tMax', val)}
-                    />
-                    <Text>{temperatureUnit}</Text> {/* Use the current temperature unit for display */}
+            if (!response.ok) {
+                throw new Error(`Failed to start program: ${response.statusText}`);
+            }
 
-                </Group>
-            </Table.Td>
-            <Table.Td ta='center'>
-                <Group align='center' justify='center' miw={117}>
-                    <NumberInput
-                        decimalScale={0}
-                        min={1}
-                        w={70}
-                        clampBehavior="strict"
-                        variant="filled" 
-                        value={row.time} 
-                        onChange={(val) => updateRow(index, 'time', val)}
-                    />
-                    min
-                </Group>
-            </Table.Td>
-            <Table.Td ta='center'>
-                <Group align='center' justify='center' miw={132}>
-                    <NumberInput
-                        step={0.1}
-                        min={0.5}
-                        max={100}
-                        clampBehavior="strict"
-                        w={90}
-                        decimalScale={1}
-                        variant="filled"
-                        value={row.pressure} // Directly use raw state value
-                        onChange={(val) => updateRow(index, 'pressure', val)} // Update state directly
-                    />
-                    <Text>bar</Text>
-                </Group>
-            </Table.Td>
-            <Table.Td ta='center'>
-                <Group align='center' justify='center' >
-                    <Table.Td ta='center'>
-                        <Group align='center' justify='center' miw={117}>
-                            <NumberInput
-                                step={1}
-                                w={90}
-                                decimalScale={0}
-                                variant="filled"
-                                value={row.shellTemp} // Use state value
-                                onChange={(val) => updateRow(index, 'shellTemp', val)} // Update state
-                            />
-                            <Text>{temperatureUnit}</Text> {/* Use the current temperature unit */}
-                        </Group>
-                    </Table.Td>
-                </Group>
-            </Table.Td>
-            <Table.Td>
-                <Group align='center' justify='center' miw={235}>
-                    <Button color="blue" size="xs" variant='transparent' onClick={() => addRow(index, 'above')}>
-                        <IconRowInsertTop stroke={2} size={40}/>
-                    </Button>
-                    <Button color="blue" size="xs" variant='transparent' onClick={() => addRow(index, 'below')}>
-                        <IconRowInsertBottom stroke={2} size={40}/>
-                    </Button>
-                    <Button color="red" size="xs" variant='transparent' onClick={() => removeRow(index)}>
-                        <IconTrashXFilled stroke={2} size={30}/>
-                    </Button>
-                </Group>
-            </Table.Td>
-        </Table.Tr>
-    ));
+            const result = await response.json();
+            showNotification({
+                title: 'Program Started Successfully',
+                message: `Script output: ${result.output}`,
+                color: 'green',
+            });
+        } catch (error) {
+            console.error('Error starting program:', error);
+            showNotification({
+                title: 'Failed to Start Program',
+                message: 'Unable to execute the script. Please check the server.',
+                color: 'red',
+            });
+        }
+    };
 
     return (
                 <AppShell withBorder={false} header={{ height: 60 }}>
@@ -442,25 +373,51 @@ export default function SingleProfile() {
                                     <Button onClick={handleSaveChanges} rightSection={<IconCheck size={16} />}>{t.saveChanges}</Button>
                                 </Group>
                             </Group>
-                            <ScrollArea h={height * 0.7} w={width * 0.8} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
-                                <Table miw={700}>
-                                    <Table.Thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
-                                        <Table.Tr>
-                                            <Table.Th ta="center">{t.step}</Table.Th>
-                                            <Table.Th ta="center" onClick={toggleUnitsForAll}>{t.tMin}</Table.Th>
-                                            <Table.Th ta="center" onClick={toggleUnitsForAll}>{t.tMax}</Table.Th>
-                                            <Table.Th ta="center">{t.time}</Table.Th>
-                                            <Table.Th ta="center">{t.pressure}</Table.Th>
-                                            <Table.Th ta="center" >Kondensatora temp.</Table.Th>
-                                            <Table.Th ta="center">{t.rowActions}</Table.Th>
-                                        </Table.Tr>
-                                    </Table.Thead>
-                                    <Table.Tbody>{rows}</Table.Tbody>
-                                </Table>
-                            </ScrollArea>
+                                <Tabs w={width * 0.8} h={height * 0.7} defaultValue="gallery">
+                                    <Tabs.List>
+                                        <Tabs.Tab value="gallery" >
+                                            Konfigurācija
+                                        </Tabs.Tab>
+                                        <Tabs.Tab value="messages" >
+                                            Soļi
+                                        </Tabs.Tab>
+                                    </Tabs.List>
+
+                                    <Tabs.Panel value="gallery" p={20}>
+                                        <ConfigScreen />
+                                    </Tabs.Panel>
+                                    <Tabs.Panel value="messages" pt={10}>
+                                        <ScrollArea h={height * 0.7} w={width * 0.8} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
+                                            <StepTable
+                                                data={data}
+                                                startFromRoomTemp={startFromRoomTemp}
+                                                temperatureUnit={temperatureUnit}
+                                                totalTime={totalTime}
+                                                setTotalTime={setTotalTime}
+                                                addRow={addRow}
+                                                removeRow={removeRow}
+                                                updateRow={updateRow}
+                                                convertTemperature={convertTemperature}
+                                                toggleUnitsForAll={toggleUnitsForAll}
+                                                scrolled={false}
+                                                t={t}
+                                                onSave={handleSaveChanges}
+                                                onCancel={cancelChanges}
+                                            />
+                                        </ScrollArea>
+                                    </Tabs.Panel>
+                                </Tabs>
                             <Group w={width * 0.8} justify='space-between'>
                                 <Text>{t.totalProgramTime} {formattedProgramTime}</Text>
-                                <Button rightSection={<IconPlayerPlayFilled size={20} />} >{t.startProgram}</Button>
+                                <Link to={'/overview/filename'}>
+                                    <Button
+                                        onClick={startProgram}
+                                        rightSection={<IconPlayerPlayFilled size={20} />}
+                                    >
+                                        {t.startProgram}
+                                    </Button>
+
+                                </Link>
                             </Group>
                         </Flex>
                     </AppShell.Main>
