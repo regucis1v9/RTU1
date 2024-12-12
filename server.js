@@ -118,8 +118,8 @@ app.post('/save-csv', (req, res) => {
   const { fileName, csvData } = req.body;
 
   // Define the default row and its values
-  const defaultHeader = 'step,tMin,tMax,time,pressure,tMinUnit,tMaxUnit';
-  const defaultRow = '1,0,0,3,1,C,C'; // Include 'pressure' in default row
+  const defaultHeader = 'step,tMin,tMax,time,pressure,tMinUnit,tMaxUnit,shellTemp';
+  const defaultRow = '1,0,0,1,1,C,C,0'; // Include 'ShellTemp' in default row
 
   // Check if csvData exists and is not empty; otherwise, use default values
   let finalCsvData = defaultRow;
@@ -155,8 +155,6 @@ app.post('/save-csv', (req, res) => {
     res.json({ message: 'CSV file saved successfully', filePath: savedFileName });
   });
 });
-
-
 
 const upload = multer({ storage: storage });
 
@@ -232,8 +230,17 @@ app.post('/updateFile', (req, res) => {
 
   // Step 5: Process the incoming data
   const newRows = data.map((newRow) => {
-    const { step, tMin = 0, tMax = 0, time = 0, pressure = 0, tMinUnit = "C", tMaxUnit = "C" } = newRow;
-    return `${step},${tMin},${tMax},${time},${pressure},${tMinUnit},${tMaxUnit}`;
+    const {
+      step,
+      tMin = 0,
+      tMax = 0,
+      time = 0,
+      pressure = 0,
+      tMinUnit = 'C',
+      tMaxUnit = 'C',
+      shellTemp = 0, // Default ShellTemp
+    } = newRow;
+    return `${step},${tMin},${tMax},${time},${pressure},${tMinUnit},${tMaxUnit},${shellTemp}`;
   });
 
   // Step 6: Identify and update/keep rows
@@ -278,3 +285,24 @@ app.post('/updateFile', (req, res) => {
     res.json({ message: 'CSV file updated successfully', filePath });
   });
 });
+const { exec } = require('child_process');
+
+// Endpoint to run test.sh
+app.post('/run-script', (req, res) => {
+  const scriptPath = path.join(__dirname, 'test.sh');
+
+  // Execute the shell script
+  exec(`bash ${scriptPath}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error executing script: ${error.message}`);
+      return res.status(500).json({ message: 'Error running the script', error: error.message });
+    }
+    if (stderr) {
+      console.warn(`Script stderr: ${stderr}`);
+    }
+
+    // Respond with the script's output
+    res.json({ message: 'Script executed successfully', output: stdout.trim() });
+  });
+});
+

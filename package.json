@@ -6,6 +6,9 @@
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
+    "@fortawesome/fontawesome-free": "^6.7.1",
+    "@fortawesome/free-solid-svg-icons": "^6.7.1",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "@mantine/charts": "^7.13.4",
     "@mantine/core": "^7.13.4",
     "@mantine/dropzone": "^7.13.4",
@@ -30,6 +33,7 @@
     "notiflix": "^3.2.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-draggable": "^4.4.6",
     "react-hot-toast": "^2.4.1",
     "react-icons": "^5.3.0",
     "react-modal": "^3.16.1",

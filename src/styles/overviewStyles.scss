@@ -1131,15 +1131,61 @@ align-items: center;
     height: 40px; /* Increase button size as desired */
     right: 15px;
     top: 50px;
-    background-color: rgb(30, 30, 30);
+    background-color: rgb(0, 0, 0);
     border-radius: 30%; /* Optional: make it round */
+    z-index: 99;
+}
+.mode3-button {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px; /* Increase button size as desired */
+  height: 40px; /* Increase button size as desired */
+  right: 15px;
+  top: 100px;
+  background-color: red;
+  border-radius: 30%; /* Optional: make it round */
+  z-index: 99;
+}
+.mode4-button {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px; /* Increase button size as desired */
+  height: 40px; /* Increase button size as desired */
+  right: 15px;
+  top: 150px;
+  background-color: rgb(0, 128, 255);
+  border-radius: 30%; /* Optional: make it round */
+  z-index: 99;
+}
+.mode5-button {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px; /* Increase button size as desired */
+  height: 40px; /* Increase button size as desired */
+  right: 15px;
+  top: 200px;
+  background-color: rgb(255, 162, 0);
+  border-radius: 30%; /* Optional: make it round */
+  z-index: 99;
 }
 .chartContainer {
     width: 90%;
-    height: 65%;
     display: flex;
     flex-wrap: wrap;
     margin: 10px auto;
+}
+.chartContainerBot {
+  width: 47%;
+  height: 45%;
+  display: flex;
+  flex-wrap: wrap;
+  margin: 10px auto;
 }
   
 .button-container {
@@ -1255,3 +1301,138 @@ button, input, .custom-time-form {
     background-color: #4a5568;
     box-shadow: 0 0 4px rgba(74, 85, 104, 0.4);
   }
+
+/* MainChart.css */
+.line-controls {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: #6e2222;
+    border-radius: 4px;
+    justify-content: flex-start;
+    width: fit-content;
+    border: 1px solid #333;
+  }
+  
+  .line-button {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 32px;
+    color: #fff;
+    background: #2d2d2d;
+    opacity: 0.6;
+  }
+  
+  .line-button:hover {
+    opacity: 0.8;
+  }
+  
+  .line-button.active {
+    opacity: 1;
+  }
+  
+  .line-button.temp1-button.active {
+    background-color: #ff9f1c;
+    box-shadow: 0 0 4px rgba(255, 159, 28, 0.4);
+  }
+  
+  .line-button.temp2-button.active {
+    background-color: #0AF7DD;
+    box-shadow: 0 0 4px rgba(10, 247, 221, 0.4);
+  }
+  
+  .line-button.temp3-button.active {
+    background-color: #00ff09;
+    box-shadow: 0 0 4px rgba(0, 255, 9, 0.4);
+  }
+  
+  .line-button.all-button.active {
+    background-color: #4a5568;
+    box-shadow: 0 0 4px rgba(74, 85, 104, 0.4);
+  }
+
+  /* Main container */
+.chart-settings-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 350px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Dropdown container */
+  .dropdown-container {
+    width: 100%;
+  }
+  
+  /* Dropdown Select */
+  .chart-dropdown {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    color: #eaeaea;
+    background-color: #2b2b2b;
+    border: 1px solid #444;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+  
+  .chart-dropdown:focus {
+    outline: none;
+    border-color: #4caf50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+  }
+  
+  /* Extra Button */
+  .extra-button {
+    padding: 12px 20px;
+    background-color: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    width: 100%;
+  }
+  
+  .extra-button:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+  }
+  
+  .extra-button:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+  }
+
+//   .sidebarContainer{
+//     width: 40%;
+//     height: 100%;
+//     background-color: black;
+//     position: fixed;
+//     z-index: 999;
+//     right: 0;
+//     display: flex;
+//     flex-wrap: wrap;
+
+// }
+.chartContainer{
+  display: flex;
+  height: 50%;
+}
+.chart{
+  height: 100%;
+  display: flex;
+}

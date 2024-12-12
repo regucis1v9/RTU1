@@ -19,6 +19,8 @@ import {
 } from "@mantine/core";
 import { Link } from "react-router-dom";
 import {
+    IconTemperature,
+    IconEaseIn,
     IconAlertOctagonFilled,
     IconArrowLeft,
     IconChartSankey,
@@ -36,7 +38,8 @@ import React, { useState } from "react";
 import { useDisclosure, useViewportSize } from "@mantine/hooks";
 import translations from "../locales/translations";
 import { usePressureUnit } from "../context/PressureUnitContext"; // Import context
-import { useTemperatureUnit } from "../context/TemperatureUnitContext"; // Import context
+import { useTemperatureUnit } from "../context/TemperatureUnitContext";
+import {usePause} from "../context/PauseContext"; // Import context
 
 export default function Header({
                                    language,
@@ -56,7 +59,7 @@ export default function Header({
     const t = translations[language] || translations['Latviešu'];
     const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
     const [tutorialOpen, setTutorialOpen] = useState(false);
-
+    const { isPaused, togglePause } = usePause();
 
     // Context values for pressure and temperature units
     const { pressureUnit: contextPressureUnit, togglePressureUnit: contextTogglePressureUnit } = usePressureUnit();
@@ -98,15 +101,18 @@ export default function Header({
         </div>
     ));
 
+    const handleClick = () => {
+        togglePause(!isPaused);
+    };
     return (
-        <AppShell.Header p={12}>
+        <AppShell.Header p={12} zIndex={9}>
             <Flex align="center" justify="space-between" w="100%">
                 <Link to="/allProfiles">
                     <Button variant="transparent" color={buttonColor}>
                         <IconArrowLeft stroke={3} />
                     </Button>
                 </Link>
-                <Button color="red" leftSection={<IconAlertOctagonFilled />} rightSection={<IconAlertOctagonFilled />}>
+                <Button onClick={handleClick} color="red" leftSection={<IconAlertOctagonFilled />} rightSection={<IconAlertOctagonFilled />}>
                     STOP
                 </Button>
                 <Burger opened={opened} variant="transparent" aria-label="Settings" onClick={toggle} style={{ zIndex: 11 }} />
@@ -142,7 +148,7 @@ export default function Header({
                             </Link>
                             <Select
                                 leftSection={<IconLanguage size={26} />}
-                                variant="unstyled"
+                                variant="filled"
                                 label={t.languageLabel}
                                 allowDeselect={false}
                                 value={language}
@@ -157,7 +163,8 @@ export default function Header({
                                 }}
                             />
                             <Select
-                                variant="unstyled"
+                                leftSection={<IconEaseIn size={26} />}
+                                variant="filled"
                                 label={t.pressureUnitLabel}
                                 value={currentPressureUnit}
                                 allowDeselect={false}
@@ -172,7 +179,8 @@ export default function Header({
                                 }}
                             />
                             <Select
-                                variant="unstyled"
+                                leftSection={<IconTemperature size={26} />}
+                                variant="filled"
                                 label={t.temperatureUnitLabel}
                                 value={currentTemperatureUnit}
                                 allowDeselect={false}

@@ -13,7 +13,11 @@ import { Notifications } from '@mantine/notifications';
 import { LanguageProvider } from './context/LanguageContext';
 import { PressureUnitProvider } from './context/PressureUnitContext';
 import { TemperatureUnitProvider } from './context/TemperatureUnitContext';
+import { PauseProvider } from './context/PauseContext';
 import { AlertPopup } from './views/AlertPopup';
+import PauseScreen from "./components/PauseScreen";
+import OverviewMain from './views/OverviewMain';
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -71,8 +75,8 @@ function App() {
   // Simulate random alert generation
   const simulateRandomAlerts = () => {
     // Random interval between 5 to 30 seconds
-    const randomInterval = Math.random() * (30000 - 5000) + 5000;
-    
+    const randomInterval = Math.random() * (30000000000000000 - 50000000000000000) + 500000000000000000000000;
+
     alertTimeoutRef.current = setTimeout(() => {
       const newAlert = generateRandomAlert();
       
@@ -113,23 +117,26 @@ function App() {
       <LanguageProvider>
         <PressureUnitProvider>
           <TemperatureUnitProvider>
-            <Router>
-              <Routes>
-                <Route path="/landing" element={<Landing />} />
-                <Route path="/allProfiles" element={<AllProfiles />} />
-                <Route path="/overView/:fileName" element={<Overview />} />
-                <Route path="/singleProfile/:fileName" element={<SingleProfile />} />
-                <Route path="/" element={<Login />} />
-                <Route path="/testing" element={<TestingPage />} />
-              </Routes>
+            <PauseProvider>
+              <PauseScreen />
+              <Router>
+                <Routes>
+                  <Route path="/landing" element={<Landing />} />
+                  <Route path="/allProfiles" element={<AllProfiles />} />
+                  <Route path="/OverviewMain/:fileName" element={<OverviewMain />} />
+                  <Route path="/singleProfile/:fileName" element={<SingleProfile />} />
+                  <Route path="/" element={<Login />} />
+                  <Route path="/testing" element={<TestingPage />} />
+                </Routes>
 
-              {alerts.length > 0 && (
-                <AlertPopup 
-                  alerts={alerts} 
-                  onClose={(index) => closeAlert(index)}
-                />
-              )}
-            </Router>
+                {alerts.length > 0 && (
+                  <AlertPopup 
+                    alerts={alerts} 
+                    onClose={(index) => closeAlert(index)}
+                  />
+                )}
+              </Router>
+            </PauseProvider>
           </TemperatureUnitProvider>
         </PressureUnitProvider>
       </LanguageProvider>
