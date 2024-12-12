@@ -326,8 +326,8 @@ export default function SingleProfile() {
 
             const result = await response.json();
             showNotification({
-                title: 'Program Started Successfully',
-                message: `Script output: ${result.output}`,
+                title: 'Paziņojums no programmas',
+                message: `Programma palaista veiksmīgi`,
                 color: 'green',
             });
         } catch (error) {
