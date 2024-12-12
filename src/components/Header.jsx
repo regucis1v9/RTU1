@@ -143,7 +143,7 @@ export default function Header({
                             <Link to="/landing">
                                 <Button color={buttonColor} variant="transparent" leftSection={<IconHomeFilled />}>{t.home}</Button>
                             </Link>
-                            <Link to={`/overview/${fileName}`}>
+                            <Link to={`/overviewMain/${fileName}`}>
                                 <Button color={buttonColor} variant="transparent" leftSection={<IconChartSankey />}>{t.graphs}</Button>
                             </Link>
                             <Select
