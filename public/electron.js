@@ -70,7 +70,7 @@ app.on('window-all-closed', () => {
 });
 
 function startServers() {
-    console.log('Starting npm and node servers...');
+    console.log('Starting npm, node, and server2 servers...');
 
     const currentDirectory = path.join(__dirname, '..');
     
@@ -81,7 +81,8 @@ function startServers() {
     
     const nodeCommand = isWindows ? 'cmd' : 'node';
     const nodeArgs = isWindows ? ['/c', 'start', 'node', 'server.js'] : ['server.js'];
-
+    
+    // Start npm server
     const npmStart = spawn(npmCommand, npmArgs, {
         cwd: currentDirectory,
         shell: !isWindows, // Use shell for non-Windows platforms
@@ -96,6 +97,7 @@ function startServers() {
         console.log(`npm server exited with code ${code}`);
     });
 
+    // Start server.js
     const nodeServer = spawn(nodeCommand, nodeArgs, {
         cwd: currentDirectory,
         shell: !isWindows, // Use shell for non-Windows platforms
@@ -108,5 +110,20 @@ function startServers() {
 
     nodeServer.on('close', (code) => {
         console.log(`Node server exited with code ${code}`);
+    });
+
+    // Start server2.js in a new terminal window
+    const nodeServer2 = spawn(nodeCommand, isWindows ? ['/c', 'start', 'node', 'server2.js'] : ['server2.js'], {
+        cwd: currentDirectory,
+        shell: !isWindows, // Use shell for non-Windows platforms
+        stdio: 'inherit',
+    });
+
+    nodeServer2.on('error', (err) => {
+        console.error('Failed to start server2:', err.message);
+    });
+
+    nodeServer2.on('close', (code) => {
+        console.log(`Server2 exited with code ${code}`);
     });
 }
