@@ -1,198 +1,193 @@
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const bodyParser = require('body-parser');
-const cors = require('cors'); // Importing CORS
-
-const app = express();
-const PORT = 3002;
-
-// Middleware
-app.use(cors()); // Enable CORS for all routes
-app.use(bodyParser.json()); // Parse incoming JSON requests
-
-const CODES_FOLDER = path.join(__dirname, 'codes');
-
-const multer = require('multer');
-
-// Configure multer to save files in the 'codes' folder
-const upload = multer({
-  dest: path.join(__dirname, 'codes'),
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'text/csv') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only CSV files are allowed.'));
-    }
-  },
-});
-
-// Ensure the codes directory exists
-if (!fs.existsSync(CODES_FOLDER)) {
-  fs.mkdirSync(CODES_FOLDER);
-}
-
-// POST route to delete a code file
-app.post('/delete-code', (req, res) => {
+// Server-side route
+app.post('/create-code', (req, res) => {
   const { fileName } = req.body;
 
+  // Validate the request data
   if (!fileName) {
     return res.status(400).send('File name is required.');
   }
 
-  const filePath = path.join(CODES_FOLDER, fileName);
+  if (!/^[a-zA-Z0-9_-]+$/.test(fileName)) {
+    return res.status(400).send('Invalid file name. Only letters, numbers, underscores, and dashes are allowed.');
+  }
 
-  fs.unlink(filePath, (err) => {
+  const codesDirectory = path.join(__dirname, 'codes');
+
+  // Function to generate a unique file name
+  const generateUniqueFileName = (baseName) => {
+    let uniqueName = baseName;
+    let counter = 1;
+    
+    while (fs.existsSync(path.join(codesDirectory, `${uniqueName}.csv`))) {
+      uniqueName = `${baseName}_${counter}`;
+      counter++;
+    }
+    
+    return uniqueName;
+  };
+
+  // Generate a unique file name
+  const uniqueFileName = generateUniqueFileName(fileName);
+  const filePath = path.join(codesDirectory, `${uniqueFileName}.csv`);
+
+  // Create a file with a simple placeholder
+  const placeholderContent = 'id,name,value\n1,Example,100\n2,Sample,200\n';
+
+  // Create the file with placeholder content
+  fs.writeFile(filePath, placeholderContent, (err) => {
     if (err) {
-      console.error('Error deleting file:', err);
-      
-      // Different error handling based on error type
-      if (err.code === 'ENOENT') {
-        return res.status(404).send('File not found.');
-      }
-      
-      return res.status(500).send('Failed to delete the file.');
+      console.error('Error creating file:', err);
+      return res.status(500).send('Failed to create the file.');
     }
 
-    res.status(200).send('File deleted successfully.');
+    // Send back the actual file name used (which might be different from the original input)
+    res.status(201).json({ 
+      fileName: uniqueFileName,
+      message: 'File created successfully.' 
+    });
   });
 });
 
-// POST route to save or rename code
-app.post('/save-code', (req, res) => {
-    const { fileName, code, oldFileName } = req.body;
+// Client-side modification
+const handleCreateNewFile = async () => {
+  const baseFileName = `new_file`;
   
-    if (!fileName || !code) {
-      return res.status(400).send('Filename and code are required.');
-    }
-  
-    const codesDirectory = path.join(__dirname, 'codes');
-    const newFilePath = path.join(codesDirectory, `${fileName}.csv`);
-  
-    console.log('Old File Name:', oldFileName); // Debugging
-    console.log('New File Name:', fileName);    // Debugging
-  
-    if (oldFileName && oldFileName !== fileName) {
-      const oldFilePath = path.join(codesDirectory, `${oldFileName}.csv`);
-  
-      // Check if the old file exists
-      if (fs.existsSync(oldFilePath)) {
-        // Rename the old file to the new file name
-        fs.rename(oldFilePath, newFilePath, (err) => {
-          if (err) {
-            console.error('Error renaming file:', err);
-            return res.status(500).send('Failed to rename the file.');
-          }
-  
-          // After renaming, write the updated content to the file
-          fs.writeFile(newFilePath, code, (err) => {
-            if (err) {
-              console.error('Error saving file:', err);
-              return res.status(500).send('Failed to save the file.');
-            }
-  
-            res.status(200).send('File renamed and saved successfully.');
-          });
-        });
-      } else {
-        console.error('Old file not found:', oldFilePath);
-        return res.status(404).send('Old file not found.');
+  try {
+    const response = await fetch('http://localhost:3002/create-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileName: baseFileName }),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      
+      // Immediately fetch the updated file list to ensure we get the new file
+      await fetchCsvFiles();
+      
+      // Set the newly created file as the current file
+      const newFileName = result.fileName;
+      const newFile = csvFiles.find(f => f.name === `${newFileName}.csv`);
+      
+      if (newFile) {
+        setCurrentCode(newFile.content);
+        setFileName(newFileName);
+        setLineNumbers(newFile.content.split('\n').map((_, index) => index + 1));
       }
+      
+      toast.success('New file created successfully');
     } else {
-      // Save the file with the current name (no renaming)
-      fs.writeFile(newFilePath, code, (err) => {
-        if (err) {
-          console.error('Error saving file:', err);
+      const error = await response.text();
+      toast.error(`Failed to create file: ${error}`);
+    }
+  } catch (error) {
+    console.error('Error creating new file:', error);
+    toast.error(`An error occurred: ${error.message}`);
+  }
+};
+
+app.post('/save-code', (req, res) => {
+  const { fileName, code, oldFileName } = req.body;
+
+  if (!fileName || !code) {
+    return res.status(400).send('Filename and code are required.');
+  }
+
+  const codesDirectory = path.join(__dirname, 'codes');
+  const newFilePath = path.join(codesDirectory, `${fileName}.csv`);
+
+  // If old file name is provided and different from new file name
+  if (oldFileName && oldFileName !== fileName) {
+    const oldFilePath = path.join(codesDirectory, `${oldFileName}.csv`);
+
+    // Ensure we're not overwriting another file
+    if (fs.existsSync(newFilePath)) {
+      return res.status(400).send('A file with this name already exists.');
+    }
+
+    // Rename the file
+    fs.rename(oldFilePath, newFilePath, (renameErr) => {
+      if (renameErr) {
+        console.error('Error renaming file:', renameErr);
+        return res.status(500).send('Failed to rename the file.');
+      }
+
+      // Write the updated content to the new file
+      fs.writeFile(newFilePath, code, (writeErr) => {
+        if (writeErr) {
+          console.error('Error saving file:', writeErr);
           return res.status(500).send('Failed to save the file.');
         }
-  
-        res.status(200).send('File saved successfully.');
+
+        res.status(200).send('File renamed and saved successfully.');
       });
-    }
-  });
-
-// GET route to fetch all CSV files from the codes folder
-app.get('/get-codes', (req, res) => {
-  fs.readdir(CODES_FOLDER, (err, files) => {
-    if (err) {
-      console.error('Error reading codes directory:', err);
-      return res.status(500).send('Failed to retrieve codes.');
-    }
-
-    const csvFiles = files.filter(file => file.endsWith('.csv'));
-    const fileDetails = csvFiles.map(file => {
-      const filePath = path.join(CODES_FOLDER, file);
-      const fileStats = fs.statSync(filePath);
-
-      return {
-        name: file,
-        size: `${Math.round(fileStats.size / 1024)} KB`,
-        content: fs.readFileSync(filePath, 'utf8') // Read file content
-      };
     });
-
-    res.status(200).json(fileDetails);
-  });
-});
-
-// POST route to create a new file
-app.post('/create-code', (req, res) => {
-    const { fileName } = req.body;
-  
-    // Validate the request data
-    if (!fileName) {
-      return res.status(400).send('File name is required.');
-    }
-  
-    if (!/^[a-zA-Z0-9_-]+$/.test(fileName)) {
-      return res.status(400).send('Invalid file name. Only letters, numbers, underscores, and dashes are allowed.');
-    }
-  
-    // Construct the file path
-    const filePath = path.join(__dirname, 'codes', `${fileName}.csv`);
-  
-    // Check if the file already exists
-    if (fs.existsSync(filePath)) {
-      return res.status(400).send('File already exists.');
-    }
-  
-    // Create an empty file
-    fs.writeFile(filePath, '', (err) => {
+  } else {
+    // Save the file with the current name (no renaming)
+    fs.writeFile(newFilePath, code, (err) => {
       if (err) {
-        console.error('Error creating file:', err);
-        return res.status(500).send('Failed to create the file.');
+        console.error('Error saving file:', err);
+        return res.status(500).send('Failed to save the file.');
       }
-  
-      res.status(201).send('File created successfully.');
-    });
-  });
 
-app.post('/upload-code', upload.single('file'), (req, res) => {
-    const uploadedFile = req.file;
-  
-    if (!uploadedFile) {
-      return res.status(400).send('No file was uploaded or invalid file type.');
+      res.status(200).send('File saved successfully.');
+    });
+  }
+});
+
+// Client-side changes (in the React component)
+const handleSaveCode = async () => {
+  if (!fileName.trim()) {
+    toast.error('Please provide a valid file name before saving.');
+    return;
+  }
+
+  if (!/^[a-zA-Z0-9_-]+$/.test(fileName)) {
+    toast.error('File name can only contain letters, numbers, underscores, and dashes.');
+    return;
+  }
+
+  // Determine the old file name only if a file is currently dragged
+  const oldFileName = draggedFile?.name ? draggedFile.name.replace('.csv', '') : null;
+
+  try {
+    const response = await fetch('http://localhost:3002/save-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileName,  // New file name
+        code: currentCode,  // Content of the file
+        oldFileName,  // Old file name (if renaming)
+      }),
+    });
+
+    if (response.ok) {
+      toast.success(`File "${fileName}.csv" saved successfully.`);
+
+      // Update draggedFile and file list states
+      if (oldFileName && oldFileName !== fileName) {
+        // Update the file in the list
+        setCsvFiles(prevFiles => 
+          prevFiles.map(file => 
+            file.name === `${oldFileName}.csv` 
+              ? { ...file, name: `${fileName}.csv`, content: currentCode }
+              : file
+          )
+        );
+
+        // Update draggedFile
+        setDraggedFile({ 
+          ...draggedFile, 
+          name: `${fileName}.csv`, 
+          content: currentCode 
+        });
+      }
+    } else {
+      const error = await response.text();
+      toast.error(`Failed to save file: ${error}`);
     }
-  
-    // Rename the file to include the original name with the correct extension
-    const targetPath = path.join(__dirname, 'codes', uploadedFile.originalname);
-  
-    fs.rename(uploadedFile.path, targetPath, (err) => {
-      if (err) {
-        console.error('Error moving file:', err);
-        return res.status(500).send('Failed to save the uploaded file.');
-      }
-  
-      res.status(200).send('File uploaded and saved successfully.');
-    });
-  });
+  } catch (error) {
+    toast.error(`An error occurred: ${error.message}`);
+  }
+};
 
-// Handle non-existent routes
-app.use((req, res) => {
-  res.status(404).send('Endpoint not found.');
-});
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
