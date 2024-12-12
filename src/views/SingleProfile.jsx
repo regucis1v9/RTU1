@@ -60,9 +60,63 @@ export default function SingleProfile() {
     const t = translations[language] || translations['Latviešu'];
     const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
     const [totalTime, setTotalTime] = useState(data.reduce((total, row) => total + row.time, 0)); // Initialize total time
+    const [editedFileName, setEditedFileName] = useState(fileName); // Local state for file name
 
-    const saveChanges = async () => {
-        const updatedData = data.map((row, index) => ({
+    const renameFile = async () => {
+        try {
+            const response = await fetch(`http://localhost:5001/renameFile`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    oldFileName: fileName,
+                    newFileName: editedFileName,
+                }),
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Error renaming file:', errorData);
+                showNotification({
+                    title: t.renameFailed,
+                    message: t.fileNotRenamed,
+                    color: 'red',
+                });
+                return false;
+            }
+    
+            const result = await response.json();
+            console.log('Rename success:', result);
+            
+            // Update the local state and URL
+            const newFileName = result.newFileName;
+            setProjectName(editedFileName);
+            
+            // Update the URL without reloading the page
+            window.history.replaceState(null, '', `/profile/${newFileName}`);
+    
+            showNotification({
+                title: t.renameSuccess,
+                message: t.fileRenamed,
+                color: 'green',
+            });
+    
+            // Return the new filename
+            return newFileName;
+        } catch (error) {
+            console.error('Failed to rename file:', error);
+            showNotification({
+                title: t.error,
+                message: t.fileRenameError,
+                color: 'red',
+            });
+            return false;
+        }
+    };
+    
+    const saveChanges = async (fileNameToUse) => {
+        const updatedData = data.map((row) => ({
             step: row.step,
             tMin: index === 0 && startFromRoomTemp ? "istabas" : row.tMin,
             tMax: row.tMax,
@@ -72,7 +126,7 @@ export default function SingleProfile() {
             tMaxUnit: row.tMaxUnit,
             shellTemp: row.shellTemp,
         }));
-        console.log(updatedData);
+          
         try {
             const response = await fetch(`http://localhost:5001/updateFile`, {
                 method: 'POST',
@@ -80,34 +134,39 @@ export default function SingleProfile() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    fileName: fileName,
+                    fileName: fileNameToUse || fileName,
                     data: updatedData
                 }),
             });
+    
             if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Error saving changes:', errorData);
                 showNotification({
-                    title: "Neveiksmīgi saglabāts profils",
-                    message: "Profils netika saglabāts",
+                    title: t.saveFailed,
+                    message: t.fileNotSaved,
                     color: 'red',
                 });
                 return;
             }
-
+    
             const result = await response.json();
             showNotification({
-                title: "Veiksmīgi saglabāts profils",
-                message: "Profils tika saglabāts",
+                title: t.saveSuccess,
+                message: t.fileSaved,
                 color: 'green',
             });
         } catch (error) {
             console.error('Failed to save changes:', error);
-            console.log(data)
+
+            showNotification({
+                title: t.error,
+                message: t.saveError,
+                color: 'red',
+            });
         }
     };
-
-
-    // Button click handler for saving changes
-    const handleSaveChanges = () => {
+    const handleSaveChanges = async () => {
         if (!validateData()) {
             showNotification({
                 title: "Nepieciešamie lauki",
@@ -116,7 +175,23 @@ export default function SingleProfile() {
             });
             return;
         }
-        saveChanges();
+        // Check if the filename is being changed
+        const sanitizedCurrentFileName = fileName.replace(/-\d{4}-\d{2}-\d{2}.*/, '');
+        const sanitizedEditedFileName = editedFileName.replace(/-\d{4}-\d{2}-\d{2}.*/, '');
+    
+        let newFileName = fileName;
+    
+        // Rename if the filename is different
+        if (sanitizedCurrentFileName !== sanitizedEditedFileName) {
+            const renamedFile = await renameFile();
+            if (!renamedFile) {
+                return; // Exit if renaming fails
+            }
+            newFileName = renamedFile;
+        }
+    
+        // Save changes with the potentially new filename
+        await saveChanges(newFileName);
     };
 
     useEffect(() => {
@@ -355,12 +430,8 @@ export default function SingleProfile() {
                             <Group w={width * 0.8} justify='space-between'>
                                 <Stack>
                                     <Input.Wrapper label={t.programName} withAsterisk>
-                                        <Input
-                                            placeholder="..."
-                                            variant='filled'
-                                            value={fileName} 
-                                            onChange={(e) => setProjectName(e.target.value)}
-                                        />
+                                    <Input placeholder="..." variant='filled' value={editedFileName} onChange={(e) => setEditedFileName(e.target.value)} />
+
                                     </Input.Wrapper>
                                     <Checkbox
                                         checked={startFromRoomTemp}

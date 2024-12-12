@@ -76,7 +76,7 @@ function App() {
   const simulateRandomAlerts = () => {
     // Random interval between 5 to 30 seconds
     const randomInterval = Math.random() * (30000000000000000 - 50000000000000000) + 500000000000000000000000;
-    
+
     alertTimeoutRef.current = setTimeout(() => {
       const newAlert = generateRandomAlert();
       

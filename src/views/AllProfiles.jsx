@@ -48,6 +48,7 @@ import {useLanguage} from "../context/LanguageContext";
 import {usePressureUnit} from "../context/PressureUnitContext";
 import {useTemperatureUnit} from "../context/TemperatureUnitContext";
 const RESULTS_PER_PAGE = 5;
+
 const AllProfiles = () => {
     const [opened, { toggle }] = useDisclosure();
     const navigate = useNavigate();
@@ -68,7 +69,9 @@ const AllProfiles = () => {
     const { pressureUnit, togglePressureUnit } = usePressureUnit();
     const { temperatureUnit, changeTemperatureUnit } = useTemperatureUnit();
     const t = translations[language] || translations['Latviešu'];
-
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [projectToDelete, setProjectToDelete] = useState(null);
+  
   const fetchProjects = async () => {
     setIsLoading(true);
     try {
@@ -89,228 +92,230 @@ const AllProfiles = () => {
     }
   };
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+    useEffect(() => {
+        fetchProjects();
+    }, []);
 
-  const filteredProjects = projects.filter(project =>
-    project.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    const filteredProjects = projects.filter(project =>
+        project.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-  const totalPages = Math.ceil(filteredProjects.length / RESULTS_PER_PAGE);
-  const startIndex = (currentPage - 1) * RESULTS_PER_PAGE;
-  const endIndex = startIndex + RESULTS_PER_PAGE;
-  const displayItems = filteredProjects.slice(startIndex, endIndex);
+    const totalPages = Math.ceil(filteredProjects.length / RESULTS_PER_PAGE);
+    const startIndex = (currentPage - 1) * RESULTS_PER_PAGE;
+    const endIndex = startIndex + RESULTS_PER_PAGE;
+    const displayItems = filteredProjects.slice(startIndex, endIndex);
 
-  const createCsvData = () => {
-    const headers = ['Project Name', 'Creation Date'];
-    const today = new Date().toISOString().split('T')[0];
-    const dataRow = [projectName, today];
-    return [headers.join(','), dataRow.join(',')].join('\n');
-  };
+    const createCsvData = () => {
+        const headers = ['Project Name', 'Creation Date'];
+        const today = new Date().toISOString().split('T')[0];
+        const dataRow = [projectName, today];
+        return [headers.join(','), dataRow.join(',')].join('\n');
+    };
 
-  const saveCsvFile = async () => {
-    if (!projectName.trim()) {
-      showNotification({
-        title: t.warning,
-        message: t.pleaseEnterProjectName,
-        color: 'orange',
-      });
-      return;
-    }
-  
-    setIsLoading(true);
-    try {
-      const csvData = createCsvData();
-      const response = await fetch('http://localhost:5001/save-csv', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileName: projectName,
-          csvData: csvData,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    const saveCsvFile = async () => {
+      if (!projectName.trim()) {
+          showNotification({
+              title: t.warning,
+              message: t.pleaseEnterProjectName,
+              color: 'orange',
+          });
+          return;
       }
   
-      showNotification({
-        title: t.success,
-        message: t.projectCreated,
-        color: 'green',
-      });
+      setIsLoading(true);
+      try {
+          const csvData = createCsvData();
+          const response = await fetch('http://localhost:5001/save-csv', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  fileName: projectName,
+                  csvData: csvData,
+              }),
+          });
   
-      // Navigate to /singleProfile/:filename without .csv
-      navigate(`/singleProfile/${projectName.replace('.csv', '')}`);
+          if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
   
-      setProjectName('');
-      fetchProjects();
-    } catch (error) {
-      console.error('Error saving the project:', error);
-      showNotification({
-        title: t.error,
-        message: t.errorSavingProject,
-        color: 'red',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+          const { filePath } = await response.json();  // Get the full file name (including date)
+          showNotification({
+              title: t.success,
+              message: t.projectCreated,
+              color: 'green',
+          });
   
+          // Navigate to the correct URL with the full filename (including date)
+          navigate(`/singleProfile/${filePath}`);
   
-  const handleFileUpload = async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      const response = await fetch('http://localhost:5001/upload-csv', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!response.ok) {
-        throw new Error('Failed to upload file');
+          setProjectName('');
+          fetchProjects();
+      } catch (error) {
+          console.error('Error saving the project:', error);
+          showNotification({
+              title: t.error,
+              message: t.errorSavingProject,
+              color: 'red',
+          });
+      } finally {
+          setIsLoading(false);
       }
-      const data = await response.json();
-  
-      showNotification({
-        title: t.success,
-        message: t.csvUploaded,
-        color: 'green',
-      });
-  
-      // Navigate to /singleProfile/:filename without .csv
-      navigate(`/singleProfile/${data.fileName.replace('.csv', '')}`);
-  
-      setCsvFile(null);
-      fetchProjects();
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      showNotification({
-        title: t.error,
-        message: t.errorUploadingFile,
-        color: 'red',
-      });
-    }
   };
-  const deleteProject = async (projectId) => {
-    try {
-      const response = await fetch(`http://localhost:5001/delete-project/${projectId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to delete project');
-      }
-  
-      showNotification({
-        title: t.success,
-        message: t.projectDeleted,
-        color: 'green',
-      });
-  
-      setProjects((prevProjects) => prevProjects.filter(project => project.id !== projectId));
-    } catch (error) {
-      console.error('Error deleting project:', error);
-      showNotification({
-        title: t.error,
-        message: t.errorDeletingProject,
-        color: 'red',
-      });
-    }
-  };
- 
-  const tutorialContent1 = (
-    <div style={{ padding: 20 }}>
-      <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
-        {t.tutorialDescription}
-      </Text>
-      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
-        1. {t.tutorialStep1}
-      </Text>
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
-        {t.tutorialStep1Description}
-      </Text>
-  
-      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
-        2. {t.tutorialStep2}
-      </Text>
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
-        {t.tutorialStep2Description}
-      </Text>
-  
-      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
-        3. {t.tutorialStep3}
-      </Text>
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
-        {t.tutorialStep3Description}
-      </Text>
-    </div>
-  );
-  
-  const tutorialContent2 = (
-    <div style={{ padding: 20 }}>
-      <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
-        {t.tutorialContent2.description}
-      </Text>
-  
-      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
-        1. {t.tutorialContent2.step1}
-      </Text>
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
-        {t.tutorialContent2.step1Description}
-      </Text>
-  
-      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
-        2. {t.tutorialContent2.step2}
-      </Text>
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
-        {t.tutorialContent2.step2Description}
-      </Text>
-  
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
-        {t.tutorialContent2.step2AdditionalInfo}
-      </Text>
-  
-      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
-        3. {t.tutorialContent2.step3}
-      </Text>
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
-        {t.tutorialContent2.step3Description}
-      </Text>
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
-        {t.tutorialContent2.step3AdditionalInfo}
-      </Text>
-    </div>
-  );
-  
-  const tutorialContent3 = (
-    <div style={{ padding: 20 }}>
-      <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
-        {t.tutorialContent3.description}
-      </Text>
-  
-      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
-        1. {t.tutorialContent3.step1}
-      </Text>
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
-        {t.tutorialContent3.step1Description}
-      </Text>
-  
-      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
-        2. {t.tutorialContent3.step2}
-      </Text>
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
-        {t.tutorialContent3.step2Description}
-      </Text>
-  
-      <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
-        3. {t.tutorialContent3.step3}
-      </Text>
-      <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
-        {t.tutorialContent3.step3Description}
-      </Text>
-    </div>
-  );
+
+    const handleFileUpload = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const response = await fetch('http://localhost:5001/upload-csv', {
+                method: 'POST',
+                body: formData,
+            });
+            if (!response.ok) {
+                throw new Error('Failed to upload file');
+            }
+            const data = await response.json();
+
+            showNotification({
+                title: t.success,
+                message: t.csvUploaded,
+                color: 'green',
+            });
+
+            navigate(`/singleProfile/${data.fileName.replace('.csv', '')}`);
+
+            setCsvFile(null);
+            fetchProjects();
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            showNotification({
+                title: t.error,
+                message: t.errorUploadingFile,
+                color: 'red',
+            });
+        }
+    };
+
+    const confirmDelete = (project) => {
+        setProjectToDelete(project);
+        setIsModalOpen(true);
+    };
+
+    const deleteProject = async () => {
+        try {
+            const response = await fetch(`http://localhost:5001/delete-project/${projectToDelete.name}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete project');
+            }
+
+            showNotification({
+                title: 'Success',
+                message: `Project "${projectToDelete.name}" has been deleted.`,
+                color: 'green',
+            });
+
+            setProjects((prevProjects) =>
+                prevProjects.filter((project) => project.name !== projectToDelete.name)
+            );
+        } catch (error) {
+            showNotification({
+                title: 'Error',
+                message: `Failed to delete project "${projectToDelete.name}".`,
+                color: 'red',
+            });
+        } finally {
+            setIsModalOpen(false);
+            setProjectToDelete(null);
+        }
+    };
+
+    const handleLanguageChange = (value) => {
+        setLanguage(value);
+        localStorage.setItem('lang', value);
+    };
+
+    const tutorialContent1 = (
+        <div style={{ padding: 20 }}>
+            <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
+                {t.tutorialDescription}
+            </Text>
+            <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+                1. {t.tutorialStep1}
+            </Text>
+            <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+                {t.tutorialStep1Description}
+            </Text>
+
+            <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+                2. {t.tutorialStep2}
+            </Text>
+            <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+                {t.tutorialStep2Description}
+            </Text>
+
+            <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+                3. {t.tutorialStep3}
+            </Text>
+            <Text style={{ color: theme.colors.blue[7], fontSize: '16px' }}>
+                {t.tutorialStep3Description}
+            </Text>
+        </div>
+    );
+
+    const tutorialContent2 = (
+        <div style={{ padding: 20 }}>
+            <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
+                {t.tutorialContent2.description}
+            </Text>
+
+            <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+                1. {t.tutorialContent2.step1}
+            </Text>
+            <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+                {t.tutorialContent2.step1Description}
+            </Text>
+
+            <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+                2. {t.tutorialContent2.step2}
+            </Text>
+            <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+                {t.tutorialContent2.step2Description}
+            </Text>
+
+            <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+                {t.tutorialContent2.step2AdditionalInfo}
+            </Text>
+
+            <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+                3. {t.tutorialContent2.step3}
+            </Text>
+            <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+                {t.tutorialContent2.step3Description}
+            </Text>
+            <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+                {t.tutorialContent2.step3AdditionalInfo}
+            </Text>
+        </div>
+    );
+
+    const tutorialContent3 = (
+        <div style={{ padding: 20 }}>
+            <Text style={{ color: theme.colors.gray[7], fontSize: '18px' }}>
+                {t.tutorialContent3.description}
+            </Text>
+
+            <Text style={{ color: theme.colors.gray[0], fontSize: '20px', fontWeight: 'bold', marginTop: '20px' }}>
+                1. {t.tutorialContent3.step1}
+            </Text>
+            <Text style={{ color: theme.colors.blue[7], fontSize: '16px', paddingLeft: "15px" }}>
+                {t.tutorialContent3.step1Description}
+            </Text>
+        </div>
+    );
   
   return (
     <AppShell withBorder={false} header={{ height: 60 }}>
@@ -401,16 +406,16 @@ const AllProfiles = () => {
                 {displayItems.length > 0 ? (
                   displayItems.map((project) => ( 
                     <div key={project.id} className="result-item" >
-                      <Link to={`/singleProfile/${project.name}`}>
+                      <Link key={project.name} to={`/singleProfile/${project.name}`}> 
                         <Text>{project.name}</Text>
                       </Link>
                       <Group>
-                        <Link to={`/singleProfile/${project.name}`}>
+                        <Link key={project.name} to={`/singleProfile/${project.name}`}> 
                           <ActionIcon h={40} w={40} p={2} variant='transparent' className='redirect-button'>
                             <IconExternalLink />
                           </ActionIcon>
                         </Link>
-                        <ActionIcon h={40} w={40} p={2} color="red" onClick={() => deleteProject(project.id)}>
+                        <ActionIcon h={40} w={40} p={2} color="red" onClick={() => confirmDelete(project)}>
                           <IconTrashXFilled />
                         </ActionIcon>
                       </Group>
@@ -426,6 +431,28 @@ const AllProfiles = () => {
             </div>
           </section>
         </Flex>
+        <Modal
+          opened={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title="Confirm Deletion"
+          centered
+        >
+          <Text>
+            Are you sure you want to delete the project "
+            {projectToDelete?.name}"? This action cannot be undone.
+          </Text>
+          <Group position="right" mt="md">
+            <Button
+              color="gray"
+              onClick={() => setIsModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button color="red" onClick={deleteProject}>
+              Delete
+            </Button>
+          </Group>
+        </Modal>
       </AppShell.Main>
       <Modal
         opened={tutorialOpen}

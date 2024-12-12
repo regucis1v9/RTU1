@@ -27,7 +27,7 @@ const storage = multer.diskStorage({
     let finalName = `${name}-${today}${ext}`;
     let counter = 1;
     while (fs.existsSync(path.join(PROJECTS_DIR, finalName))) {
-      finalName = `${name} (${counter})-${today}${ext}`;
+      finalName = `${name}-${today} (${counter})${ext}`;
       counter++;
     }
     cb(null, finalName);
@@ -47,6 +47,52 @@ function findCsvFile(filename) {
     return { error: 'File not found' };
   }
 }
+
+const sanitizeFileName = (fileName) => {
+  // Remove any existing date stamps or additional extensions
+  return fileName.replace(/-\d{4}-\d{2}-\d{2}.*/, '').trim();
+};
+
+app.post('/renameFile', (req, res) => {
+  const { oldFileName, newFileName } = req.body;
+
+  // Sanitize filenames
+  const sanitizedOldFileName = sanitizeFileName(oldFileName);
+  const sanitizedNewFileName = sanitizeFileName(newFileName);
+
+  // Construct full file paths
+  const today = new Date().toISOString().split('T')[0];
+  const oldFilePath = path.join(PROJECTS_DIR, oldFileName);
+  const newFilePath = path.join(PROJECTS_DIR, `${sanitizedNewFileName}-${today}.csv`);
+
+  // Check if the old file exists
+  if (!fs.existsSync(oldFilePath)) {
+    return res.status(404).json({ message: 'Original file not found' });
+  }
+
+  // Check if a file with the new name already exists
+  let finalNewFilePath = newFilePath;
+  let counter = 1;
+  while (fs.existsSync(finalNewFilePath)) {
+    finalNewFilePath = path.join(PROJECTS_DIR, `${sanitizedNewFileName}-${today} (${counter}).csv`);
+    counter++;
+  }
+
+  try {
+    // Rename the file
+    fs.renameSync(oldFilePath, finalNewFilePath);
+
+    // Return the new filename
+    const newFileNameOnly = path.basename(finalNewFilePath);
+    res.json({ 
+      message: 'File renamed successfully', 
+      newFileName: newFileNameOnly 
+    });
+  } catch (error) {
+    console.error('Error renaming file:', error);
+    res.status(500).json({ message: 'Error renaming the file', error: error.message });
+  }
+});
 
 app.get('/csvFiles', (req, res) => {
   try {
@@ -92,10 +138,8 @@ app.post('/save-csv', (req, res) => {
   const filePath = path.join(PROJECTS_DIR, `${fileName}-${today}.csv`);
   let finalFilePath = filePath;
   let counter = 1;
-
-  // Ensure that the file does not already exist
   while (fs.existsSync(finalFilePath)) {
-    finalFilePath = path.join(PROJECTS_DIR, `${fileName} (${counter})-${today}.csv`);
+    finalFilePath = path.join(PROJECTS_DIR, `${fileName}-${today} (${counter}).csv`);
     counter++;
   }
 
@@ -105,11 +149,32 @@ app.post('/save-csv', (req, res) => {
       console.error('Error saving the CSV file:', err);
       return res.status(500).json({ message: 'Error saving the CSV file' });
     }
-    res.json({ message: 'CSV file saved successfully', filePath: finalFilePath });
+
+    // Send back the full file name (including date)
+    const savedFileName = path.basename(finalFilePath); // This will include the date, e.g., "test-2024-12-12.csv"
+    res.json({ message: 'CSV file saved successfully', filePath: savedFileName });
   });
 });
 
 const upload = multer({ storage: storage });
+
+app.delete('/delete-project/:projectId', (req, res) => {
+  const { projectId } = req.params;
+  const filePath = path.join(PROJECTS_DIR, projectId);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ message: 'Project not found' });
+  }
+
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.error('Error deleting project:', err);
+      return res.status(500).json({ message: 'Error deleting the project' });
+    }
+
+    res.json({ message: 'Project deleted successfully' });
+  });
+});
 
 app.post('/upload-csv', upload.single('file'), (req, res) => {
   if (!req.file) {
@@ -136,9 +201,18 @@ app.listen(PORT, () => {
 });
 app.post('/updateFile', (req, res) => {
   const { fileName, data } = req.body;
+  const sanitizedFileName = sanitizeFileName(fileName);
 
-  // Step 1: Find the file path
-  const filePath = path.join(PROJECTS_DIR, fileName);
+  // Find the actual file in the directory
+  const files = fs.readdirSync(PROJECTS_DIR);
+  const matchingFile = files.find(file => file.startsWith(sanitizedFileName) && file.endsWith('.csv'));
+
+  if (!matchingFile) {
+    return res.status(404).json({ message: 'File not found' });
+  }
+
+  // Rest of the existing updateFile logic remains the same, but use matchingFile instead of fileName
+  const filePath = path.join(PROJECTS_DIR, matchingFile);
 
   if (!fs.existsSync(filePath)) {
     return res.status(404).json({ message: 'File not found' });
