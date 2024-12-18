@@ -118,7 +118,7 @@ app.post('/save-csv', (req, res) => {
   const { fileName, csvData } = req.body;
 
   const defaultHeader = 'step,tMin,tMax,time,pressure,tMinUnit,tMaxUnit,shellTemp,coldStart,fan,activeShelf1,activeShelf2,activeShelf3';
-  const defaultRow = '1,0,0,1,1,C,C,0,0,0,0,0,0';
+  const defaultRow = '1,0,0,1,1,C,C,0,0,0,1,1,1';
 
 
   // Check if csvData exists and is not empty; otherwise, use default values
