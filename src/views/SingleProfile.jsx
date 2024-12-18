@@ -116,6 +116,7 @@ export default function SingleProfile() {
     };
     
     const saveChanges = async (fileNameToUse) => {
+        console.log(data)
         const updatedData = data.map((row, index) => ({
             step: row.step,
             tMin: index === 0 && startFromRoomTemp ? "istabas" : row.tMin,
@@ -125,6 +126,11 @@ export default function SingleProfile() {
             tMinUnit: row.tMinUnit,
             tMaxUnit: row.tMaxUnit,
             shellTemp: row.shellTemp,
+            fan: row.fan,
+            coldStart: row.coldStart,
+            activeShelf1: row.activeShelf1,
+            activeShelf2: row.activeShelf2,
+            activeShelf3: row.activeShelf3,
         }));
           
         try {
@@ -210,8 +216,6 @@ export default function SingleProfile() {
                 }
                 const csvData = await response.text();
                 const rows = csvData.split('\n').map(row => row.split(','));
-                console.log(rows);
-
                 const dataRows = rows.slice(1).map(row => ({
                     step: parseInt(row[0]),
                     tMin: row[1] === 'istabas' ? 'istabas' : parseFloat(row[1]),
@@ -220,7 +224,12 @@ export default function SingleProfile() {
                     pressure: parseFloat(row[4]),
                     tMinUnit: row[5],
                     tMaxUnit: row[6],
-                    shellTemp: row[7] ? parseFloat(row[7]) : 0, // Add shellTemp with default 0
+                    shellTemp: row[7] ? parseFloat(row[7]) : 0, 
+                    coldStart: parseInt(row[8]),
+                    fan: parseInt(row[9]),
+                    activeShelf1: parseInt(row[10]),
+                    activeShelf2: parseInt(row[11]),
+                    activeShelf3: parseInt(row[12]),
                 }));
 
 
@@ -302,34 +311,49 @@ export default function SingleProfile() {
     };
 
     const updateRow = (index, field, value) => {
-        const updatedData = [...data];
+        setData(prevData => {
+            const updatedData = [...prevData];
 
-        if (field === 'time') {
-            const previousTime = updatedData[index][field];
-            setTotalTime(totalTime - previousTime + value); // Update totalTime
-        }
+            // Handle totalTime adjustment for "time" field
+            if (field === 'time') {
+                const previousTime = updatedData[index][field];
+                setTotalTime(totalTime => totalTime - previousTime + value); // Safely adjust totalTime
+            }
 
-        // Update the current row's field with the new value
-        updatedData[index][field] = value;
+            // Convert booleans for "coldStart", "fan", and shelf states to integers (1 or 0)
+            if (['coldStart', 'fan', 'activeShelf1', 'activeShelf2', 'activeShelf3'].includes(field)) {
+                updatedData[index][field] = value ? 1 : 0; // Store as 1 (true) or 0 (false)
+            } else {
+                // Update the field directly for other types
+                updatedData[index][field] = value;
+            }
 
-        // If updating tMax, set the next row's tMin to this tMax
-        if (field === 'tMax' && index < updatedData.length - 1) {
-            updatedData[index + 1].tMin = value;
-        }
+            // Synchronize tMax and tMin between rows
+            if (field === 'tMax' && index < updatedData.length - 1) {
+                updatedData[index + 1].tMin = value;
+            }
 
-        // Update temperature units if they are changed
-        if (field === 'tMin' || field === 'tMax') {
-            // Convert to the selected temperature unit
-            updatedData[index][field] = convertTemperature(value, updatedData[index][`${field}Unit`], temperatureUnit);
-        }
-        if (field === 'pressure') {
-            updatedData[index][field] = convertPressure(value, updatedData[index].pressureUnit, pressureUnit);
-        }
-        setData(updatedData);
+            // Handle temperature unit conversion
+            if (field === 'tMin' || field === 'tMax') {
+                updatedData[index][field] = convertTemperature(
+                    value,
+                    updatedData[index][`${field}Unit`],
+                    temperatureUnit
+                );
+            }
+
+            // Handle pressure unit conversion
+            if (field === 'pressure') {
+                updatedData[index][field] = convertPressure(
+                    value,
+                    updatedData[index].pressureUnit,
+                    pressureUnit
+                );
+            }
+
+            return updatedData;
+        });
     };
-
-
-
     const convertTemperature = (value, fromUnit, toUnit) => {
         const roundTo = (num) => Math.round(num); 
 
@@ -455,7 +479,10 @@ export default function SingleProfile() {
                                     </Tabs.List>
 
                                     <Tabs.Panel value="gallery" p={20}>
-                                        <ConfigScreen />
+                                        <ConfigScreen
+                                            data={data}
+                                            updateRow={updateRow}
+                                        />
                                     </Tabs.Panel>
                                     <Tabs.Panel value="messages" pt={10}>
                                         <ScrollArea h={height * 0.7} w={width * 0.8} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>

@@ -28,8 +28,6 @@ export default function StepTable ({
                           toggleUnitsForAll,
                           scrolled,
                           t,
-                          onSave,
-                          onCancel
                       }) {
     const rows = data.map((row, index) => (
         <Table.Tr key={row.step}>

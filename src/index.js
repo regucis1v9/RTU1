@@ -18,12 +18,15 @@ import { AlertPopup } from './views/AlertPopup';
 import PauseScreen from "./components/PauseScreen";
 import OverviewMain from './views/OverviewMain';
 
+// Import the sound file
+import alertSound from './sounds/mixkit-industry-alarm-tone-2979.wav';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 function App() {
   const [alerts, setAlerts] = useState([]);
   const alertTimeoutRef = useRef(null);
+  const audioRef = useRef(new Audio(alertSound));
 
   // Expanded list of possible alerts with more variety
   const alertTypes = [
@@ -64,7 +67,7 @@ function App() {
     const randomTypeIndex = Math.floor(Math.random() * alertTypes.length);
     const selectedType = alertTypes[randomTypeIndex];
     const randomMessageIndex = Math.floor(Math.random() * selectedType.messages.length);
-    
+
     return {
       title: selectedType.type.charAt(0).toUpperCase() + selectedType.type.slice(1) + ' Alert',
       message: selectedType.messages[randomMessageIndex],
@@ -75,16 +78,22 @@ function App() {
   // Simulate random alert generation
   const simulateRandomAlerts = () => {
     // Random interval between 5 to 30 seconds
-    const randomInterval = Math.random() * (30000000000000000 - 50000000000000000) + 500000000000000000000000;
+    const randomInterval = Math.random() * (3000000 - 500000) + 500000;
 
     alertTimeoutRef.current = setTimeout(() => {
       const newAlert = generateRandomAlert();
-      
+
       // Add the new alert
       setAlerts(prevAlerts => {
         // Limit to 5 most recent alerts
         const updatedAlerts = [...prevAlerts, newAlert].slice(-5);
         return updatedAlerts;
+      });
+
+      // Play alert sound
+      audioRef.current.currentTime = 0; // Reset to start
+      audioRef.current.play().catch(error => {
+        console.error('Error playing alert sound:', error);
       });
 
       // Continue generating alerts
@@ -94,7 +103,7 @@ function App() {
 
   // Close a specific alert
   const closeAlert = (indexToRemove) => {
-    setAlerts(prevAlerts => 
+    setAlerts(prevAlerts =>
       prevAlerts.filter((_, index) => index !== indexToRemove)
     );
   };
@@ -102,7 +111,7 @@ function App() {
   // Start alert simulation when component mounts
   useEffect(() => {
     simulateRandomAlerts();
-    
+
     // Cleanup timeout on unmount
     return () => {
       if (alertTimeoutRef.current) {
@@ -130,8 +139,8 @@ function App() {
                 </Routes>
 
                 {alerts.length > 0 && (
-                  <AlertPopup 
-                    alerts={alerts} 
+                  <AlertPopup
+                    alerts={alerts}
                     onClose={(index) => closeAlert(index)}
                   />
                 )}
