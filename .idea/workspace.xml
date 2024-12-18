@@ -5,36 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a31f066f-05ac-4fbf-9a72-d381b8f14f06" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/test.bat" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/asd-2024-12-12 (1).csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/asd-2024-12-12.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/ggggg-2024-12-12.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/god-2024-12-12.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/hakunamatat1-2024-12-12.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/help-2024-12-09.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/hh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/idk (1)-2024-12-12.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/idk (2)-2024-12-12.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/idk-2024-12-12.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/mairisbriedis-2024-12-12.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/nezinukkasnokrita-2024-12-12.csv-2024-12-12.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/poopeer-2024-12-12.csv-2024-12-12.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/poper-2024-12-12 (1).csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/poper-2024-12-12.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/raf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/tests-2024-12-12.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/tingus" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/csvFiles/zigis-2024-12-12.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/csvFiles/12-2024-12-18.csv" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/server.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/singleProfile/ConfigScreen.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/singleProfile/ConfigScreen.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/singleProfile/StepTable.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/singleProfile/StepTable.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/styles/overviewStyles.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/styles/overviewStyles.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/locales/translations.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/locales/translations.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/views/SingleProfile.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/SingleProfile.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.sh" beforeDir="false" afterPath="$PROJECT_DIR$/test.sh" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -94,7 +70,7 @@
       <workItem from="1732862689601" duration="1677000" />
       <workItem from="1732865676888" duration="3191000" />
       <workItem from="1732879064561" duration="24016000" />
-      <workItem from="1734424727459" duration="6699000" />
+      <workItem from="1734424727459" duration="11908000" />
     </task>
     <servers />
   </component>
@@ -133,6 +109,11 @@
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/src/components/chart/Terminal.jsx</url>
           <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/src/views/SingleProfile.jsx</url>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="3" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

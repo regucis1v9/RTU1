@@ -1,7 +1,7 @@
 import {
     AppShell,
     useMantineTheme,
-    rem,
+    Modal,
     Flex,
     Button,
     Tabs,
@@ -60,8 +60,55 @@ export default function SingleProfile() {
     const t = translations[language] || translations['Latviešu'];
     const buttonColor = computedColorScheme === 'dark' ? 'white' : 'black';
     const [totalTime, setTotalTime] = useState(data.reduce((total, row) => total + row.time, 0)); // Initialize total time
-    const [editedFileName, setEditedFileName] = useState(fileName); // Local state for file name
+    const [editedFileName, setEditedFileName] = useState(fileName);
+    const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
+    const [unsavedChanges, setUnsavedChanges] = useState(false);
 
+    const fetchCsvData = async () => {
+        try {
+            const response = await fetch(`http://localhost:5001/get-csv/${fileName}`);
+            if (!response.ok) {
+                console.error('Error fetching CSV data');
+                showNotification({
+                    autoClose: false,
+                    title: "Nevarēja atrast failu" + "  " + fileName+ ".csv",
+                    message: "Dodieties atpakaļ un pārliecinaties, ka fails eksistē.",
+                    color: 'red',
+                });
+                return;
+            }
+            const csvData = await response.text();
+            const rows = csvData.split('\n').map(row => row.split(','));
+            const dataRows = rows.slice(1).map(row => ({
+                step: parseInt(row[0]),
+                tMin: row[1] === 'istabas' ? 'istabas' : parseFloat(row[1]),
+                tMax: parseFloat(row[2]),
+                time: parseInt(row[3]),
+                pressure: parseFloat(row[4]),
+                tMinUnit: row[5],
+                tMaxUnit: row[6],
+                shellTemp: row[7] ? parseFloat(row[7]) : 0,
+                coldStart: parseInt(row[8]),
+                fan: parseInt(row[9]),
+                activeShelf1: parseInt(row[10]),
+                activeShelf2: parseInt(row[11]),
+                activeShelf3: parseInt(row[12]),
+            }));
+
+
+            setData(dataRows);
+            setOriginalData(JSON.parse(JSON.stringify(dataRows)));
+
+            // Set StartFromRoomTemp if the first row's tMin is 'istabas'
+            if (dataRows.length > 0 && dataRows[0].tMin === 'istabas') {
+                setStartFromRoomTemp(true);
+            } else {
+                setStartFromRoomTemp(false);
+            }
+        } catch (error) {
+            console.error('Failed to fetch CSV data:', error);
+        }
+    };
     const renameFile = async () => {
         try {
             const response = await fetch(`http://localhost:5001/renameFile`, {
@@ -157,6 +204,7 @@ export default function SingleProfile() {
             }
     
             const result = await response.json();
+            fetchCsvData()
             showNotification({
                 title: t.saveSuccess,
                 message: t.fileSaved,
@@ -195,58 +243,11 @@ export default function SingleProfile() {
             }
             newFileName = renamedFile;
         }
-    
-        // Save changes with the potentially new filename
+        
         await saveChanges(newFileName);
     };
 
     useEffect(() => {
-        const fetchCsvData = async () => {
-            try {
-                const response = await fetch(`http://localhost:5001/get-csv/${fileName}`);
-                if (!response.ok) {
-                    console.error('Error fetching CSV data');
-                    showNotification({
-                        autoClose: false,
-                        title: "Nevarēja atrast failu" + "  " + fileName+ ".csv",
-                        message: "Dodieties atpakaļ un pārliecinaties, ka fails eksistē.",
-                        color: 'red',
-                    });
-                    return;
-                }
-                const csvData = await response.text();
-                const rows = csvData.split('\n').map(row => row.split(','));
-                const dataRows = rows.slice(1).map(row => ({
-                    step: parseInt(row[0]),
-                    tMin: row[1] === 'istabas' ? 'istabas' : parseFloat(row[1]),
-                    tMax: parseFloat(row[2]),
-                    time: parseInt(row[3]),
-                    pressure: parseFloat(row[4]),
-                    tMinUnit: row[5],
-                    tMaxUnit: row[6],
-                    shellTemp: row[7] ? parseFloat(row[7]) : 0, 
-                    coldStart: parseInt(row[8]),
-                    fan: parseInt(row[9]),
-                    activeShelf1: parseInt(row[10]),
-                    activeShelf2: parseInt(row[11]),
-                    activeShelf3: parseInt(row[12]),
-                }));
-
-
-                setData(dataRows);
-                setOriginalData(JSON.parse(JSON.stringify(dataRows))); // Ensure a deep copy
-
-                // Set StartFromRoomTemp if the first row's tMin is 'istabas'
-                if (dataRows.length > 0 && dataRows[0].tMin === 'istabas') {
-                    setStartFromRoomTemp(true);
-                } else {
-                    setStartFromRoomTemp(false);
-                }
-            } catch (error) {
-                console.error('Failed to fetch CSV data:', error);
-            }
-        };
-
         if (fileName) {
             fetchCsvData();
         }
@@ -273,7 +274,8 @@ export default function SingleProfile() {
             time: 1,
             pressure: 1,
             tMinUnit: temperatureUnit,
-            tMaxUnit: temperatureUnit
+            tMaxUnit: temperatureUnit,
+            shellTemp: 0
         };
 
         const newData = [...data];
@@ -414,6 +416,69 @@ export default function SingleProfile() {
         changeLanguage(newLang); // This will trigger a re-render and change language in all components
     }
     const startProgram = async () => {
+        console.log(data)
+        console.log(originalData)
+        const hasUnsavedChanges = JSON.stringify(data) !== JSON.stringify(originalData);
+        console.log(hasUnsavedChanges)
+        if (hasUnsavedChanges) {
+            setUnsavedChanges(true);
+            openModal();
+            return;
+        }
+
+        await executeProgramStart();
+    };
+
+    const getDifferences = () => {
+        const differences = [];
+
+        // Check if data and originalData are both valid arrays
+        if (!Array.isArray(data) || !Array.isArray(originalData)) {
+            console.error('Data or originalData is not an array');
+            return differences;
+        }
+
+        // First, compare rows in both originalData and data
+        data.forEach((row) => {
+            const originalRow = originalData.find(r => r.step === row.step);
+
+            // Check if the row exists in originalData
+            if (!originalRow) {
+                // This row is new, add it as a difference
+                differences.push({
+                    step: row.step,
+                    differences: { newStep: true, details: row },
+                });
+                return;  // Skip the rest of the loop for this row
+            }
+
+            const rowDiffs = {};
+
+            // Compare the individual fields of each row
+            for (let key in row) {
+                if (row[key] !== originalRow[key]) {
+                    rowDiffs[key] = {
+                        original: originalRow[key],
+                        modified: row[key],
+                    };
+                }
+            }
+
+            // If there are any differences, add them to the list
+            if (Object.keys(rowDiffs).length > 0) {
+                differences.push({ step: row.step, differences: rowDiffs });
+            }
+        });
+
+        return differences;
+    };
+
+
+
+    const differences = getDifferences();
+    console.log(differences);  // Add this line for debugging
+
+    const executeProgramStart = async () => {
         try {
             const response = await fetch('http://localhost:5001/run-script', {
                 method: 'POST',
@@ -507,17 +572,57 @@ export default function SingleProfile() {
                                 </Tabs>
                             <Group w={width * 0.8} justify='space-between'>
                                 <Text>{t.totalProgramTime} {formattedProgramTime}</Text>
-                                <Link to={'/overviewMain/filename'}>
                                     <Button
                                         onClick={startProgram}
                                         rightSection={<IconPlayerPlayFilled size={20} />}
                                     >
                                         {t.startProgram}
                                     </Button>
-
-                                </Link>
                             </Group>
                         </Flex>
+                        <Modal
+                            opened={modalOpened}
+                            onClose={closeModal}
+                            title="Nesaglabātas izmaiņas"
+                            centered
+                        >
+                            <Text>Jums ir nesaglabātas izmaiņas. Šeit ir atšķirības:</Text>
+                            <Stack>
+                                {differences.length === 0 ? (
+                                    <Text>Nav izmaiņu.</Text>
+                                ) : (
+                                    differences.map((diff, index) => (
+                                        <div key={index}>
+                                            <Text ><strong>Solis</strong>  {diff.step}:</Text>
+                                            <div>
+                                                {Object.entries(diff.differences).map(([key, { original, modified }], diffIndex) => (
+                                                    <span key={diffIndex}>
+                                                        <Text pl={12}>
+                                                            {key}: {original} → {modified}
+                                                        </Text>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </Stack>
+                            <Group mt="md" position="right">
+                                <Button onClick={async () => {
+                                    await handleSaveChanges();
+                                    closeModal();
+                                    await executeProgramStart();
+                                }}>
+                                    Saglabāt un palaist
+                                </Button>
+                                <Button onClick={async () => {
+                                    closeModal();
+                                    await executeProgramStart();
+                                }} color="red">
+                                    Palaist bez saglabāšanas
+                                </Button>
+                            </Group>
+                        </Modal>
                     </AppShell.Main>
                 </AppShell>
     );
