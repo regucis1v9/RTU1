@@ -103,42 +103,54 @@ export default function CodeEditor() {
       return;
     }
   
-    const oldFileName = draggedFile?.name.replace('.csv', ''); // Get old file name without ".csv"
-    console.log('Old File Name:', oldFileName); // Debugging
-  
     try {
+      const currentFileName = draggedFile?.name.replace('.csv', '');
+      
       const response = await fetch('http://localhost:3002/save-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fileName,  // New file name
-          code: currentCode,  // Content of the file
-          oldFileName,  // Old file name
+          fileName,
+          code: currentCode,
+          oldFileName: currentFileName || fileName // Include the current file name if it exists
         }),
       });
   
       if (response.ok) {
-        setTerminalOutput([
-          ...terminalOutput,
-          { type: 'output', message: `File "${fileName}.csv" saved successfully.` },
-        ]);
-  
-        // If the file name has changed, update the draggedFile state with the new file name
-        if (oldFileName && oldFileName !== fileName) {
-          setDraggedFile({ ...draggedFile, name: `${fileName}.csv` });
+        // Update the UI state
+        if (currentFileName && currentFileName !== fileName) {
+          // If renaming, update the files list
+          setCsvFiles(prevFiles => prevFiles.map(file => {
+            if (file.name === `${currentFileName}.csv`) {
+              return {
+                ...file,
+                name: `${fileName}.csv`,
+                content: currentCode
+              };
+            }
+            return file;
+          }));
+          setDraggedFile(null); // Reset dragged file after rename
+        } else {
+          // If just saving, update the content
+          setCsvFiles(prevFiles => prevFiles.map(file => {
+            if (file.name === `${fileName}.csv`) {
+              return {
+                ...file,
+                content: currentCode
+              };
+            }
+            return file;
+          }));
         }
+        
+        toast.success(`File saved successfully as ${fileName}.csv`);
       } else {
         const error = await response.text();
-        setTerminalOutput([
-          ...terminalOutput,
-          { type: 'error', message: `Failed to save file: ${error}` },
-        ]);
+        toast.error(`Failed to save file: ${error}`);
       }
     } catch (error) {
-      setTerminalOutput([
-        ...terminalOutput,
-        { type: 'error', message: `An error occurred: ${error.message}` },
-      ]);
+      toast.error(`An error occurred: ${error.message}`);
     }
   };
   
@@ -351,23 +363,23 @@ export default function CodeEditor() {
       });
   
       if (response.ok) {
-        // Add the new file to the list of files
         const newFile = {
           id: csvFiles.length + 1,
           name: `${newFileName}.csv`,
           size: '0 KB',
-          content: '', // Empty file content
+          content: ''
         };
-        setCsvFiles([...csvFiles, newFile]);
-        setCurrentCode(''); // Clear the code editor
-        setFileName(newFileName); // Set the file name
+        setCsvFiles(prev => [...prev, newFile]);
+        setCurrentCode('');
+        setFileName(newFileName);
+        setDraggedFile(newFile); // Set the new file as the current file
+        toast.success(`Created new file: ${newFileName}.csv`);
       } else {
         const error = await response.text();
-        alert(`Failed to create file: ${error}`);
+        toast.error(`Failed to create file: ${error}`);
       }
     } catch (error) {
-      console.error('Error creating new file:', error);
-      alert(`An error occurred: ${error.message}`);
+      toast.error(`An error occurred: ${error.message}`);
     }
   };
   
