@@ -29,7 +29,7 @@ import { useElementSize, useDisclosure, useViewportSize } from '@mantine/hooks';
 import translations from '../locales/translations';
 import classes from "../styles/Table.module.css";
 import cx from 'clsx';
-import { Link, useParams } from 'react-router-dom';
+import {Link, useNavigate, useParams} from 'react-router-dom';
 import Header from "../components/Header"
 import { useLanguage } from '../context/LanguageContext'; // Importing Language context
 import { usePressureUnit } from '../context/PressureUnitContext'; // Importing PressureUnit context
@@ -42,6 +42,7 @@ const fromFahrenheitToCelsius = (fahrenheit) => (fahrenheit - 32) * 5/9;
 const fromKelvinToCelsius = (kelvin) => kelvin - 273.15;
 
 export default function SingleProfile() {
+    const navigate = useNavigate();
     const [startFromRoomTemp, setStartFromRoomTemp] = useState(false);
     const [originalData, setOriginalData] = useState([]);
     const { fileName } = useParams();
@@ -494,6 +495,7 @@ export default function SingleProfile() {
                 message: `Programma palaista veiksmīgi`,
                 color: 'green',
             });
+            navigate("/overviewMain/asd");
         } catch (error) {
             console.error('Error starting program:', error);
             showNotification({

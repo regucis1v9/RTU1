@@ -3,6 +3,7 @@ import "../styles/overviewStyles.scss";
 import { Link } from 'react-router-dom';
 import { TextInput, Button, PasswordInput, Input } from '@mantine/core'; // Import TextInput instead of Input
 import configData from '../config.json';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
     const [showLogin, setShowLogin] = useState(false);
@@ -11,6 +12,7 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [usernameError, setUsernameError] = useState('');
     const [passworError, setPassworError] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
         // Set the config state directly from the imported JSON
@@ -53,7 +55,7 @@ const Login = () => {
 
             if (response.ok) {
                 console.log('Login successful:', data);
-                // Handle successful login (e.g., navigate to the next page)
+                navigate("/allProfiles")
             } else {
                 console.error('Login failed:', data.message);
                 if(data.message === "Incorrect password"){
