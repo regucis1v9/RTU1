@@ -4,6 +4,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const multer = require('multer');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 const PORT = 5001;
@@ -17,6 +18,36 @@ if (!fs.existsSync(PROJECTS_DIR)) {
 app.use(cors());
 app.use(bodyParser.json());
 
+const loadUsers = () => {
+  const rawData = fs.readFileSync(path.join(__dirname, 'users.json'));
+  return JSON.parse(rawData).users;
+};
+
+// Check the password using bcrypt
+const checkPassword = (storedHash, password) => {
+  return bcrypt.compareSync(password, storedHash);
+};
+
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+
+  const users = loadUsers();
+  const user = users.find(user => user.username === username);
+
+  if (user) {
+    if (checkPassword(user.password, password)) {
+      return res.json({ message: "Login successful!" });
+    } else {
+      return res.status(401).json({ message: "Incorrect password" });
+    }
+  } else {
+    return res.status(404).json({ message: "User not found" });
+  }
+});
+
+// Other routes can be added here
+
+// Start the serve
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, PROJECTS_DIR);
