@@ -58,58 +58,25 @@ app.post('/delete-code', (req, res) => {
   });
 });
 
-// POST route to save or rename code
 app.post('/save-code', (req, res) => {
-    const { fileName, code, oldFileName } = req.body;
+  const { fileName, code, oldFileName } = req.body;
+
+  if (!fileName || !code) {
+    return res.status(400).send('Filename and code are required.');
+  }
+
+  const codesDirectory = path.join(__dirname, 'codes');
+  const newFilePath = path.join(codesDirectory, `${fileName}.csv`);
   
-    if (!fileName || !code) {
-      return res.status(400).send('Filename and code are required.');
-    }
-  
-    const codesDirectory = path.join(__dirname, 'codes');
-    const newFilePath = path.join(codesDirectory, `${fileName}.csv`);
-  
-    console.log('Old File Name:', oldFileName); // Debugging
-    console.log('New File Name:', fileName);    // Debugging
-  
-    if (oldFileName && oldFileName !== fileName) {
-      const oldFilePath = path.join(codesDirectory, `${oldFileName}.csv`);
-  
-      // Check if the old file exists
-      if (fs.existsSync(oldFilePath)) {
-        // Rename the old file to the new file name
-        fs.rename(oldFilePath, newFilePath, (err) => {
-          if (err) {
-            console.error('Error renaming file:', err);
-            return res.status(500).send('Failed to rename the file.');
-          }
-  
-          // After renaming, write the updated content to the file
-          fs.writeFile(newFilePath, code, (err) => {
-            if (err) {
-              console.error('Error saving file:', err);
-              return res.status(500).send('Failed to save the file.');
-            }
-  
-            res.status(200).send('File renamed and saved successfully.');
-          });
-        });
-      } else {
-        console.error('Old file not found:', oldFilePath);
-        return res.status(404).send('Old file not found.');
-      }
-    } else {
-      // Save the file with the current name (no renaming)
-      fs.writeFile(newFilePath, code, (err) => {
-        if (err) {
-          console.error('Error saving file:', err);
-          return res.status(500).send('Failed to save the file.');
-        }
-  
-        res.status(200).send('File saved successfully.');
-      });
-    }
-  });
+  try {
+    // Always write the new file first
+    fs.writeFileSync(newFilePath, code);
+    return res.status(200).send('File saved successfully.');
+  } catch (error) {
+    console.error('Error saving file:', error);
+    return res.status(500).send('Failed to save the file.');
+  }
+});
 
 // GET route to fetch all CSV files from the codes folder
 app.get('/get-codes', (req, res) => {
