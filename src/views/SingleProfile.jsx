@@ -417,17 +417,44 @@ export default function SingleProfile() {
         changeLanguage(newLang); // This will trigger a re-render and change language in all components
     }
     const startProgram = async () => {
-        console.log(data)
-        console.log(originalData)
+        console.log(data);
+        console.log(originalData);
+
         const hasUnsavedChanges = JSON.stringify(data) !== JSON.stringify(originalData);
-        console.log(hasUnsavedChanges)
+        console.log(hasUnsavedChanges);
+
         if (hasUnsavedChanges) {
             setUnsavedChanges(true);
             openModal();
             return;
         }
 
-        await executeProgramStart();
+        try {
+            // Call the endpoint to move the file
+            const response = await fetch('http://localhost:5001/move-to-sister-folder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ fileName }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                console.error('Error moving file:', result.message);
+                alert(`Failed to move the file: ${result.message}`);
+                return;
+            }
+
+            console.log('File moved successfully:', result.message);
+
+            // Proceed with starting the program
+            await executeProgramStart();
+        } catch (error) {
+            console.error('Error during startProgram:', error);
+            alert('An unexpected error occurred while starting the program.');
+        }
     };
 
     const getDifferences = () => {
