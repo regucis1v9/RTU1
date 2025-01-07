@@ -10,9 +10,16 @@ const app = express();
 const PORT = 5001;
 
 const PROJECTS_DIR = path.resolve(__dirname, 'csvFiles');
+const ACTIVE_DIR = path.resolve(__dirname, '../active-folder');
+
 if (!fs.existsSync(PROJECTS_DIR)) {
   console.error(`Directory ${PROJECTS_DIR} does not exist!`);
   process.exit(1);
+}
+
+if (!fs.existsSync(ACTIVE_DIR)) {
+  fs.mkdirSync(ACTIVE_DIR);
+  console.log(`Sister folder created at: ${ACTIVE_DIR}`);
 }
 
 app.use(cors());
@@ -341,4 +348,40 @@ app.post('/run-script', (req, res) => {
   });
 });
 
+/**
+ * Move a CSV file to the sister folder
+ */
+const moveFileToSisterFolder = (fileName) => {
+  // Construct paths
+  const sourcePath = path.join(PROJECTS_DIR, fileName);
+  const destinationPath = path.join(ACTIVE_DIR, fileName);
 
+  // Check if the file exists
+  if (!fs.existsSync(sourcePath)) {
+    return { error: `File "${fileName}" not found in ${PROJECTS_DIR}` };
+  }
+
+  try {
+    // Move the file to the sister folder
+    fs.renameSync(sourcePath, destinationPath);
+    return { message: `File moved successfully to: ${destinationPath}` };
+  } catch (err) {
+    console.error('Error moving file:', err);
+    return { error: `Error moving file: ${err.message}` };
+  }
+};
+app.post('/move-to-sister-folder', (req, res) => {
+  const { fileName } = req.body;
+
+  if (!fileName) {
+    return res.status(400).json({ message: 'File name is required' });
+  }
+
+  const result = moveFileToSisterFolder(fileName);
+
+  if (result.error) {
+    return res.status(404).json({ message: result.error });
+  }
+
+  res.json({ message: result.message });
+});
