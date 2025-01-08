@@ -346,8 +346,7 @@ app.post('/run-script', (req, res) => {
     res.json({ message: 'Script executed successfully', output: stdout.trim() });
   });
 });
-const moveFileToSisterFolder = (fileName) => {
-  // Construct paths
+const copyFileToSisterFolder = (fileName) => {
   const sourcePath = path.join(PROJECTS_DIR, fileName);
   const destinationPath = path.join(ACTIVE_DIR, fileName);
 
@@ -357,22 +356,23 @@ const moveFileToSisterFolder = (fileName) => {
   }
 
   try {
-    // Move the file to the sister folder
-    fs.renameSync(sourcePath, destinationPath);
-    return { message: `File moved successfully to: ${destinationPath}` };
+    // Copy the file to the sister folder
+    fs.copyFileSync(sourcePath, destinationPath);
+    return { message: `File copied successfully to: ${destinationPath}` };
   } catch (err) {
-    console.error('Error moving file:', err);
-    return { error: `Error moving file: ${err.message}` };
+    console.error('Error copying file:', err);
+    return { error: `Error copying file: ${err.message}` };
   }
 };
-app.post('/move-to-sister-folder', (req, res) => {
+
+app.post('/copy-to-sister-folder', (req, res) => {
   const { fileName } = req.body;
 
   if (!fileName) {
     return res.status(400).json({ message: 'File name is required' });
   }
 
-  const result = moveFileToSisterFolder(fileName);
+  const result = copyFileToSisterFolder(fileName);
 
   if (result.error) {
     return res.status(404).json({ message: result.error });
@@ -380,3 +380,4 @@ app.post('/move-to-sister-folder', (req, res) => {
 
   res.json({ message: result.message });
 });
+
