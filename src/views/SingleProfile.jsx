@@ -53,7 +53,7 @@ export default function SingleProfile() {
     const { ref, width, height } = useElementSize();
     const [scrolled, setScrolled] = useState(false);
     const [data, setData] = useState([
-        { step: 1, tMin: 0, tMax: 0, time: 1, tMinUnit: 'C', tMaxUnit: 'C', pressure: 1, shellTemp: 0 }
+        { step: 1, tMin: 0, tMax: 0, time: 1, tUnit: 'C', pressureUnit: 'mbar', pressure: 1, shellTemp: 0 }
     ]);
     const { language, changeLanguage } = useLanguage(); // Access language from context
     const { pressureUnit, togglePressureUnit } = usePressureUnit(); // Access pressure unit from context
@@ -86,8 +86,8 @@ export default function SingleProfile() {
                 tMax: parseFloat(row[2]),
                 time: parseInt(row[3]),
                 pressure: parseFloat(row[4]),
-                tMinUnit: row[5],
-                tMaxUnit: row[6],
+                tUnit: row[5],
+                pressureUnit: row[6],
                 shellTemp: row[7] ? parseFloat(row[7]) : 0,
                 coldStart: parseInt(row[8]),
                 fan: parseInt(row[9]),
@@ -122,7 +122,7 @@ export default function SingleProfile() {
                     newFileName: editedFileName,
                 }),
             });
-    
+
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('Error renaming file:', errorData);
@@ -133,23 +133,23 @@ export default function SingleProfile() {
                 });
                 return false;
             }
-    
+
             const result = await response.json();
             console.log('Rename success:', result);
-            
+
             // Update the local state and URL
             const newFileName = result.newFileName;
             setProjectName(editedFileName);
-            
+
             // Update the URL without reloading the page
             window.history.replaceState(null, '', `/profile/${newFileName}`);
-    
+
             showNotification({
                 title: t.renameSuccess,
                 message: t.fileRenamed,
                 color: 'green',
             });
-    
+
             // Return the new filename
             return newFileName;
         } catch (error) {
@@ -162,7 +162,7 @@ export default function SingleProfile() {
             return false;
         }
     };
-    
+
     const saveChanges = async (fileNameToUse) => {
         console.log(data)
         const updatedData = data.map((row, index) => ({
@@ -171,8 +171,8 @@ export default function SingleProfile() {
             tMax: row.tMax,
             time: row.time,
             pressure: row.pressure,
-            tMinUnit: row.tMinUnit,
-            tMaxUnit: row.tMaxUnit,
+            tUnit: row.tUnit,
+            pressureUnit: pressureUnit,
             shellTemp: row.shellTemp,
             fan: row.fan,
             coldStart: row.coldStart,
@@ -180,7 +180,7 @@ export default function SingleProfile() {
             activeShelf2: row.activeShelf2,
             activeShelf3: row.activeShelf3,
         }));
-          
+
         try {
             const response = await fetch(`http://localhost:5001/updateFile`, {
                 method: 'POST',
@@ -192,7 +192,7 @@ export default function SingleProfile() {
                     data: updatedData
                 }),
             });
-    
+
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('Error saving changes:', errorData);
@@ -203,7 +203,7 @@ export default function SingleProfile() {
                 });
                 return;
             }
-    
+
             const result = await response.json();
             fetchCsvData()
             showNotification({
@@ -233,9 +233,9 @@ export default function SingleProfile() {
         // Check if the filename is being changed
         const sanitizedCurrentFileName = fileName.replace(/-\d{4}-\d{2}-\d{2}.*/, '');
         const sanitizedEditedFileName = editedFileName.replace(/-\d{4}-\d{2}-\d{2}.*/, '');
-    
+
         let newFileName = fileName;
-    
+
         // Rename if the filename is different
         if (sanitizedCurrentFileName !== sanitizedEditedFileName) {
             const renamedFile = await renameFile();
@@ -244,7 +244,7 @@ export default function SingleProfile() {
             }
             newFileName = renamedFile;
         }
-        
+
         await saveChanges(newFileName);
     };
 
@@ -274,8 +274,8 @@ export default function SingleProfile() {
             tMax: 0,
             time: 1,
             pressure: 1,
-            tMinUnit: temperatureUnit,
-            tMaxUnit: temperatureUnit,
+            tUnit: temperatureUnit,
+            pressureUnit: pressureUnit,
             shellTemp: 0
         };
 
@@ -314,38 +314,40 @@ export default function SingleProfile() {
     };
 
     const updateRow = (index, field, value) => {
-        setData(prevData => {
+        setData((prevData) => {
             const updatedData = [...prevData];
 
-            // Handle totalTime adjustment for "time" field
+            // Handle time adjustment
             if (field === 'time') {
                 const previousTime = updatedData[index][field];
-                setTotalTime(totalTime => totalTime - previousTime + value); // Safely adjust totalTime
+                setTotalTime((totalTime) => totalTime - previousTime + value);
             }
 
-            // Convert booleans for "coldStart", "fan", and shelf states to integers (1 or 0)
+            // Update booleans
             if (['coldStart', 'fan', 'activeShelf1', 'activeShelf2', 'activeShelf3'].includes(field)) {
-                updatedData[index][field] = value ? 1 : 0; // Store as 1 (true) or 0 (false)
+                updatedData[index][field] = value ? 1 : 0;
             } else {
-                // Update the field directly for other types
                 updatedData[index][field] = value;
             }
 
             // Synchronize tMax and tMin between rows
-            if (field === 'tMax' && index < updatedData.length - 1) {
-                updatedData[index + 1].tMin = value;
+            if (field === 'tMax') {
+                updatedData[index][field] = value; // Update tMax directly
+                if (index < updatedData.length - 1) {
+                    updatedData[index + 1].tMin = value; // Sync with next row's tMin
+                }
             }
 
-            // Handle temperature unit conversion
+            // Temperature conversion
             if (field === 'tMin' || field === 'tMax') {
                 updatedData[index][field] = convertTemperature(
                     value,
-                    updatedData[index][`${field}Unit`],
+                    updatedData[index].tUnit, // Assuming tUnit is shared
                     temperatureUnit
                 );
             }
 
-            // Handle pressure unit conversion
+            // Pressure conversion
             if (field === 'pressure') {
                 updatedData[index][field] = convertPressure(
                     value,
@@ -357,8 +359,9 @@ export default function SingleProfile() {
             return updatedData;
         });
     };
+
     const convertTemperature = (value, fromUnit, toUnit) => {
-        const roundTo = (num) => Math.round(num); 
+        const roundTo = (num) => Math.round(num);
 
         if (fromUnit === toUnit) return roundTo(value);
 
@@ -383,10 +386,10 @@ export default function SingleProfile() {
         changeTemperatureUnit(newUnit);
         const updatedData = data.map(row => {
             const newRow = { ...row };
-            newRow.tMinUnit = newUnit;
-            newRow.tMaxUnit = newUnit;
-            newRow.tMin = convertTemperature(newRow.tMin, row.tMinUnit, newUnit);
-            newRow.tMax = convertTemperature(newRow.tMax, row.tMaxUnit, newUnit);
+            newRow.tUnit = newUnit;
+            newRow.pressureUnit = newUnit;
+            newRow.tMin = convertTemperature(newRow.tMin, row.tUnit, newUnit);
+            newRow.tMax = convertTemperature(newRow.tMax, row.tUnit, newUnit);
             newRow.pressure  = 1;
             return newRow;
         });
@@ -534,125 +537,126 @@ export default function SingleProfile() {
     };
 
     return (
-                <AppShell withBorder={false} header={{ height: 60 }}>
-                    <Header
-                        language={language}
-                        changeLanguage={changeLanguage}
-                        pressureUnit={pressureUnit}
-                        togglePressureUnit={togglePressureUnit}
-                        temperatureUnit={temperatureUnit}
-                        changeTemperatureUnit={changeTemperatureUnit}
-                    />
-                    <AppShell.Main ref={ref}>
-                        <Flex w={width} h={height} gap="md" justify="center" align="center" direction="column">
-                            <Group w={width * 0.8} justify='space-between'>
-                                <Stack>
-                                    <Input.Wrapper label={t.programName} withAsterisk>
-                                    <Input placeholder="..." variant='filled' value={editedFileName} onChange={(e) => setEditedFileName(e.target.value)} />
+        <AppShell withBorder={false} header={{ height: 60 }}>
+            <Header
+                language={language}
+                changeLanguage={changeLanguage}
+                pressureUnit={pressureUnit}
+                togglePressureUnit={togglePressureUnit}
+                temperatureUnit={temperatureUnit}
+                changeTemperatureUnit={changeTemperatureUnit}
+            />
+            <AppShell.Main ref={ref}>
+                <Flex w={width} h={height} gap="md" justify="center" align="center" direction="column">
+                    <Group w={width * 0.8} justify='space-between'>
+                        <Stack>
+                            <Input.Wrapper label={t.programName} withAsterisk>
+                                <Input placeholder="..." variant='filled' value={editedFileName} onChange={(e) => setEditedFileName(e.target.value)} />
 
-                                    </Input.Wrapper>
-                                    <Checkbox
-                                        checked={startFromRoomTemp}
-                                        onChange={(event) => setStartFromRoomTemp(event.currentTarget.checked)}
-                                        label="Sākt no istabas temperatūras"
-                                    />
-                                </Stack>
-                                <Group>
-                                    <Button onClick={cancelChanges} rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>
-                                    <Button onClick={handleSaveChanges} rightSection={<IconCheck size={16} />}>{t.saveChanges}</Button>
-                                </Group>
-                            </Group>
-                                <Tabs w={width * 0.8} h={height * 0.7} defaultValue="gallery">
-                                    <Tabs.List>
-                                        <Tabs.Tab value="gallery" >
-                                            Konfigurācija
-                                        </Tabs.Tab>
-                                        <Tabs.Tab value="messages" >
-                                            Soļi
-                                        </Tabs.Tab>
-                                    </Tabs.List>
+                            </Input.Wrapper>
+                            <Checkbox
+                                checked={startFromRoomTemp}
+                                onChange={(event) => setStartFromRoomTemp(event.currentTarget.checked)}
+                                label="Sākt no istabas temperatūras"
+                            />
+                        </Stack>
+                        <Group>
+                            <Button onClick={cancelChanges} rightSection={<IconX size={16} />} color='red'>{t.cancelChanges}</Button>
+                            <Button onClick={handleSaveChanges} rightSection={<IconCheck size={16} />}>{t.saveChanges}</Button>
+                        </Group>
+                    </Group>
+                    <Tabs w={width * 0.8} h={height * 0.7} defaultValue="gallery">
+                        <Tabs.List>
+                            <Tabs.Tab value="gallery" >
+                                Konfigurācija
+                            </Tabs.Tab>
+                            <Tabs.Tab value="messages" >
+                                Soļi
+                            </Tabs.Tab>
+                        </Tabs.List>
 
-                                    <Tabs.Panel value="gallery" p={20}>
-                                        <ConfigScreen
-                                            data={data}
-                                            updateRow={updateRow}
-                                        />
-                                    </Tabs.Panel>
-                                    <Tabs.Panel value="messages" pt={10}>
-                                        <ScrollArea h={height * 0.7} w={width * 0.8} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
-                                            <StepTable
-                                                data={data}
-                                                startFromRoomTemp={startFromRoomTemp}
-                                                temperatureUnit={temperatureUnit}
-                                                totalTime={totalTime}
-                                                setTotalTime={setTotalTime}
-                                                addRow={addRow}
-                                                removeRow={removeRow}
-                                                updateRow={updateRow}
-                                                convertTemperature={convertTemperature}
-                                                toggleUnitsForAll={toggleUnitsForAll}
-                                                scrolled={false}
-                                                t={t}
-                                                onSave={handleSaveChanges}
-                                                onCancel={cancelChanges}
-                                            />
-                                        </ScrollArea>
-                                    </Tabs.Panel>
-                                </Tabs>
-                            <Group w={width * 0.8} justify='space-between'>
-                                <Text>{t.totalProgramTime} {formattedProgramTime}</Text>
-                                    <Button
-                                        onClick={startProgram}
-                                        rightSection={<IconPlayerPlayFilled size={20} />}
-                                    >
-                                        {t.startProgram}
-                                    </Button>
-                            </Group>
-                        </Flex>
-                        <Modal
-                            opened={modalOpened}
-                            onClose={closeModal}
-                            title="Nesaglabātas izmaiņas"
-                            centered
+                        <Tabs.Panel value="gallery" p={20}>
+                            <ConfigScreen
+                                data={data}
+                                updateRow={updateRow}
+                            />
+                        </Tabs.Panel>
+                        <Tabs.Panel value="messages" pt={10}>
+                            <ScrollArea h={height * 0.7} w={width * 0.8} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
+                                <StepTable
+                                    data={data}
+                                    startFromRoomTemp={startFromRoomTemp}
+                                    temperatureUnit={temperatureUnit}
+                                    totalTime={totalTime}
+                                    setTotalTime={setTotalTime}
+                                    addRow={addRow}
+                                    removeRow={removeRow}
+                                    updateRow={updateRow}
+                                    convertTemperature={convertTemperature}
+                                    toggleUnitsForAll={toggleUnitsForAll}
+                                    scrolled={false}
+                                    t={t}
+                                    onSave={handleSaveChanges}
+                                    onCancel={cancelChanges}
+                                    pressureUnit={pressureUnit}
+                                />
+                            </ScrollArea>
+                        </Tabs.Panel>
+                    </Tabs>
+                    <Group w={width * 0.8} justify='space-between'>
+                        <Text>{t.totalProgramTime} {formattedProgramTime}</Text>
+                        <Button
+                            onClick={startProgram}
+                            rightSection={<IconPlayerPlayFilled size={20} />}
                         >
-                            <Text>Jums ir nesaglabātas izmaiņas. Šeit ir atšķirības:</Text>
-                            <Stack>
-                                {differences.length === 0 ? (
-                                    <Text>Nav izmaiņu.</Text>
-                                ) : (
-                                    differences.map((diff, index) => (
-                                        <div key={index}>
-                                            <Text ><strong>Solis</strong>  {diff.step}:</Text>
-                                            <div>
-                                                {Object.entries(diff.differences).map(([key, { original, modified }], diffIndex) => (
-                                                    <span key={diffIndex}>
+                            {t.startProgram}
+                        </Button>
+                    </Group>
+                </Flex>
+                <Modal
+                    opened={modalOpened}
+                    onClose={closeModal}
+                    title="Nesaglabātas izmaiņas"
+                    centered
+                >
+                    <Text>Jums ir nesaglabātas izmaiņas. Šeit ir atšķirības:</Text>
+                    <Stack>
+                        {differences.length === 0 ? (
+                            <Text>Nav izmaiņu.</Text>
+                        ) : (
+                            differences.map((diff, index) => (
+                                <div key={index}>
+                                    <Text ><strong>Solis</strong>  {diff.step}:</Text>
+                                    <div>
+                                        {Object.entries(diff.differences).map(([key, { original, modified }], diffIndex) => (
+                                            <span key={diffIndex}>
                                                         <Text pl={12}>
                                                             {key}: {original} → {modified}
                                                         </Text>
                                                     </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </Stack>
-                            <Group mt="md" position="right">
-                                <Button onClick={async () => {
-                                    await handleSaveChanges();
-                                    closeModal();
-                                    await executeProgramStart();
-                                }}>
-                                    Saglabāt un palaist
-                                </Button>
-                                <Button onClick={async () => {
-                                    closeModal();
-                                    await executeProgramStart();
-                                }} color="red">
-                                    Palaist bez saglabāšanas
-                                </Button>
-                            </Group>
-                        </Modal>
-                    </AppShell.Main>
-                </AppShell>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </Stack>
+                    <Group mt="md" position="right">
+                        <Button onClick={async () => {
+                            await handleSaveChanges();
+                            closeModal();
+                            await executeProgramStart();
+                        }}>
+                            Saglabāt un palaist
+                        </Button>
+                        <Button onClick={async () => {
+                            closeModal();
+                            await executeProgramStart();
+                        }} color="red">
+                            Palaist bez saglabāšanas
+                        </Button>
+                    </Group>
+                </Modal>
+            </AppShell.Main>
+        </AppShell>
     );
 }
