@@ -434,7 +434,7 @@ export default function SingleProfile() {
 
         try {
             // Call the endpoint to move the file
-            const response = await fetch('http://localhost:5001/move-to-sister-folder', {
+            const response = await fetch('http://localhost:5001/copy-to-sister-folder', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
