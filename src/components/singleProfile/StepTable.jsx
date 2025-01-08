@@ -16,19 +16,20 @@ import cx from 'clsx';
 import classes from "../../styles/Table.module.css";
 
 export default function StepTable ({
-                          data,
-                          startFromRoomTemp,
-                          temperatureUnit,
-                          totalTime,
-                          setTotalTime,
-                          addRow,
-                          removeRow,
-                          updateRow,
-                          convertTemperature,
-                          toggleUnitsForAll,
-                          scrolled,
-                          t,
-                      }) {
+                                       data,
+                                       startFromRoomTemp,
+                                       temperatureUnit,
+                                       totalTime,
+                                       setTotalTime,
+                                       addRow,
+                                       removeRow,
+                                       updateRow,
+                                       convertTemperature,
+                                       toggleUnitsForAll,
+                                       scrolled,
+                                       t,
+                                       pressureUnit
+                                   }) {
     const rows = data.map((row, index) => (
         <Table.Tr key={row.step}>
             <Table.Td ta='center'>{row.step}</Table.Td>
@@ -41,7 +42,7 @@ export default function StepTable ({
                             decimalScale={0}
                             w={90}
                             variant="filled"
-                            value={convertTemperature(row.tMin, row.tMinUnit, temperatureUnit)}
+                            value={convertTemperature(row.tMin, row.tUnit, temperatureUnit)}
                             disabled={index === 0 && startFromRoomTemp}
                             onChange={(val) => updateRow(index, 'tMin', val)}
                         />
@@ -55,7 +56,7 @@ export default function StepTable ({
                         decimalScale={0}
                         w={90}
                         variant="filled"
-                        value={convertTemperature(row.tMax, row.tMaxUnit, temperatureUnit)}
+                        value={convertTemperature(row.tMax, row.tUnit, temperatureUnit)}
                         onChange={(val) => updateRow(index, 'tMax', val)}
                     />
                     <Text>{temperatureUnit}</Text>
@@ -78,8 +79,8 @@ export default function StepTable ({
             <Table.Td ta='center'>
                 <Group align='center' justify='center' miw={132}>
                     <NumberInput
-                        step={0.1}
-                        min={0.5}
+                        step={1}
+                        min={6}
                         max={100}
                         clampBehavior="strict"
                         w={90}
@@ -88,7 +89,7 @@ export default function StepTable ({
                         value={row.pressure}
                         onChange={(val) => updateRow(index, 'pressure', val)}
                     />
-                    <Text>bar</Text>
+                    <Text>{pressureUnit}</Text>
                 </Group>
             </Table.Td>
             <Table.Td ta='center'>
@@ -136,7 +137,7 @@ export default function StepTable ({
                 </Table.Thead>
                 <Table.Tbody>{rows}</Table.Tbody>
             </Table>
-            
+
         </Stack>
     );
 };
