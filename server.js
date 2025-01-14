@@ -372,6 +372,7 @@ const copyFileToSisterFolder = (fileName) => {
   } catch (err) {
     console.error('Error processing files:', err);
     return { error: `Error processing files: ${err.message}` };
+
   }
 };
 
@@ -390,3 +391,4 @@ app.post('/copy-to-sister-folder', (req, res) => {
 
   res.json({ message: result.message });
 });
+
