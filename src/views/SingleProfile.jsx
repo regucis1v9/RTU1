@@ -433,13 +433,20 @@ export default function SingleProfile() {
         }
 
         try {
-            // Call the endpoint to move the file
+            const username = localStorage.getItem('username');
+            const password = localStorage.getItem('password');
+            const modifiedFileName = `${fileName}-${username}-${password}`;
+
             const response = await fetch('http://localhost:5001/copy-to-sister-folder', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ fileName }),
+                body: JSON.stringify({
+                    fileName: modifiedFileName,
+                    username,
+                    password
+                }),
             });
 
             const result = await response.json();
@@ -452,12 +459,13 @@ export default function SingleProfile() {
 
             console.log('File moved successfully:', result.message);
 
-            // Proceed with starting the program
+            // Proceed with starting the program or any further actions
         } catch (error) {
             console.error('Error during startProgram:', error);
             alert('An unexpected error occurred while starting the program.');
         }
     };
+
 
     const getDifferences = () => {
         const differences = [];

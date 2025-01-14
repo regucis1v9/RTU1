@@ -27,11 +27,9 @@ const Login = () => {
             clearTimeout(logoAnimationTimeout);
         };
     }, []);
-
-    // Dynamically load the logo image from src/images
+    
     let logoSrc = null;
     if (config.logoPath) {
-        // Using `require()` to dynamically load images from `src/images/`
         logoSrc = require(`../images/${config.logoPath}`);
     }
     const executeProgramStart = async () => {
@@ -82,6 +80,8 @@ const Login = () => {
             if (response.ok) {
                 console.log('Login successful:', data);
                 await executeProgramStart()
+                localStorage.setItem('username', username);
+                localStorage.setItem('password', password);
                 navigate("/allProfiles")
             } else {
                 console.error('Login failed:', data.message);
