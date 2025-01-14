@@ -21,6 +21,7 @@ import {
   IconBell,
   IconChartLine,
   IconPalette,
+  IconCheck,
   IconTablePlus,
   IconX
 } from '@tabler/icons-react';
@@ -40,23 +41,22 @@ export const TIME_RANGES = {
   '4h': 14400
 };
 
-const ThemeToggleButton = ({ isDark, toggleColorScheme }) => (
-  <Button
-    onClick={toggleColorScheme}
-    variant="ghost"
-    size="icon"
-    className="mode2-button"
-  >
-    {isDark ? (
-      <IconSun size={20} stroke={1.2} className="light-button" />
-    ) : (
-      <IconMoon size={20} stroke={1.2} className="dark-button" />
-    )}
-  </Button>
-);
+
 
 const SettingsDrawer = ({ opened, onClose, colorScheme, timeRange, onTimeRangeChange }) => {
   const isDark = colorScheme === 'dark';
+  const [controls, setControls] = useState({
+    spiediens: false,
+    ventilators: false,
+    saldetajs: false
+  });
+
+  const handleControlChange = (control) => {
+    setControls(prev => ({
+      ...prev,
+      [control]: !prev[control]
+    }));
+  };
 
   return (
     <Drawer
@@ -83,36 +83,61 @@ const SettingsDrawer = ({ opened, onClose, colorScheme, timeRange, onTimeRangeCh
       }}
     >
       <Stack spacing="lg" p="md" style={{ height: '100%' }}>
-        <Group justify="space-between" align="center" mb="md">
-          <Text size="xl" fw={600}>Iestatījumi</Text>
-          <ActionIcon
-            variant="subtle"
-            color={isDark ? 'gray' : 'dark'}
-            onClick={onClose}
-            size="lg"
-          >
-            <IconX size={24} />
-          </ActionIcon>
-        </Group>
+        
+        <Stack spacing="md" mt="xl">
+          <Text size="lg" fw={500} mb="xs">Kontroles</Text>
+          
+          <Group justify="space-between" align="center">
+            <Text>Spiediens</Text>
+            <Switch
+              checked={controls.spiediens}
+              onChange={() => handleControlChange('spiediens')}
+              size="lg"
+              color="blue"
+              thumbIcon={
+                controls.spiediens ? (
+                  <IconCheck size={12} color={isDark ? '#1A1B1E' : 'white'} stroke={3} />
+                ) : (
+                  <IconX size={12} color={isDark ? '#1A1B1E' : 'white'} stroke={3} />
+                )
+              }
+            />
+          </Group>
 
-        <Group justify="space-between" align="center">
-          <Group>
-            <IconChartLine size={24} />
-            <Text>Time Range</Text>
+          <Group justify="space-between" align="center">
+            <Text>Ventilators</Text>
+            <Switch
+              checked={controls.ventilators}
+              onChange={() => handleControlChange('ventilators')}
+              size="lg"
+              color="blue"
+              thumbIcon={
+                controls.ventilators ? (
+                  <IconCheck size={12} color={isDark ? '#1A1B1E' : 'white'} stroke={3} />
+                ) : (
+                  <IconX size={12} color={isDark ? '#1A1B1E' : 'white'} stroke={3} />
+                )
+              }
+            />
           </Group>
-          <Group spacing="xs">
-            {Object.keys(TIME_RANGES).map((range) => (
-              <Button
-                key={range}
-                variant={timeRange === range ? 'filled' : 'outline'}
-                color={timeRange === range ? 'blue' : 'gray'}
-                onClick={() => onTimeRangeChange(range)}
-              >
-                {range}
-              </Button>
-            ))}
+
+          <Group justify="space-between" align="center">
+            <Text>Saldētājs</Text>
+            <Switch
+              checked={controls.saldetajs}
+              onChange={() => handleControlChange('saldetajs')}
+              size="lg"
+              color="blue"
+              thumbIcon={
+                controls.saldetajs ? (
+                  <IconCheck size={12} color={isDark ? '#1A1B1E' : 'white'} stroke={3} />
+                ) : (
+                  <IconX size={12} color={isDark ? '#1A1B1E' : 'white'} stroke={3} />
+                )
+              }
+            />
           </Group>
-        </Group>
+        </Stack>
       </Stack>
     </Drawer>
   );
@@ -150,11 +175,7 @@ export default function Overview() {
         onTimeRangeChange={handleTimeRangeChange}
       />
 
-      <ThemeToggleButton
-        className="mode2-button"
-        isDark={isDark}
-        toggleColorScheme={toggleColorScheme}
-      />
+
 
       <ActionIcon className="mode3-button" color={"red"} onClick={handleClick}>
         <IconAlertOctagonFilled />
