@@ -364,34 +364,46 @@ app.post('/run-script', (req, res) => {
     res.json({ message: 'Script executed successfully', output: stdout.trim() });
   });
 });
-const copyFileToSisterFolder = (fileName) => {
-  const sourcePath = path.join(PROJECTS_DIR, fileName);
-  const destinationPath = path.join(ACTIVE_DIR, fileName);
+app.post('/copy-to-sister-folder', (req, res) => {
+  const { fileName, username, password } = req.body;
 
-  // Check if the file exists in the source directory
+  if (!fileName || !username || !password) {
+    return res.status(400).json({ message: 'Missing required parameters' });
+  }
+
+  // Extract the base filename by locating '.csv' and taking everything before it
+  const baseFileName = fileName.split('.csv')[0] + '.csv';  // Keeps the entire base name before '.csv'
+
+  // Construct modified filename by appending username and password
+  const modifiedFileName = `${baseFileName.split('.')[0]}-${username}-${password}.csv`;
+
+  const sourcePath = path.join(PROJECTS_DIR, baseFileName);  // Look for the base file in the source directory
+  const destinationPath = path.join(ACTIVE_DIR, modifiedFileName);  // Destination with modified filename
+
+  // Check if the base file exists in the source directory
   if (!fs.existsSync(sourcePath)) {
-    return { error: `File "${fileName}" not found in ${PROJECTS_DIR}` };
+    return res.status(404).json({ message: `File "${baseFileName}" not found in ${PROJECTS_DIR}` });
   }
 
   try {
-    // Check if any file exists in the destination directory
+    // Check if any files exist in the destination directory and remove them
     const filesInActiveDir = fs.readdirSync(ACTIVE_DIR);
     if (filesInActiveDir.length > 0) {
-      // Remove all existing files in the active directory
-      for (const file of filesInActiveDir) {
+      filesInActiveDir.forEach(file => {
         const fileToDelete = path.join(ACTIVE_DIR, file);
         fs.unlinkSync(fileToDelete);
-      }
+      });
     }
 
-    // Copy the new file to the destination directory
+    // Copy the base file to the destination directory with the new name
     fs.copyFileSync(sourcePath, destinationPath);
-    return { message: `File copied successfully to: ${destinationPath}` };
+
+    return res.json({ message: `File copied successfully to: ${destinationPath}` });
   } catch (err) {
     console.error('Error copying file:', err);
-    return { error: `Error copying file: ${err.message}` };
+    return res.status(500).json({ message: `Error copying file: ${err.message}` });
   }
-};
+});
 
 app.post('/copy-to-sister-folder', (req, res) => {
   const { fileName } = req.body;
