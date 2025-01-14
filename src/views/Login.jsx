@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { TextInput, Button, PasswordInput, Input } from '@mantine/core'; // Import TextInput instead of Input
 import configData from '../config.json';
 import { useNavigate } from 'react-router-dom';
+import { showNotification } from '@mantine/notifications';
 
 const Login = () => {
     const [showLogin, setShowLogin] = useState(false);
@@ -33,7 +34,32 @@ const Login = () => {
         // Using `require()` to dynamically load images from `src/images/`
         logoSrc = require(`../images/${config.logoPath}`);
     }
+    const executeProgramStart = async () => {
+        try {
+            const response = await fetch('http://localhost:5001/run-script', {
+                method: 'POST',
+            });
 
+            if (!response.ok) {
+                throw new Error(`Failed to start program: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            showNotification({
+                title: 'Paziņojums no programmas',
+                message: `Programma palaista veiksmīgi`,
+                color: 'green',
+            });
+            navigate("/overviewMain/asd");
+        } catch (error) {
+            console.error('Error starting program:', error);
+            showNotification({
+                title: 'Failed to Start Program',
+                message: 'Unable to execute the script. Please check the server.',
+                color: 'red',
+            });
+        }
+    };
     const handleLogin = async () => {
         // Construct the body object for the POST request
         const body = JSON.stringify({
@@ -55,6 +81,7 @@ const Login = () => {
 
             if (response.ok) {
                 console.log('Login successful:', data);
+                await executeProgramStart()
                 navigate("/allProfiles")
             } else {
                 console.error('Login failed:', data.message);

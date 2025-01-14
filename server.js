@@ -350,18 +350,29 @@ const copyFileToSisterFolder = (fileName) => {
   const sourcePath = path.join(PROJECTS_DIR, fileName);
   const destinationPath = path.join(ACTIVE_DIR, fileName);
 
-  // Check if the file exists
+  // Check if the file exists in the source directory
   if (!fs.existsSync(sourcePath)) {
     return { error: `File "${fileName}" not found in ${PROJECTS_DIR}` };
   }
 
   try {
-    // Copy the file to the sister folder
+    // Check if any file exists in the destination directory
+    const filesInActiveDir = fs.readdirSync(ACTIVE_DIR);
+    if (filesInActiveDir.length > 0) {
+      // Remove all existing files in the active directory
+      for (const file of filesInActiveDir) {
+        const fileToDelete = path.join(ACTIVE_DIR, file);
+        fs.unlinkSync(fileToDelete);
+      }
+    }
+
+    // Copy the new file to the destination directory
     fs.copyFileSync(sourcePath, destinationPath);
     return { message: `File copied successfully to: ${destinationPath}` };
   } catch (err) {
-    console.error('Error copying file:', err);
-    return { error: `Error copying file: ${err.message}` };
+    console.error('Error processing files:', err);
+    return { error: `Error processing files: ${err.message}` };
+
   }
 };
 

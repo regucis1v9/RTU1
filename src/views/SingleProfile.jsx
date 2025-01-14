@@ -453,7 +453,6 @@ export default function SingleProfile() {
             console.log('File moved successfully:', result.message);
 
             // Proceed with starting the program
-            await executeProgramStart();
         } catch (error) {
             console.error('Error during startProgram:', error);
             alert('An unexpected error occurred while starting the program.');
@@ -508,33 +507,7 @@ export default function SingleProfile() {
 
     const differences = getDifferences();
     console.log(differences);  // Add this line for debugging
-
-    const executeProgramStart = async () => {
-        try {
-            const response = await fetch('http://localhost:5001/run-script', {
-                method: 'POST',
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to start program: ${response.statusText}`);
-            }
-
-            const result = await response.json();
-            showNotification({
-                title: 'Paziņojums no programmas',
-                message: `Programma palaista veiksmīgi`,
-                color: 'green',
-            });
-            navigate("/overviewMain/asd");
-        } catch (error) {
-            console.error('Error starting program:', error);
-            showNotification({
-                title: 'Failed to Start Program',
-                message: 'Unable to execute the script. Please check the server.',
-                color: 'red',
-            });
-        }
-    };
+    
 
     return (
         <AppShell withBorder={false} header={{ height: 60 }}>
@@ -644,13 +617,11 @@ export default function SingleProfile() {
                         <Button onClick={async () => {
                             await handleSaveChanges();
                             closeModal();
-                            await executeProgramStart();
                         }}>
                             Saglabāt un palaist
                         </Button>
                         <Button onClick={async () => {
                             closeModal();
-                            await executeProgramStart();
                         }} color="red">
                             Palaist bez saglabāšanas
                         </Button>
