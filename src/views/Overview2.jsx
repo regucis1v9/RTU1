@@ -6,10 +6,25 @@ import {
   IconCode, 
   IconDownload,
   IconClipboard,
+  IconSun,
+  IconMoon,
   IconUpload,
   IconTrash,
   IconX
 } from '@tabler/icons-react';
+import {
+  Button,
+  useMantineColorScheme,
+  useComputedColorScheme,
+  ActionIcon,
+  Switch,
+  Select,
+  Slider,
+  Group,
+  Stack,
+  Text,
+  Drawer
+} from "@mantine/core";
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
 import 'prismjs/components/prism-javascript';
@@ -17,8 +32,9 @@ import 'prismjs/components/prism-css';
 import 'prismjs/components/prism-python';
 import 'prismjs/components/prism-jsx';
 import { toast, Toaster } from 'react-hot-toast';
+import '../styles/overviewStyles2.scss'
 
-export default function CodeEditor() {
+export default function CodeEditor({ colorScheme, toggleColorScheme }) {
   const [csvFiles, setCsvFiles] = useState([]);
   const [draggedFile, setDraggedFile] = useState(null);
   const [currentCode, setCurrentCode] = useState('');
@@ -36,6 +52,8 @@ export default function CodeEditor() {
   const textareaRef = useRef(null);
   const lineNumberContainerRef = useRef(null);
   const codeHighlightRef = useRef(null);
+  const isDark = colorScheme === 'dark';
+
 
   const highlightCode = (code) => {
     let highlightedCode = Prism.highlight(code, Prism.languages.javascript, 'javascript');
@@ -50,6 +68,8 @@ export default function CodeEditor() {
     
     return highlightedCode;
   };
+
+  
 
   const handleCodeChange = (e) => {
     const code = e.target.value;
@@ -404,7 +424,7 @@ export default function CodeEditor() {
   }, []);
 
   return (
-    <div className="o-container">
+    <div className={`o-container ${isDark ? 'dark' : 'light'}`}>
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -416,7 +436,7 @@ export default function CodeEditor() {
         }}
       />
       <div className="botCont">
-      <div className="terminalContainer">
+        <div className={`terminalContainer ${isDark ? 'dark' : 'light'}`}>
           <div className="fileName-container">
             <input
               id="fileName"
@@ -424,19 +444,19 @@ export default function CodeEditor() {
               placeholder="Enter file name"
               value={fileName}
               onChange={(e) => setFileName(e.target.value)}
-              className="fileNameInput"
+              className={`fileNameInput ${isDark ? 'dark' : 'light'}`}
             />
           </div>
           <div className="terminalLeft">
             <div className="editorToolbar">
               <div className="editorActions">
                 {isSearchActive && (
-                  <div className="searchContainer">
+                  <div className={`searchContainer ${isDark ? 'dark' : 'light'}`}>
                     <IconSearch size={14} className="search-icon" />
                     <input
                       ref={searchInputRef}
                       type="text"
-                      className="searchInput"
+                      className={`searchInput ${isDark ? 'dark' : 'light'}`}
                       placeholder="Meklēt failā"
                       value={searchTerm}
                       onChange={handleSearchChange}
@@ -450,37 +470,37 @@ export default function CodeEditor() {
                     )}
                   </div>
                 )}
-                <button className="editorButton" onClick={handleCopyCode}>
+                <button className={`editorButton ${isDark ? 'dark' : 'light'}`} onClick={handleCopyCode}>
                   <IconClipboard size={16} />
                 </button>
-                <button className="editorButton" onClick={handleSearchToggle}>
+                <button className={`editorButton ${isDark ? 'dark' : 'light'}`} onClick={handleSearchToggle}>
                   <IconSearch size={16} />
                 </button>
               </div>
             </div>
             <div 
-              className="terminalBox" 
+              className={`terminalBox ${isDark ? 'dark' : 'light'}`} 
               onDragOver={handleDragOver}
               onDrop={handleDrop}
             >
               <div 
                 ref={lineNumberContainerRef} 
-                className="lineNumberContainer"
+                className={`lineNumberContainer ${isDark ? 'dark' : 'light'}`}
               >
                 {lineNumbers.map((number) => (
                   <div 
                     key={number} 
-                    className="lineNumber" 
+                    className={`lineNumber ${isDark ? 'dark' : 'light'}`} 
                     data-line={number}
                   >
                     {number}
                   </div>
                 ))}
               </div>
-              <div className="code-wrapper">
+              <div className={`code-wrapper ${isDark ? 'dark' : 'light'}`}>
                 <textarea
                   ref={textareaRef}
-                  className="tInput"
+                  className={`tInput ${isDark ? 'dark' : 'light'}`}
                   value={currentCode}
                   onChange={handleCodeChange}
                   spellCheck="false"
@@ -488,7 +508,7 @@ export default function CodeEditor() {
                 />
                 <pre 
                   ref={codeHighlightRef}
-                  className="code-highlight" 
+                  className={`code-highlight ${isDark ? 'dark' : 'light'}`} 
                   dangerouslySetInnerHTML={{ 
                     __html: highlightCode(currentCode) 
                   }}
@@ -497,22 +517,22 @@ export default function CodeEditor() {
             </div>
             <div className="buttonCont">
               <button 
-                className="testBtn"
+                className={`testBtn ${isDark ? 'dark' : 'light'}`}
                 onClick={handleTestCode}
               >
                 <IconCode size={16} style={{ marginRight: '8px' }} />
                 Testēt
               </button>
-              <button className="saveBtn" onClick={handleSaveCode}>
+              <button className={`saveBtn ${isDark ? 'dark' : 'light'}`} onClick={handleSaveCode}>
                 <IconDownload size={16} style={{ marginRight: '8px' }} />
-                Saglabāt
+                Palaist
               </button>
             </div>
             <div className="terminalOutputContainer">
               {terminalOutput.map((output, index) => (
                 <div 
                   key={index} 
-                  className={`terminal-line ${output.type}`}
+                  className={`terminal-line ${output.type} ${isDark ? 'dark' : 'light'}`}
                 >
                   {output.message}
                 </div>
@@ -520,33 +540,32 @@ export default function CodeEditor() {
             </div>
           </div>
           <div className="terminalRight">
-        <div className="csvListContainer">
-          {csvFiles.map((file) => (
-            <div
-              key={file.id}
-              className="csv-file"
-              draggable
-              onDragStart={() => handleDragStart(file)}
-              onClick={() => handleFileClick(file)}
-            >
-              <IconFile className="file-icon" size={20} />
-              <span className="file-name">{file.name}</span>
-              <button 
-                className="delete-file-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteFile(file);
-                }}
-              >
-                <IconTrash size={16} />
-              </button>
-            </div>
-          ))}
-
+            <div className={`csvListContainer ${isDark ? 'dark' : 'light'}`}>
+              {csvFiles.map((file) => (
+                <div
+                  key={file.id}
+                  className={`csv-file ${isDark ? 'dark' : 'light'}`}
+                  draggable
+                  onDragStart={() => handleDragStart(file)}
+                  onClick={() => handleFileClick(file)}
+                >
+                  <IconFile className="file-icon" size={20} />
+                  <span className="file-name">{file.name}</span>
+                  <button 
+                    className={`delete-file-btn ${isDark ? 'dark' : 'light'}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteFile(file);
+                    }}
+                  >
+                    <IconTrash size={16} />
+                  </button>
+                </div>
+              ))}
             </div>
             <div className="fileActionButtons">
               <button 
-                className="csvCreateBtn"
+                className={`csvCreateBtn ${isDark ? 'dark' : 'light'}`}
                 onClick={handleCreateNewFile}
               >
                 <IconPlus size={16} style={{ marginRight: '8px' }} />
@@ -568,4 +587,4 @@ export default function CodeEditor() {
       </div>
     </div>
   );
-}
+}  

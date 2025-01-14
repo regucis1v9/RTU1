@@ -25,35 +25,53 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const loadUsers = () => {
-  const rawData = fs.readFileSync(path.join(__dirname, 'users.json'));
-  return JSON.parse(rawData).users;
+  const usersFilePath = path.join(__dirname, '../U_Paroles/users.csv');
+  const users = [];
+
+  if (!fs.existsSync(usersFilePath)) {
+    throw new Error("Users CSV file not found.");
+  }
+
+  const rawData = fs.readFileSync(usersFilePath, 'utf8');
+  const rows = rawData.split('\n').filter(row => row.trim()); // Split lines and filter empty rows
+
+  rows.forEach((line, index) => {
+    if (index === 0) return; // Skip the header row ("user,password")
+    const [username, password] = line.split(','); // Parse each row into username and password
+    if (username && password) {
+      users.push({ username: username.trim(), password: password.trim() });
+    }
+  });
+
+  return users;
 };
 
-// Check the password using bcrypt
-const checkPassword = (storedHash, password) => {
-  return bcrypt.compareSync(password, storedHash);
+const checkPassword = (storedPassword, inputPassword) => {
+  return storedPassword === inputPassword; // Plain text comparison
 };
 
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
-  const users = loadUsers();
-  const user = users.find(user => user.username === username);
+  try {
+    const users = loadUsers();
+    const user = users.find(user => user.username === username);
 
-  if (user) {
-    if (checkPassword(user.password, password)) {
-      return res.json({ message: "Login successful!" });
+    if (user) {
+      if (checkPassword(user.password, password)) {
+        return res.json({ message: "Login successful!" });
+      } else {
+        return res.status(401).json({ message: "Incorrect password" });
+      }
     } else {
-      return res.status(401).json({ message: "Incorrect password" });
+      return res.status(404).json({ message: "User not found" });
     }
-  } else {
-    return res.status(404).json({ message: "User not found" });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 
-// Other routes can be added here
-
-// Start the serve
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, PROJECTS_DIR);
@@ -346,24 +364,44 @@ app.post('/run-script', (req, res) => {
     res.json({ message: 'Script executed successfully', output: stdout.trim() });
   });
 });
-const copyFileToSisterFolder = (fileName) => {
-  const sourcePath = path.join(PROJECTS_DIR, fileName);
-  const destinationPath = path.join(ACTIVE_DIR, fileName);
+app.post('/copy-to-sister-folder', (req, res) => {
+  const { fileName, username, password } = req.body;
 
-  // Check if the file exists
+  if (!fileName || !username || !password) {
+    return res.status(400).json({ message: 'Missing required parameters' });
+  }
+
+  // Extract the base filename by locating '.csv' and taking everything before it
+  const baseFileName = fileName.split('.csv')[0] + '.csv';  // Keeps the entire base name before '.csv'
+
+  // Construct modified filename by appending username and password
+  const modifiedFileName = `${baseFileName.split('.')[0]}-${username}-${password}.csv`;
+
+  const sourcePath = path.join(PROJECTS_DIR, baseFileName);  // Look for the base file in the source directory
+  const destinationPath = path.join(ACTIVE_DIR, modifiedFileName);  // Destination with modified filename
   if (!fs.existsSync(sourcePath)) {
-    return { error: `File "${fileName}" not found in ${PROJECTS_DIR}` };
+    return res.status(404).json({ message: `File "${baseFileName}" not found in ${PROJECTS_DIR}` });
   }
 
   try {
-    // Copy the file to the sister folder
+    // Check if any files exist in the destination directory and remove them
+    const filesInActiveDir = fs.readdirSync(ACTIVE_DIR);
+    if (filesInActiveDir.length > 0) {
+      filesInActiveDir.forEach(file => {
+        const fileToDelete = path.join(ACTIVE_DIR, file);
+        fs.unlinkSync(fileToDelete);
+      });
+    }
+
+    // Copy the base file to the destination directory with the new name
     fs.copyFileSync(sourcePath, destinationPath);
-    return { message: `File copied successfully to: ${destinationPath}` };
+
+    return res.json({ message: `File copied successfully to: ${destinationPath}` });
   } catch (err) {
     console.error('Error copying file:', err);
-    return { error: `Error copying file: ${err.message}` };
+    return res.status(500).json({ message: `Error copying file: ${err.message}` });
   }
-};
+});
 
 app.post('/copy-to-sister-folder', (req, res) => {
   const { fileName } = req.body;
