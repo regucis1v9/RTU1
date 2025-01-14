@@ -87,17 +87,44 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
     setIsFullScreen(!isFullScreen);
   };
 
-  const handleCloseCurrentAlert = () => {
-    onClose(currentAlertIndex);
+  const handleCloseCurrentAlert = async () => {
+    const currentAlert = alerts[currentAlertIndex]; // Get the current alert based on the index
+    const fileName = currentAlert?.fileName; // Ensure the alert has a 'fileName' field
+    
+    if (!fileName) {
+      console.error("Alert fileName is missing!");
+      return; // Exit if no alert fileName is found
+    }
+  
+    try {
+      // Send a DELETE request to the backend to delete the corresponding alert file
+      const response = await fetch(`http://localhost:5001/api/delete-alert`, {
+        method: 'POST',  // Assuming POST as the filename is passed in the body
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filename: fileName }), // Send fileName in the request body
+      });
+  
+      if (response.ok) {
+        console.log('Alert CSV file deleted successfully');
+        // Perform additional actions if needed after successful deletion
+        onClose(currentAlertIndex); // Close the alert after successful deletion
+      } else {
+        console.error('Failed to delete the file');
+      }
+    } catch (error) {
+      console.error('Error during file deletion:', error);
+    }
   };
 
   const handleCloseRequest = () => {
     setShowConfirm(true); // Show the confirmation dialog
   };
 
-  const confirmClose = () => {
+  const confirmClose = async () => {
     setShowConfirm(false);
-    onClose(currentAlertIndex); // Proceed with closing the alert
+    handleCloseCurrentAlert();
   };
 
   const cancelClose = () => {
@@ -122,7 +149,7 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
         left: 0,
         width: '100%',
         height: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(0, 0, 0, 0.2)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -134,7 +161,7 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
         position: 'fixed',
         top: position.y,
         left: position.x,
-        width: '350px',
+        width: '400px',
         background: alertStyle.background,
         color: alertStyle.textColor,
         borderRadius: '20px',
@@ -157,6 +184,7 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
         borderRadius: '20px',
         padding: '40px',
         maxWidth: '800px',
+        minWidth: '350px',
         width: '100%',
         boxShadow: '0 20px 50px rgba(0,0,0,0.2)',
         position: 'relative',
@@ -210,9 +238,9 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
         backdropFilter: 'blur(8px)', // Glassmorphism effect
         animation: 'fadeIn 0.3s ease-in-out',
       },
-      
-      confirmBox: {
-        background: 'rgba(255, 255, 255, 0.15)', // Translucent with blur
+      // Fullscreen confirm box
+      confirmBoxFullScreen: {
+        background: 'rgba(255, 255, 255, 0.15)', 
         backdropFilter: 'blur(10px)',
         border: '1px solid rgba(255, 255, 255, 0.3)',
         padding: '30px 20px',
@@ -222,24 +250,34 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
         maxWidth: '400px',
         width: '90%',
         animation: 'scaleUp 0.3s ease-in-out',
-        color: '#ffffff', // Modern white text
+        color: '#ffffff',
       },
-      
+      // Minimized confirm box
+      confirmBoxMinimized: {
+        background: 'rgba(255, 255, 255, 0.15)', 
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.3)',
+        padding: '20px 15px',
+        borderRadius: '10px',
+        textAlign: 'center',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.6)',
+        maxWidth: '400px',
+        width: '100%',
+        color: '#ffffff',
+      },
       confirmHeader: {
         fontSize: '1.8rem',
         fontWeight: '600',
         marginBottom: '15px',
         color: '#ffffff',
-        textShadow: '0 2px 4px rgba(0,0,0,0.4)', // Slight glow effect
+        textShadow: '0 2px 4px rgba(0,0,0,0.4)', 
       },
-      
       confirmText: {
         fontSize: '1rem',
         marginBottom: '25px',
         lineHeight: 1.6,
-        color: 'rgba(255, 255, 255, 0.85)', // Subtle translucence for text
+        color: 'rgba(255, 255, 255, 0.85)',
       },
-      
       confirmButton: {
         margin: '10px',
         padding: '12px 30px',
@@ -251,9 +289,8 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
         transition: 'all 0.3s ease-in-out',
         textTransform: 'uppercase',
       },
-      
       confirmYes: {
-        background: 'linear-gradient(135deg, #ff4a4a, #ff6161)', // Vibrant red gradient
+        background: 'linear-gradient(135deg, #ff4a4a, #ff6161)',
         color: '#ffffff',
         boxShadow: '0 5px 15px rgba(255, 97, 97, 0.5)',
         '&:hover': {
@@ -261,9 +298,8 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
           transform: 'translateY(-2px) scale(1.05)',
         },
       },
-      
       confirmNo: {
-        background: 'linear-gradient(135deg, #4caf50, #66bb6a)', // Vibrant green gradient
+        background: 'linear-gradient(135deg, #4caf50, #66bb6a)', 
         color: '#ffffff',
         boxShadow: '0 5px 15px rgba(102, 187, 106, 0.5)',
         '&:hover': {
@@ -294,7 +330,8 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
     };
   }, [isFullScreen, currentAlert, position, isDragging]);
 
-  if (!currentAlert) return null;
+  if (!currentAlert || !currentAlert.alerts || currentAlert.alerts.length === 0) return null;
+
 
   return (
     <div 
@@ -304,7 +341,7 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
     >
       <div style={styles.alertContainer}>
         <div style={isFullScreen ? styles.fullScreenContent : {}}>
-        <div style={{ ...styles.controlHeader, minWidth: '280px' }}>
+          <div style={{ ...styles.controlHeader, minWidth: '280px' }}>
             <button 
               onClick={toggleScreenMode} 
               style={styles.controlButton}
@@ -318,7 +355,7 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
               <X />
             </button>
           </div>
-
+  
           {alerts.length > 1 && !isFullScreen && (
             <div style={{ 
               textAlign: 'center', 
@@ -328,7 +365,7 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
               Alert {currentAlertIndex + 1} of {alerts.length}
             </div>
           )}
-
+  
           {alerts.length > 1 && isFullScreen && (
             <div style={{
               display: 'flex',
@@ -354,12 +391,15 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
               </button>
             </div>
           )}
-
+  
           <div style={styles.alertContent}>
-            <h2 style={styles.alertHeader}>{currentAlert.title}</h2>
-            <p style={styles.alertDetails}>{currentAlert.message}</p>
+            <h2 style={styles.alertHeader}>{currentAlert?.alerts[0]?.type}</h2>  
+            <p style={styles.alertDetails}>{currentAlert?.alerts[0]?.message}</p>  
+            <p style={styles.alertTime}>
+              {currentAlert?.alerts[0]?.time}
+            </p>
           </div>
-
+  
           {alerts.length > 1 && !isFullScreen && (
             <div style={{ 
               display: 'flex', 
@@ -370,45 +410,45 @@ export const AlertPopup = ({ alerts = [], onClose }) => {
                 <div 
                   key={index} 
                   style={{
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '50%',
-                    backgroundColor: index === currentAlertIndex ? 'white' : 'rgba(255,255,255,0.5)',
-                    margin: '0 5px',
+                    width: '10px', 
+                    height: '10px', 
+                    margin: '0 5px', 
+                    backgroundColor: currentAlertIndex === index ? 'white' : 'rgba(255,255,255,0.6)', 
+                    borderRadius: '50%', 
                     cursor: 'pointer'
-                  }}
-                  onClick={() => setCurrentAlertIndex(index)}
+                  }} 
+                  onClick={() => setCurrentAlertIndex(index)} 
                 />
               ))}
             </div>
           )}
         </div>
-      </div>
-
-      {showConfirm && (
-        <div style={styles.confirmOverlay}>
-          <div style={styles.confirmBox}>
-            <h2 style={styles.confirmHeader}>Are you sure?</h2>
-            <p style={styles.confirmText}>
-              This action cannot be undone. Please confirm if you wish to proceed.
-            </p>
-            <div>
-              <button
-                onClick={confirmClose}
-                style={{ ...styles.confirmButton, ...styles.confirmYes }}
-              >
-                Yes, Close
-              </button>
-              <button
-                onClick={cancelClose}
-                style={{ ...styles.confirmButton, ...styles.confirmNo }}
-              >
-                No, Cancel
-              </button>
+  
+        {showConfirm && (
+          <div style={styles.confirmOverlay}>
+            <div style={isFullScreen ? styles.confirmBoxFullScreen : styles.confirmBoxMinimized}>
+              <h3 style={styles.confirmHeader}>Are you sure?</h3>
+              <p style={styles.confirmText}>
+                Do you want to delete this alert?
+              </p>
+              <div>
+                <button
+                  style={{ ...styles.confirmButton, ...styles.confirmYes }}
+                  onClick={confirmClose}
+                >
+                  Yes, delete
+                </button>
+                <button
+                  style={{ ...styles.confirmButton, ...styles.confirmNo }}
+                  onClick={cancelClose}
+                >
+                  No, keep it
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
