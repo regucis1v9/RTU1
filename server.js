@@ -379,8 +379,6 @@ app.post('/copy-to-sister-folder', (req, res) => {
 
   const sourcePath = path.join(PROJECTS_DIR, baseFileName);  // Look for the base file in the source directory
   const destinationPath = path.join(ACTIVE_DIR, modifiedFileName);  // Destination with modified filename
-
-  // Check if the base file exists in the source directory
   if (!fs.existsSync(sourcePath)) {
     return res.status(404).json({ message: `File "${baseFileName}" not found in ${PROJECTS_DIR}` });
   }
@@ -420,4 +418,108 @@ app.post('/copy-to-sister-folder', (req, res) => {
 
   res.json({ message: result.message });
 });
+
+const csvParser = require('csv-parser');
+
+function parseCSVToAlert(filePath) {
+  return new Promise((resolve, reject) => {
+    const alerts = [];
+    fs.createReadStream(filePath)
+      .pipe(csvParser())
+      .on('data', (row) => {
+        // Trim the keys to remove leading/trailing spaces
+        const trimmedRow = Object.fromEntries(
+          Object.entries(row).map(([key, value]) => [key.trim(), value.trim()])
+        );
+
+        console.log('Parsed row:', trimmedRow); // Log the trimmed row for debugging
+
+        const alert = {
+          type: trimmedRow.type || '',
+          message: trimmedRow.message || '',
+          time: trimmedRow.Time || '',  // Make sure 'Time' is used as per CSV header
+        };
+        alerts.push(alert);
+      })
+      .on('end', () => {
+        resolve(alerts);
+      })
+      .on('error', (error) => {
+        reject(error);
+      });
+  });
+}
+
+app.get('/api/check-alerts', async (req, res) => {
+  try {
+    const alertsDir = path.resolve(__dirname, 'U_Paziņojumi');
+
+    if (!fs.existsSync(alertsDir)) {
+      console.error('Alerts directory not found');
+      return res.status(404).json({ message: 'Alerts directory not found' });
+    }
+
+    const files = fs.readdirSync(alertsDir).filter(file => file.endsWith('.csv'));
+
+    if (files.length === 0) {
+      console.error('No CSV files found in the alerts directory');
+      return res.status(404).json({ message: 'No alerts found' });
+    }
+
+    const alerts = await Promise.all(
+      files.map(async (file) => {
+        const filePath = path.join(alertsDir, file);
+        const parsedAlerts = await parseCSVToAlert(filePath);
+        return { fileName: file, alerts: parsedAlerts };
+      })
+    );
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({ alerts });
+  } catch (error) {
+    console.error('Error fetching alerts:', error);
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+
+app.post('/api/delete-alert', (req, res) => {
+  const { filename } = req.body; // Expecting filename in the body of the request
+
+  if (!filename) {
+    return res.status(400).json({ error: 'Filename is required' });
+  }
+
+  const filepath = path.resolve(__dirname, 'U_Paziņojumi', filename);  // Path to the file
+
+  // Check if the file exists before attempting to delete it
+  if (!fs.existsSync(filepath)) {
+    return res.status(404).json({ error: 'Alert file not found' });
+  }
+
+  // Attempt to delete the file
+  fs.unlink(filepath, (err) => {
+    if (err) {
+      console.error('Error deleting alert file:', err);
+      return res.status(500).json({ error: 'Failed to delete alert file' });
+    }
+
+    // Successfully deleted the alert file
+    res.json({ success: true, message: `Alert file '${filename}' deleted successfully` });
+  });
+});
+
+app.delete('/delete-alert/:alertId', (req, res) => {
+  const alertId = req.params.alertId;  // Get the alert ID from the URL parameter
+  const filePath = path.join(__dirname, 'U_Paziņojumi', `${alertId}.csv`);  // Path to the file
+  
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.error("Failed to delete the file:", err);
+      return res.status(500).json({ message: 'Error deleting file' });
+    }
+    console.log(`File ${alertId}.csv deleted successfully`);
+    res.status(200).json({ message: 'File deleted successfully' });
+  });
+});
+
 
