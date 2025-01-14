@@ -12,16 +12,15 @@ const PORT = 5001;
 const PROJECTS_DIR = path.resolve(__dirname, 'csvFiles');
 const ACTIVE_DIR = path.resolve(__dirname, '../active-folder');
 
+
 if (!fs.existsSync(PROJECTS_DIR)) {
   console.error(`Directory ${PROJECTS_DIR} does not exist!`);
   process.exit(1);
 }
-
 if (!fs.existsSync(ACTIVE_DIR)) {
   fs.mkdirSync(ACTIVE_DIR);
   console.log(`Sister folder created at: ${ACTIVE_DIR}`);
 }
-
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -155,8 +154,8 @@ app.get('/csvFiles', (req, res) => {
 app.post('/save-csv', (req, res) => {
   const { fileName, csvData } = req.body;
 
-  const defaultHeader = 'step,tMin,tMax,time,pressure,tMinUnit,tMaxUnit,shellTemp,coldStart,fan,activeShelf1,activeShelf2,activeShelf3';
-  const defaultRow = '1,0,0,1,1,C,C,0,0,0,1,1,1';
+  const defaultHeader = 'step,tMin,tMax,time,pressure,tUnit,pressureUnit,shellTemp,coldStart,fan,activeShelf1,activeShelf2,activeShelf3';
+  const defaultRow = '1,0,0,1,6,C,mbar,0,0,0,1,1,1';
 
 
   // Check if csvData exists and is not empty; otherwise, use default values
@@ -268,8 +267,8 @@ app.post('/updateFile', (req, res) => {
       tMax = 0,
       time = 0,
       pressure = 0,
-      tMinUnit = 'C',
-      tMaxUnit = 'C',
+      tUnit = 'C',
+      pressureUnit = 'C',
       shellTemp = 0,
       coldStart = 0,  // Default as integer (0 or 1)
       fan = 0,        // Default as integer (0 or 1)
@@ -285,7 +284,7 @@ app.post('/updateFile', (req, res) => {
     const activeShelf2Int = activeShelf2 ? 1 : 0;
     const activeShelf3Int = activeShelf3 ? 1 : 0;
 
-    return `${step},${tMin},${tMax},${time},${pressure},${tMinUnit},${tMaxUnit},${shellTemp},${coldStartInt},${fanInt},${activeShelf1Int},${activeShelf2Int},${activeShelf3Int}`;
+    return `${step},${tMin},${tMax},${time},${pressure},${tUnit},${pressureUnit},${shellTemp},${coldStartInt},${fanInt},${activeShelf1Int},${activeShelf2Int},${activeShelf3Int}`;
   });
 
   // Update existing rows and add new rows
@@ -347,37 +346,43 @@ app.post('/run-script', (req, res) => {
     res.json({ message: 'Script executed successfully', output: stdout.trim() });
   });
 });
-
-/**
- * Move a CSV file to the sister folder
- */
-const moveFileToSisterFolder = (fileName) => {
-  // Construct paths
+const copyFileToSisterFolder = (fileName) => {
   const sourcePath = path.join(PROJECTS_DIR, fileName);
   const destinationPath = path.join(ACTIVE_DIR, fileName);
 
-  // Check if the file exists
+  // Check if the file exists in the source directory
   if (!fs.existsSync(sourcePath)) {
     return { error: `File "${fileName}" not found in ${PROJECTS_DIR}` };
   }
 
   try {
-    // Move the file to the sister folder
-    fs.renameSync(sourcePath, destinationPath);
-    return { message: `File moved successfully to: ${destinationPath}` };
+    // Check if any file exists in the destination directory
+    const filesInActiveDir = fs.readdirSync(ACTIVE_DIR);
+    if (filesInActiveDir.length > 0) {
+      // Remove all existing files in the active directory
+      for (const file of filesInActiveDir) {
+        const fileToDelete = path.join(ACTIVE_DIR, file);
+        fs.unlinkSync(fileToDelete);
+      }
+    }
+
+    // Copy the new file to the destination directory
+    fs.copyFileSync(sourcePath, destinationPath);
+    return { message: `File copied successfully to: ${destinationPath}` };
   } catch (err) {
-    console.error('Error moving file:', err);
-    return { error: `Error moving file: ${err.message}` };
+    console.error('Error processing files:', err);
+    return { error: `Error processing files: ${err.message}` };
   }
 };
-app.post('/move-to-sister-folder', (req, res) => {
+
+app.post('/copy-to-sister-folder', (req, res) => {
   const { fileName } = req.body;
 
   if (!fileName) {
     return res.status(400).json({ message: 'File name is required' });
   }
 
-  const result = moveFileToSisterFolder(fileName);
+  const result = copyFileToSisterFolder(fileName);
 
   if (result.error) {
     return res.status(404).json({ message: result.error });
