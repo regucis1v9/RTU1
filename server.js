@@ -25,35 +25,53 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const loadUsers = () => {
-  const rawData = fs.readFileSync(path.join(__dirname, 'users.json'));
-  return JSON.parse(rawData).users;
+  const usersFilePath = path.join(__dirname, '../U_Paroles/users.csv');
+  const users = [];
+
+  if (!fs.existsSync(usersFilePath)) {
+    throw new Error("Users CSV file not found.");
+  }
+
+  const rawData = fs.readFileSync(usersFilePath, 'utf8');
+  const rows = rawData.split('\n').filter(row => row.trim()); // Split lines and filter empty rows
+
+  rows.forEach((line, index) => {
+    if (index === 0) return; // Skip the header row ("user,password")
+    const [username, password] = line.split(','); // Parse each row into username and password
+    if (username && password) {
+      users.push({ username: username.trim(), password: password.trim() });
+    }
+  });
+
+  return users;
 };
 
-// Check the password using bcrypt
-const checkPassword = (storedHash, password) => {
-  return bcrypt.compareSync(password, storedHash);
+const checkPassword = (storedPassword, inputPassword) => {
+  return storedPassword === inputPassword; // Plain text comparison
 };
 
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
-  const users = loadUsers();
-  const user = users.find(user => user.username === username);
+  try {
+    const users = loadUsers();
+    const user = users.find(user => user.username === username);
 
-  if (user) {
-    if (checkPassword(user.password, password)) {
-      return res.json({ message: "Login successful!" });
+    if (user) {
+      if (checkPassword(user.password, password)) {
+        return res.json({ message: "Login successful!" });
+      } else {
+        return res.status(401).json({ message: "Incorrect password" });
+      }
     } else {
-      return res.status(401).json({ message: "Incorrect password" });
+      return res.status(404).json({ message: "User not found" });
     }
-  } else {
-    return res.status(404).json({ message: "User not found" });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 
-// Other routes can be added here
-
-// Start the serve
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, PROJECTS_DIR);
@@ -370,9 +388,8 @@ const copyFileToSisterFolder = (fileName) => {
     fs.copyFileSync(sourcePath, destinationPath);
     return { message: `File copied successfully to: ${destinationPath}` };
   } catch (err) {
-    console.error('Error processing files:', err);
-    return { error: `Error processing files: ${err.message}` };
-
+    console.error('Error copying file:', err);
+    return { error: `Error copying file: ${err.message}` };
   }
 };
 
