@@ -273,7 +273,7 @@ export default function SingleProfile() {
             tMin: position === 'below' && index < data.length ? data[index].tMax : 0, // Set TMin to TMax of the previous row if it's 'below'
             tMax: 0,
             time: 1,
-            pressure: 1,
+            pressure: 6,
             tUnit: temperatureUnit,
             pressureUnit: pressureUnit,
             shellTemp: 0
@@ -458,6 +458,7 @@ export default function SingleProfile() {
             }
 
             console.log('File moved successfully:', result.message);
+            navigate(`/overviewMain/${fileName}`)
 
             // Proceed with starting the program or any further actions
         } catch (error) {
