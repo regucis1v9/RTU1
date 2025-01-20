@@ -5,7 +5,7 @@ const PressureUnitContext = createContext();
 export const usePressureUnit = () => useContext(PressureUnitContext);
 
 export const PressureUnitProvider = ({ children }) => {
-  const [pressureUnit, setPressureUnit] = useState(localStorage.getItem('pressureUnit') || 'Torr'); // Default is 'Torr'
+  const [pressureUnit, setPressureUnit] = useState(localStorage.getItem('pressureUnit') || 'mTorr'); // Default is 'Torr'
 
   // Update localStorage whenever pressure unit changes
   useEffect(() => {
@@ -13,7 +13,7 @@ export const PressureUnitProvider = ({ children }) => {
   }, [pressureUnit]);
 
   const togglePressureUnit = () => {
-    setPressureUnit((prev) => (prev === 'Torr' ? 'Bar' : 'Torr'));
+    setPressureUnit((prev) => (prev === 'mTorr' ? 'mbar' : 'mTorr'));
   };
 
   return (

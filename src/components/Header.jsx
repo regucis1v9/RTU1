@@ -169,7 +169,7 @@ export default function Header({
                                 value={currentPressureUnit}
                                 allowDeselect={false}
                                 onChange={currentTogglePressureUnit}
-                                data={["Torr", "Bar"]}
+                                data={["mTorr", "mbar"]}
                                 classNames={dropdown}
                                 comboboxProps={{
                                     transitionProps: { transition: 'pop', duration: 200 },
