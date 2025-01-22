@@ -4,7 +4,7 @@ import Notiflix from 'notiflix';
 import { FaSearchPlus, FaSearchMinus, FaUndo } from 'react-icons/fa';
 import Sidebar from '../Sidebar';
 
-const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOpen, onSidebarClose }) => {
+const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOpen, onSidebarClose, units }) => {
     const tooltipRef = useRef(null);
     const [data, setData] = useState([]);
     const [chartWidth, setChartWidth] = useState(800);  // Example width, adjust as needed
@@ -36,7 +36,92 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
       vent: '#50c878', pressure: '#4a90e2'
     };
 
-    
+    const convertTemperature = (value) => {
+        if (units.temperature === 'fahrenheit') {
+          return (value * 9/5) + 32;
+        }
+        return value;
+      };
+
+      const convertPressure = (value) => {
+        switch (units.pressure) {
+          case 'bar':
+            return value * 0.001; // Convert from Pascal to Bar
+          case 'torr':
+            return value * 0.00750062; // Convert from Pascal to Torr
+          default:
+            return value; // Default is Pascal
+        }
+      };
+
+      const getYAxisRange = () => {
+        if (chartType === 'pressure') {
+          // Handle pressure chart
+          const convertedPressures = collectedData.map(d => convertPressure(d.pressure));
+          const minPressure = d3.min(convertedPressures);
+          const maxPressure = d3.max(convertedPressures);
+          const padding = (maxPressure - minPressure) * 0.1; // Add 10% padding
+          return [
+            minPressure - padding,
+            maxPressure + padding
+          ];
+        } else if (chartType.includes('temperature')) {
+          // Handle temperature charts
+          const baseMinTemp = -40;
+          const baseMaxTemp = -25;
+          
+          if (units.temperature === 'fahrenheit') {
+            return [
+              convertTemperature(baseMinTemp),
+              convertTemperature(baseMaxTemp)
+            ];
+          }
+          return [baseMinTemp, baseMaxTemp];
+        }
+        
+        // Fallback case
+        return [0, 100];
+      };
+
+      const getYAxisUnit = () => {
+        if (chartType === 'pressure') {
+          switch (units.pressure) {
+            case 'bar':
+              return ' bar';
+            case 'torr':
+              return ' Torr';
+            default:
+              return ' Pa';
+          }
+        }
+        return units.temperature === 'fahrenheit' ? '°F' : '°C';
+      };
+
+    const getButtonStyle = (temp) => ({
+        backgroundColor: lineVisibility[temp] ? COLORS[temp] : '#gray',
+        opacity: lineVisibility[temp] ? 1 : 0.5,
+        color: 'white',
+        padding: '5px 10px',
+        marginTop: chartType === 'temperature' ? '20px' : '5px',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease', // Smooth transition for visual changes
+    });
+    const getChartTitle = (type) => {
+        switch(type) {
+            case 'temperature':
+                return 'TEMPERATURA';
+            case 'temperature2':
+                return 'TEMPERATURA2';
+            case 'pressure':
+                return 'SPIEDIENS';
+            default:
+                return '';
+        }
+    };
+
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -133,6 +218,17 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
       const svg = d3.select(svgRef.current)
           .attr('width', dimensions.width)
           .attr('height', dimensions.height);
+
+
+        // Add chart title with updated styling
+        svg.append('text')
+            .attr('x', dimensions.width / 2)
+            .attr('y', margin.top / 1.3)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '16px')
+            .attr('font-weight', 'bold')
+            .attr('fill', '#666666')  // Grey color
+            .text(getChartTitle(chartType));
   
       const chartArea = svg.append('g')
           .attr('transform', `translate(${margin.left},${margin.top})`);
@@ -143,6 +239,8 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
       .append('rect')
       .attr('width', width)
       .attr('height', height);
+
+
   
       const clippedArea = chartArea.append('g')
           .attr('clip-path', 'url(#chart-clip)');
@@ -152,10 +250,10 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
           .range([0, width]);
   
           const yScale = d3.scaleLinear()
-          .domain(chartType === 'pressure' 
-              ? [d3.min(collectedData, d => d.pressure) - 10, d3.max(collectedData, d => d.pressure) + 10]
-              : [-40, -25])
+          .domain(getYAxisRange())
           .range([height, 0]);
+
+          
   
           const zoom = d3.zoom()
   .scaleExtent([1, 20])
@@ -206,9 +304,25 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
           .attr('transform', `translate(0,${height})`)
           .call(d3.axisBottom(xScale));
   
-      chartArea.append('g')
+          chartArea.append('g')
           .attr('class', 'y-axis')
-          .call(d3.axisLeft(yScale));
+          .call(d3.axisLeft(yScale))
+          .call(g => {
+              g.select('.domain').attr('stroke-width', 1.5);
+              g.selectAll('text')
+                  .attr('fill', '#666666')  // Grey color
+                  .attr('transform', 'translate(5,0)');  // Move labels slightly to the right
+          });
+
+          chartArea.append('text')
+          .attr('transform', 'rotate(-90)')
+          .attr('y', -margin.left + 30)  // Adjusted position
+          .attr('x', -(height / 2))
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '12px')
+          .attr('fill', '#666666')  // Grey color
+          .text(`VALUE (${getYAxisUnit(chartType)})`)  // All caps
+          .style('text-transform', 'uppercase');
   
       chartArea.append('g')
           .attr('class', 'grid')
@@ -230,6 +344,8 @@ const MainChart = ({ timeRange, chartType = 'temperature', isPaused, isSidebarOp
           .selectAll('.tick line')
           .attr('stroke', '#ccc')
           .attr('stroke-opacity', 0.2);
+
+
   
 // Existing drawLine function for non-pressure charts
 const drawLine = (key, color) => {
@@ -237,7 +353,9 @@ const drawLine = (key, color) => {
 
     const filteredData = collectedData.map(d => ({
         time: d.time,
-        [key]: d[key],
+        [key]: chartType.includes('temperature') 
+            ? convertTemperature(d[key])  // Remove the second parameter
+            : d[key],
         key: key
     })).filter(d => d[key] !== undefined);
 
@@ -253,7 +371,7 @@ const drawLine = (key, color) => {
         .attr('stroke-width', 2)
         .attr('d', lineGenerator);
 
-    chartArea.selectAll(`.dot-${key}`)
+        chartArea.selectAll(`.dot-${key}`)
         .data(filteredData)
         .enter()
         .append('circle')
@@ -267,7 +385,8 @@ const drawLine = (key, color) => {
             tooltip.style.visibility = 'visible';
             tooltip.style.left = `${event.pageX}px`;
             tooltip.style.top = `${event.pageY - 30}px`;
-            tooltip.querySelector('#tooltip-value').textContent = `${key}: ${d[key].toFixed(2)}`;
+            tooltip.querySelector('#tooltip-value').textContent = 
+                `${key}: ${d[key].toFixed(2)}${getYAxisUnit()}`;
         })
         .on('mouseout', () => {
             tooltipRef.current.style.visibility = 'hidden';
@@ -278,7 +397,7 @@ const drawLine = (key, color) => {
 const drawPressureLine = (key, color) => {
     const filteredData = collectedData.map(d => ({
         time: d.time,
-        [key]: d[key],
+        [key]: convertPressure(d[key]),
         key: key
     })).filter(d => d[key] !== undefined);
 
@@ -294,21 +413,22 @@ const drawPressureLine = (key, color) => {
         .attr('stroke-width', 2)
         .attr('d', lineGenerator);
 
-    chartArea.selectAll('.pressure-dot')
+        chartArea.selectAll('.pressure-dot')
         .data(filteredData)
         .enter()
         .append('circle')
         .attr('class', 'pressure-dot')
         .attr('cx', d => xScale(d.time))
         .attr('cy', d => yScale(d[key]))
-        .attr('r', 3)  // Adjusted radius to match other charts
+        .attr('r', 3)
         .attr('fill', color)
         .on('mouseover', (event, d) => {
             const tooltip = tooltipRef.current;
             tooltip.style.visibility = 'visible';
             tooltip.style.left = `${event.pageX}px`;
             tooltip.style.top = `${event.pageY - 30}px`;
-            tooltip.querySelector('#tooltip-value').textContent = `Pressure: ${d[key].toFixed(2)}`;
+            tooltip.querySelector('#tooltip-value').textContent = 
+                `Pressure: ${d[key].toFixed(2)}${getYAxisUnit()}`;
         })
         .on('mouseout', () => {
             tooltipRef.current.style.visibility = 'hidden';
@@ -380,7 +500,7 @@ const drawPressureLine = (key, color) => {
       }
   
       zoomRef.current = { zoom, zoomRect, xScale, yScale };
-  }, [dimensions, timeRange, collectedData, lineVisibility, chartType]);
+  }, [dimensions, timeRange, collectedData, lineVisibility, chartType, units]);
   
 
     const toggleLine = (line) => {
@@ -408,8 +528,7 @@ const drawPressureLine = (key, color) => {
 
     return (
         <div ref={containerRef} className="chart" style={{ position: 'relative', width: '100%' }}>
-
-<div
+            <div
                 ref={tooltipRef}
                 style={{
                     position: 'absolute',
@@ -418,17 +537,17 @@ const drawPressureLine = (key, color) => {
                     color: 'white',
                     borderRadius: '5px',
                     pointerEvents: 'none',
-                    visibility: 'hidden', // Initially hidden
-                    transform: 'translate(-50%, -100%)', // Tooltip above the point
+                    visibility: 'hidden',
+                    transform: 'translate(-50%, -100%)',
                 }}
             >
-              <span id="tooltip-value">Y: </span>
-              </div>
+                <span id="tooltip-value">Y: </span>
+            </div>
             {isSidebarOpen && <Sidebar isOpen={isSidebarOpen} onClose={onSidebarClose} />}
             <div className="svg-container" style={{ height: '100%', width: '100%' }}>
                 <svg ref={svgRef} style={{ width: '100%', height: '100%' }} />
             </div>
-
+    
             {(chartType === 'temperature' || chartType === 'temperature2') && (
                 <div style={{ position: 'absolute', left: '10px', display: 'flex', gap: '10px' }}>
                     {chartType === 'temperature' 
@@ -437,13 +556,15 @@ const drawPressureLine = (key, color) => {
                                 key={temp}
                                 onClick={() => toggleLine(temp)}
                                 style={{
-                                    backgroundColor: COLORS[temp],
+                                    backgroundColor: lineVisibility[temp] ? COLORS[temp] : '#gray',
+                                    opacity: lineVisibility[temp] ? 1 : 0.5,
                                     color: 'white',
                                     padding: '5px 10px',
                                     marginTop: '20px',
                                     border: 'none',
                                     borderRadius: '5px',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease'
                                 }}
                             >
                                 {temp}
@@ -454,13 +575,15 @@ const drawPressureLine = (key, color) => {
                                 key={temp}
                                 onClick={() => toggleLine(temp)}
                                 style={{
-                                    backgroundColor: COLORS[temp],
+                                    backgroundColor: lineVisibility[temp] ? COLORS[temp] : '#gray',
+                                    opacity: lineVisibility[temp] ? 1 : 0.5,
                                     color: 'white',
                                     padding: '5px 10px',
                                     marginTop: '5px',
                                     border: 'none',
                                     borderRadius: '5px',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease'
                                 }}
                             >
                                 {temp}
@@ -469,65 +592,65 @@ const drawPressureLine = (key, color) => {
                     }
                 </div>
             )}
-
+    
             <div
-        style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-          display: 'flex',
-          flexDirection: 'row',
-          gap: '10px',
-        }}
-      >
-        <button
-          onClick={handleZoomIn}
-          style={{
-            backgroundColor: '#4caf50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            padding: '8px',
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <FaSearchPlus />
-        </button>
-        <button
-          onClick={handleZoomOut}
-          style={{
-            backgroundColor: '#ff5722',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            padding: '8px',
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <FaSearchMinus />
-        </button>
-        <button
-          onClick={handleReset}
-          style={{
-            backgroundColor: '#2196f3',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            padding: '8px',
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <FaUndo />
-          </button>
+                style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: '10px',
+                }}
+            >
+                <button
+                    onClick={handleZoomIn}
+                    style={{
+                        backgroundColor: '#4caf50',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        padding: '8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <FaSearchPlus />
+                </button>
+                <button
+                    onClick={handleZoomOut}
+                    style={{
+                        backgroundColor: '#ff5722',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        padding: '8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <FaSearchMinus />
+                </button>
+                <button
+                    onClick={handleReset}
+                    style={{
+                        backgroundColor: '#2196f3',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        padding: '8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <FaUndo />
+                </button>
             </div>
         </div>
     );
