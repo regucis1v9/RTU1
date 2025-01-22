@@ -6,7 +6,6 @@ import {
   ActionIcon,
   Switch,
   Select,
-  Slider,
   Group,
   Stack,
   Text,
@@ -41,9 +40,7 @@ export const TIME_RANGES = {
   '4h': 14400
 };
 
-
-
-const SettingsDrawer = ({ opened, onClose, colorScheme, timeRange, onTimeRangeChange }) => {
+const SettingsDrawer = ({ opened, onClose, colorScheme, timeRange, onTimeRangeChange, onUnitChange, units }) => {
   const isDark = colorScheme === 'dark';
   const [controls, setControls] = useState({
     spiediens: false,
@@ -56,6 +53,14 @@ const SettingsDrawer = ({ opened, onClose, colorScheme, timeRange, onTimeRangeCh
       ...prev,
       [control]: !prev[control]
     }));
+  };
+
+  const handleTempUnitChange = (value) => {
+    onUnitChange('temperature', value);
+  };
+
+  const handlePressureUnitChange = (value) => {
+    onUnitChange('pressure', value);
   };
 
   return (
@@ -83,6 +88,36 @@ const SettingsDrawer = ({ opened, onClose, colorScheme, timeRange, onTimeRangeCh
       }}
     >
       <Stack spacing="lg" p="md" style={{ height: '100%' }}>
+        <Stack spacing="md" mt="xl">
+          <Text size="lg" fw={500} mb="xs">Mērvienības</Text>
+          
+          <Group justify="space-between" align="center">
+            <Text>Temperatūra</Text>
+            <Select
+              value={units.temperature}
+              onChange={handleTempUnitChange}
+              data={[
+                { value: 'celsius', label: 'Celsius (°C)' },
+                { value: 'fahrenheit', label: 'Fahrenheit (°F)' }
+              ]}
+              style={{ width: 200 }}
+            />
+          </Group>
+
+          <Group justify="space-between" align="center">
+            <Text>Spiediens</Text>
+            <Select
+              value={units.pressure}
+              onChange={handlePressureUnitChange}
+              data={[
+                { value: 'pascal', label: 'Pascal (Pa)' },
+                { value: 'bar', label: 'Bar' },
+                { value: 'torr', label: 'Torr' }
+              ]}
+              style={{ width: 200 }}
+            />
+          </Group>
+        </Stack>
         
         <Stack spacing="md" mt="xl">
           <Text size="lg" fw={500} mb="xs">Kontroles</Text>
@@ -150,9 +185,13 @@ export default function Overview() {
   const isDark = colorScheme === 'dark';
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [timeRange, setTimeRange] = useState('1m'); // Default time range
+  const [timeRange, setTimeRange] = useState('1m');
   const { isPaused, togglePause } = usePause();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [units, setUnits] = useState({
+    temperature: 'celsius',
+    pressure: 'pascal'
+  });
 
   const handleClick = () => togglePause(!isPaused);
   const handleSidebarOpen = () => setIsSidebarOpen(true);
@@ -164,6 +203,12 @@ export default function Overview() {
   };
   const handleSettingsClick = () => setIsSettingsOpen(true);
   const handleSettingsClose = () => setIsSettingsOpen(false);
+  const handleUnitChange = (type, value) => {
+    setUnits(prev => ({
+      ...prev,
+      [type]: value
+    }));
+  };
 
   return (
     <div className={`mainCont ${isDark ? 'dark' : 'light'}`}>
@@ -173,11 +218,11 @@ export default function Overview() {
         colorScheme={colorScheme}
         timeRange={timeRange}
         onTimeRangeChange={handleTimeRangeChange}
+        onUnitChange={handleUnitChange}
+        units={units}
       />
 
-
-
-      <ActionIcon className="mode3-button" color={"red"} onClick={handleClick}>
+      <ActionIcon className="mode3-button" color="red" onClick={handleClick}>
         <IconAlertOctagonFilled />
       </ActionIcon>
 
@@ -185,7 +230,7 @@ export default function Overview() {
 
       <ActionIcon
         className="mode4-button"
-        color={"blue"}
+        color="blue"
         onClick={handleSettingsClick}
         title="Settings"
       >
@@ -194,7 +239,7 @@ export default function Overview() {
 
       <ActionIcon
         className="mode5-button"
-        color={"blue"}
+        color="blue"
         onClick={handleSidebarOpen}
         title="Sidebar"
       >
@@ -203,7 +248,7 @@ export default function Overview() {
 
       <Link to="/singleProfile/:fileName">
         <Button className='backButton' variant="transparent" color={buttonColor}>
-          <IconArrowLeft stroke={3}></IconArrowLeft>
+          <IconArrowLeft stroke={3} />
         </Button>
       </Link>
 
@@ -211,8 +256,9 @@ export default function Overview() {
         <MainChart
           timeRange={timeRange}
           onTimeRangeChange={handleTimeRangeChange}
-          chartType={'temperature'}
+          chartType="temperature"
           isPaused={isPaused}
+          units={units}
         />
       </div>
 
@@ -220,8 +266,9 @@ export default function Overview() {
         <MainChart
           timeRange={timeRange}
           onTimeRangeChange={handleTimeRangeChange}
-          chartType={'pressure'}
+          chartType="pressure"
           isPaused={isPaused}
+          units={units}
         />
       </div>
 
@@ -229,8 +276,9 @@ export default function Overview() {
         <MainChart
           timeRange={timeRange}
           onTimeRangeChange={handleTimeRangeChange}
-          chartType={'temperature2'}
+          chartType="temperature2"
           isPaused={isPaused}
+          units={units}
         />
       </div>
 
