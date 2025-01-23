@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project Configuration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(145deg, #f6f8fd 0%, #f1f5f9 100%);
+            color: #1e293b;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .config-container {
+            width: 800px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .config-header {
+            background: linear-gradient(to right, #0f172a, #1e293b);
+            padding: 16px 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .config-header__title {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .config-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .config-form {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .config-form__group {
+            margin-bottom: 20px;
+        }
+
+        .config-form__label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #334155;
+            font-size: 14px;
+        }
+
+        .config-form__input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .config-form__input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .config-form__file-wrapper {
+            margin-top: 8px;
+        }
+
+        .config-form__file-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #475569;
+            transition: all 0.2s;
+        }
+
+        .config-form__file-button:hover {
+            background: #e2e8f0;
+        }
+
+        .config-form__file-input {
+            display: none;
+        }
+
+        .config-form__preview {
+            margin-top: 16px;
+            background: #f8fafc;
+            border: 2px dashed #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .config-form__preview:hover {
+            border-color: #94a3b8;
+        }
+
+        .config-form__preview-image {
+            max-width: 100%;
+            max-height: 180px;
+            object-fit: contain;
+            display: none;
+            border-radius: 6px;
+        }
+
+        .config-form__preview-placeholder {
+            color: #94a3b8;
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
+        }
+
+        .config-form__preview-icon {
+            font-size: 24px;
+        }
+
+        .config-form__buttons {
+            margin-top: auto;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .config-button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .config-button--primary {
+            background: linear-gradient(to right, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+        }
+
+        .config-button--primary:hover {
+            background: linear-gradient(to right, #2563eb, #1d4ed8);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+        }
+
+        .config-button--secondary {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+        }
+
+        .config-button--secondary:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="config-container">
+        <header class="config-header">
+            <h1 class="config-header__title">Project Configuration</h1>
+        </header>
+        <main class="config-content">
+            <div class="config-form">
+                <div class="config-form__group">
+                    <label class="config-form__label" for="titleInput">Project Title</label>
+                    <input type="text" id="titleInput" class="config-form__input" placeholder="Enter your project title">
+                </div>
+                <div class="config-form__group">
+                    <label class="config-form__label" for="logoInput">Project Logo</label>
+                    <div class="config-form__file-wrapper">
+                        <label class="config-form__file-button" for="logoInput">
+                            <span class="config-form__file-icon">📁</span>
+                            Choose Logo File
+                        </label>
+                        <input type="file" id="logoInput" class="config-form__file-input" accept="image/*">
+                    </div>
+                    <div class="config-form__preview">
+                        <img id="previewImage" class="config-form__preview-image" alt="Logo preview">
+                        <div id="previewPlaceholder" class="config-form__preview-placeholder">
+                            <span class="config-form__preview-icon">🖼️</span>
+                            Drop your logo here or click to select
+                        </div>
+                    </div>
+                </div>
+                <div class="config-form__buttons">
+                    <button class="config-button config-button--secondary" onclick="cancel()">Cancel</button>
+                    <button class="config-button config-button--primary" onclick="apply()">Save Changes</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        document.getElementById('logoInput').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('previewImage');
+            const placeholder = document.getElementById('previewPlaceholder');
+
+            if (file) {
+                if (!file.type.startsWith('image/')) {
+                    alert('Please upload a valid image file!');
+                    e.target.value = '';
+                    preview.style.display = 'none';
+                    placeholder.style.display = 'flex';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+                placeholder.style.display = 'flex';
+            }
+        });
+
+        function apply() {
+            const title = document.getElementById('titleInput').value.trim();
+            const logoInput = document.getElementById('logoInput');
+            const file = logoInput.files[0];
+
+            if (!title) {
+                alert('Please enter the project title!');
+                return;
+            }
+
+            if (!file) {
+                alert('Please add a valid logo!');
+                return;
+            }
+
+            try {
+                const logoPath = file.path;
+                ipcRenderer.send('update-config', { title, logoPath });
+            } catch (error) {
+                console.error('Error sending data to main process:', error);
+                alert('An error occurred while applying changes. Check the console for details.');
+            }
+        }
+
+        function cancel() {
+            window.close();
+        }
+    </script>
+</body>
+</html>
